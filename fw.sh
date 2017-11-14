@@ -13,7 +13,7 @@
 
 PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
 
-#Deklaracja ścieżki do katalogu z plikami konfiguracyjnymi dla skryptu
+#Ścieżki do katalogu z plikami konfiguracyjnymi dla skryptu
 confdir=/opt/gateway/conf
 oldconfdir=/opt/gateway/oldconf
 
@@ -28,17 +28,16 @@ public_ip_file=fw_public_ip
 lan_banned_dst_ports_file=fw_lan_banned_dst_ports
 routed_ip_file=fw_routed_ip
 
-#Deklaracja url-a do pobierania plików konfiguracji z LMS
+#Adres do wygenerowanych przez LMS plików dla niniejszego skryptu 
 scpurl=root@192.168.102.79:/opt/gateway
 
-#Deklaracja url-a dla wykonywania zdalnych poleceń na maszynie z bazą danych LMS 
+#Adres bazy danych LMS 
 sshurl=root@192.168.102.79
 
-#Deklaracja url-a kwerendy do serwera baz danych LMS wyciągającego status przeładowania lmsd
-#Warning: user gateway has select privileges to lms.hosts table only with no password
+#Kwerenda do serwera bazy danych LMS, pobierająca  status przeładowania lmsd
 dburl="mysql -s -u gateway lms -e \"select reload from hosts where id=4\""
 
-#Deklaracja adresu ip dla serwera proxy
+#Adres IP serwera proxy
 proxy_ip=192.168.100.1
 
 
