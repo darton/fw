@@ -1,6 +1,9 @@
+
+Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) pobierając konfigurację z LMS (http://lms.org.pl) 
+
 #### GATEWAY ####
 
-Na maszynie GATEWAY pełniącej funkcję rutera/shapera, na której pracuje skrypt fw.sh, konieczne jest ustawienie w crontab odpowiednich wpisów:
+Maszyna zwana GATEWAY pełni funkcję rutera/shapera, na której pracuje skrypt fw.sh, konieczne jest ustawienie w crontab odpowiednich wpisów:
 
 Wpis uruchamiający skrypt fw.sh z parametrem lmsd, który sprawdza co minutę status przeładowania w LMS. W przypadku jego ustawienia przez operatora LMS pobiera konfigurację z LMS i przeładowywuje firewall
 
