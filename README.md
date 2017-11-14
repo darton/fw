@@ -1,18 +1,20 @@
 fw.sh
 
 Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) i/lub shaper pobierając swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl). 
+
 W celu optymalnej wydajności przetwarzania pakietów, korzysta z ipset.
+
 Skrypt posiada mechanizm pozwalający na unikanie, kiedy tylko to możliwe niepotrzebnego przeładowania reguł iptables, korzystając z mechanizmu podmiany gotowych list ipset. 
+
 Odczytuje także cyklicznie stany liczników pakietów i ładuje je do tabeli stats bazy danych LMS, co pozwala na generowanie statystyk ruchu dla klientów.
 
-#### GATEWAY ####
+### Gateway ###
 
-Maszyna zwana GATEWAY pełni funkcję rutera/shapera, na której pracuje skrypt fw.sh, konieczne jest ustawienie w crontab odpowiednich wpisów:
+Na maszynie na której pracuje skrypt fw.sh, konieczne jest ustawienie w crontab odpowiednich wpisów:
 
 Wpis uruchamiający skrypt fw.sh z parametrem lmsd, który sprawdza co minutę status przeładowania w LMS. W przypadku jego ustawienia przez operatora LMS pobiera konfigurację z LMS i przeładowywuje firewall
 
 * * * * * /opt/gateway/scripts/fw.sh lmsd
-
 
 Wpisy uruchamiające skrypt fw.sh z parametrem qos, które przełączają shaper na taryfę nocną.
 
@@ -25,7 +27,6 @@ Wpisy uruchamiające skrypt fw.sh z parametrem qos, które przełączają shaper
 #### LMS ####
 
 Na maszynie z zainstalowanym LMS należy uruchamiać cyklicznie np co 5 minut skrypt zapisujący statystyki do bazy danych LMS, wykonujący polecenia:
-
 
 ssh -p 222 root@192.168.100.1 '/opt/gateway/scripts/fw.sh stats' > /var/log/traffic.log
 
