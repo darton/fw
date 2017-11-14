@@ -1,5 +1,9 @@
+fw.sh
 
-Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) i/lub shaper pobierając konfigurację z LMS (http://lms.org.pl) 
+Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) i/lub shaper pobierając swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl). 
+W celu optymalnej wydajności przetwarzania pakietów, korzysta z ipset.
+Skrypt posiada mechanizm pozwalający na unikanie, kiedy tylko to możliwe niepotrzebnego przeładowania reguł iptables, korzystając z mechanizmu podmiany gotowych list ipset. 
+Odczytuje także cyklicznie stany liczników pakietów i ładuje je do tabeli stats bazy danych LMS, co pozwala na generowanie statystyk ruchu dla klientów.
 
 #### GATEWAY ####
 
