@@ -46,9 +46,9 @@ grantedhost 192.168.102.105 </br>
 
 Plik fw_routed_ip służy to prowadzenia rejestru sieci oraz adresów IP bramek (gateway) na które te sieci mają być rutowane w formacie:
 Sieć/prefiks adres_IP_bramki
-172.16.0.128/30 172.16.1.7
-172.16.1.128/30 172.16.1.8
-172.16.3.128/30 172.16.1.9
+172.16.0.128/30 172.16.1.7 </br>
+172.16.1.128/30 172.16.1.8 </br>
+172.16.3.128/30 172.16.1.9 </br>
 
 
 W celu optymalnej wydajności fw.sh korzysta z ipset. 
