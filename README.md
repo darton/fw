@@ -4,7 +4,7 @@ Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) i/lub s
 
 Sposó użycia
 
- ./fw.sh
+ ./fw.sh </br>
 Usage: fw.sh start|stop|restart|reload|stats|lmsd|qos|status
 
 
