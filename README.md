@@ -99,41 +99,30 @@ Wykonanie ./fw.sh stop zatrzyma zaporę, wyłączy forwardowanie pakietów włac
 
 wykona ./fw start a potem ./fw stop
 
-Przy wspólpracy z LMS skrypt może pracować w sposób automatyczny. Wtedy status przeładowania ustawia się w LMS (http://lms.org.pl)
+Przy wspólpracy z LMS skrypt może pracować w sposób automatyczny. Wtedy status przeładowania ustawia operator LMS (http://lms.org.pl)
 Aby to było możliwe należy skrypt uruchamiać w cron co minutę.
 
 "* * * * * /opt/gateway/scripts/fw.sh lmsd"
 
-Skrypt sprawdzi czy w LMS został ustawiony status przeładowania i wykona przeładowanie lub restart w zależności które pliki i co wnich zostało zmienione. Jeśli pliki nie zostały zmienione a w LMS został ustawiony status przeładowania, skrypt to wykryje, zmieni status przełądowania w LMS na wykonane,  ale nie wykona restartu/przeładowania, zapisze tylko informacje w logach.
+Skrypt sprawdzi czy w LMS został ustawiony przez operatora status przeładowania i wykona przeładowanie lub restart w zależności, które pliki i co w nich zostało zmienione. Jeśli pliki nie zostały zmienione a w LMS został ustawiony status przeładowania, skrypt to wykryje, zmieni status przełądowania w LMS na wykonane,  ale nie wykona restartu/przeładowania, zapisze tylko informacje w logach.
+
+Jeśli mamy skonfigurowany skrypt rc.htb którego zawarość zmienia się dwa razy w ciągu dnia (taryfa dzienn/nocna) i chemy aby shpaer został przeładowany np o godzinie 22:00 oraz 10:00 wtedy dodajemy do cron wpisy uruchamiające skrypt fw.sh z parametrem qos, który przeładują reguły shaper'a.
+
+00 22 * * * /opt/gateway/scripts/fw.sh qos
+00 10 * * * /opt/gateway/scripts/fw.sh qos
 
 
+#### Statystyki ruchu w LMS ####
 
-### Gateway ###
+Jeśli chcemy mieć satystki ruchu naszych klientów na maszynie z zainstalowanym LMS należy uruchamiać cyklicznie np co 5 minut skrypt zapisujący statystyki do bazy danych LMS, wykonujący dwa polecenia: 
 
-Na maszynie na której pracuje skrypt fw.sh, konieczne jest ustawienie w crontab odpowiednich wpisów:
+1# ssh -p 222 root@192.168.100.1 '/opt/gateway/scripts/fw.sh stats' > /var/log/traffic.log
 
-Wpis uruchamiający skrypt fw.sh z parametrem lmsd, który sprawdza co minutę status przeładowania w LMS. W przypadku jego ustawienia przez operatora LMS pobiera konfigurację z LMS i przeładowywuje firewall
-
-* * * * * /opt/gateway/scripts/fw.sh lmsd
-
-Wpisy uruchamiające skrypt fw.sh z parametrem qos, które przełączają shaper na taryfę nocną.
-
-01 22 * * * /opt/gateway/scripts/fw.sh qos
-
-01 10 * * * /opt/gateway/scripts/fw.sh qos
-
-
-
-#### LMS ####
-
-Na maszynie z zainstalowanym LMS należy uruchamiać cyklicznie np co 5 minut skrypt zapisujący statystyki do bazy danych LMS, wykonujący polecenia:
-
-ssh -p 222 root@192.168.100.1 '/opt/gateway/scripts/fw.sh stats' > /var/log/traffic.log
+gdzie 192.168.100.1 to adres IP naszego rutera na którym pracuje skryp fw.sh.
 
 Polecenie to uruchomi zdalnie na maszynie GATEWAY skrypt fw.sh z parametrem stats, który odczyta liczniki przesłanych danych dla wszystkich hostów i zapisze je do pliku.
 
-
-bash /var/www/html/lms/bin/lms-traffic
+2# bash /var/www/html/lms/bin/lms-traffic
 
 Skrypt ten odczyta plik /var/log/traffic.log i zapisze wartości do tabeli stats w bazie danych LMS.
 
@@ -141,5 +130,4 @@ Skrypt ten odczyta plik /var/log/traffic.log i zapisze wartości do tabeli stats
 ### Opis konfiguracji LMS ###
 
 Pliki konfiguracyjne dla skryptu fw.sh powinny być generowane przez lmsd uruchomionego na maszynie z LMS:
-
 
