@@ -6,17 +6,17 @@ Np plik z adresami ip które mają być natowane na adres ip powinien mieć nazw
 a jego zawartość np:
 
 grantedhost 192.168.102.96 </br>
-deniedhost 192.168.102.99
-grantedhost 192.168.102.101
-grantedhost 192.168.102.105
-grantedhost 192.168.102.108
-grantedhost 192.168.102.110
-deniedhost 192.168.102.112
-grantedhost 192.168.102.118
-grantedhost 192.168.102.134
-grantedhost 192.168.102.147
-grantedhost 192.168.102.151
-grantedhost 192.168.102.153
+deniedhost 192.168.102.99 </br>
+grantedhost 192.168.102.101 </br>
+grantedhost 192.168.102.105 </br>
+grantedhost 192.168.102.108 </br>
+grantedhost 192.168.102.110 </br>
+deniedhost 192.168.102.112 </br>
+grantedhost 192.168.102.118 </br>
+grantedhost 192.168.102.134 </br>
+grantedhost 192.168.102.147 </br>
+grantedhost 192.168.102.151 </br>
+grantedhost 192.168.102.153 </br>
 
 Jeśli mamy wiele adresów ip na ktore chemy natować  w systemie jeden do wielu np cztery adresy ip, tworzymy osobne pliki dla nich np.: 
 fw_nat_ip1 fw_nat_ip2 fw_nat_ip3 fw_nat_ip4 i do każdego wrzucami listę adresów ip hostów wraz z ich statusami (denied| granted)
@@ -24,10 +24,10 @@ W pliku fw_nat_1-n zapisujemy powiązania pomiędzy tymi plikami a adresami ip n
  
 Przykładowa  zawrtość pliku fw_nat_1-n
  
-fw_nat_ip1 172.16.0.1
-fw_nat_ip2 172.16.0.111
-fw_nat_ip3 172.16.0.222
-fw_nat_ip4 172.16.0.253
+fw_nat_ip1 172.16.0.1 </br>
+fw_nat_ip2 172.16.0.111 </br>
+fw_nat_ip3 172.16.0.222 </br>
+fw_nat_ip4 172.16.0.253 </br>
 
 Wtedy wszystkie adresy op jakie zawiera plik fw_nat_ip1 bedą natowane na adres 172.16.0.1, zaś wszystkie adresy ip zawarte w pliku  
 fw_nat_ipe będą natowane na adres ip 172.16.0.111 ... itd.
