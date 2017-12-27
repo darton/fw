@@ -1,9 +1,10 @@
 fw.sh
 
-Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) i/lub shaper pobierając swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl) lub dowolny inny program, można też pliki konfiguracyjne stworzyć ręcznie lub skryptem w bash.
+Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) i/lub shaper pobierając swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl) lub dowolny inny program, można też pliki konfiguracyjne stworzyć ręcznie lub w dowolnym języku skryptowym bash/python/power_shell itd.
 
-Np plik z adresami ip które mają być natowane na adres ip powinien mieć nazwę np fw_nat_ip1
-a jego zawartość np:
+POrzygotowanie konfiguracji dla skryptu jest banalne.
+Np plik z adresami IP które mają być natowane na inny adres IP powinien mieć nazwę np fw_nat_ip1
+a jego zawartość powinna wygladać np tak:
 
 grantedhost 192.168.102.96 </br>
 deniedhost 192.168.102.99 </br>
@@ -33,7 +34,7 @@ Wtedy wszystkie adresy IP jakie zawiera plik fw_nat_ip1 bedą natowane na adres 
 fw_nat_ipe będą natowane na adres IP 172.16.0.111 ... itd.
 
 Nazwy plików mogą być dowolne trzeba je tylko zadeklarować w pliku fw.sh oraz fw_nat_1-n.
-W przykładzie opisane są nazwy jakie są skonfigurowane domyśłnie.
+W przykładzie opisane są nazwy jakie są skonfigurowane domyślnie.
 
 Plik fw_public_ip służy do prowadzenia rejestru adresów IP które mają beć rutowane (bez NAT)
 w formacie analogicznym jak dla adresów Natowanych czyli
@@ -43,12 +44,18 @@ deniedhost 192.168.102.99 </br>
 grantedhost 192.168.102.101 </br>
 grantedhost 192.168.102.105 </br>
 
+Plik fw_routed_ip służy to prowadzenia rejestru sieci oraz adresów IP bramek (gateway) na które te sieci mają być rutowane w formacie:
+Sieć/prefiks adres_IP_bramki
+172.16.0.128/30 172.16.1.7
+172.16.1.128/30 172.16.1.8
+172.16.3.128/30 172.16.1.9
 
-W celu optymalnej wydajności przetwarzania pakietów, korzysta z ipset.
 
-Skrypt posiada mechanizm pozwalający na unikanie, kiedy tylko to możliwe niepotrzebnego przeładowania reguł iptables, korzystając z mechanizmu podmiany gotowych list ipset. 
+W celu optymalnej wydajności fw.sh korzysta z ipset. 
 
-Odczytuje także cyklicznie stany liczników pakietów i ładuje je do tabeli stats bazy danych LMS, co pozwala na generowanie statystyk ruchu dla klientów.
+Skrypt posiada mechanizm pozwalający na unikanie, kiedy tylko to możliwe niepotrzebnego przeładowania reguł iptables, korzystając z mechanizmu podmiany gotowych list ipset podczas którego transmisja pakietów nie ulega przerwaniu. 
+
+Odczytuje także cyklicznie stany liczników pakietów i ładuje je do tabeli stats bazy danych LMS, co pozwala na generowanie statystyk ruchu dla klientów. 
 
 ### Gateway ###
 
