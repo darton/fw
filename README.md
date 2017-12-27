@@ -89,6 +89,25 @@ Skrypt posiada mechanizm pozwalający na unikanie, kiedy tylko to możliwe niepo
 
 Odczytuje także cyklicznie stany liczników pakietów i ładuje je do tabeli stats bazy danych LMS, co pozwala na generowanie statystyk ruchu dla klientów. 
 
+Gdy już mamy gotowe pliki konfiguracyjne uruchamiamy skrypt: </br>
+
+./fw.sh start </br>
+
+Wykonanie ./fw.sh stop zatrzyma zaporę, wyłączy forwardowanie pakietów właczy domyślnie ustawione na taką okoliczność polityki dla iptables (np FORWARD DENY).
+
+./fw.sh restart </br>
+
+wykona ./fw start a potem ./fw stop
+
+Przy wspólpracy z LMS skrypt może pracować w sposób automatyczny. Wtedy status przeładowania ustawia się w LMS (http://lms.org.pl)
+Aby to było możliwe należy skrypt uruchamiać w cron co minutę.
+
+* * * * * /opt/gateway/scripts/fw.sh lmsd
+
+Skrypt sprawdzi czy w LMS został ustawiony status przeładowania i wykona przeładowanie lub restart w zależności które pliki i co wnich zostało zmienione. Jeśli pliki nie zostały zmienione a w LMS został ustawiony status przeładowania, skrypt to wykryje, zmieni status przełądowania w LMS na wykonane,  ale nie wykona restartu/przeładowania, zapisze tylko informacje w logach.
+
+
+
 ### Gateway ###
 
 Na maszynie na której pracuje skrypt fw.sh, konieczne jest ustawienie w crontab odpowiednich wpisów:
