@@ -51,6 +51,9 @@ Sieć/prefiks adres_IP_bramki
 172.16.1.128/30 172.16.1.8 </br>
 172.16.3.128/30 172.16.1.9 </br>
 
+Domyślnie skrypt pobiera swoje pliki konfiguracyjne łącząc się ze zdalną maszyną na której są tworzone za pomocą ssh z wykorzystaniem pary kluczy RSA. Jeśli pliki są tworzone lokalnie na tej samej maszynie na ktorej pracuje skrypt najprościej jest podać w konfiguracji adres IP 127.0.0.1. 
+
+
 
 W celu optymalnej wydajności fw.sh korzysta z ipset. 
 
