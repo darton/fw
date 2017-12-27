@@ -29,12 +29,19 @@ fw_nat_ip2 172.16.0.111 </br>
 fw_nat_ip3 172.16.0.222 </br>
 fw_nat_ip4 172.16.0.253 </br>
 
-Wtedy wszystkie adresy op jakie zawiera plik fw_nat_ip1 bedą natowane na adres 172.16.0.1, zaś wszystkie adresy ip zawarte w pliku  
-fw_nat_ipe będą natowane na adres ip 172.16.0.111 ... itd.
+Wtedy wszystkie adresy IP jakie zawiera plik fw_nat_ip1 bedą natowane na adres 172.16.0.1, zaś wszystkie adresy IP zawarte w pliku  
+fw_nat_ipe będą natowane na adres IP 172.16.0.111 ... itd.
 
 Nazwy plików mogą być dowolne trzeba je tylko zadeklarować w pliku fw.sh oraz fw_nat_1-n.
 W przykładzie opisane są nazwy jakie są skonfigurowane domyśłnie.
 
+Plik fw_public_ip służy do prowadzenia rejestru adresów IP które mają beć rutowane (bez NAT)
+w formacie analogicznym jak dla adresów Natowanych czyli
+
+grantedhost 192.168.102.96 </br>
+deniedhost 192.168.102.99 </br>
+grantedhost 192.168.102.101 </br>
+grantedhost 192.168.102.105 </br>
 
 
 W celu optymalnej wydajności przetwarzania pakietów, korzysta z ipset.
