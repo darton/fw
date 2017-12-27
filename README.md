@@ -5,7 +5,7 @@ Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) i/lub s
 Np plik z adresami ip które mają być natowane na adres ip powinien mieć nazwę np fw_nat_ip1
 a jego zawartość np:
 
-grantedhost 192.168.102.96
+grantedhost 192.168.102.96 </br>
 deniedhost 192.168.102.99
 grantedhost 192.168.102.101
 grantedhost 192.168.102.105
