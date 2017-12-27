@@ -53,9 +53,7 @@ Sieć/prefiks adres_IP_bramki
 
 Domyślnie skrypt pobiera swoje pliki konfiguracyjne łącząc się ze zdalną maszyną na której są tworzone za pomocą ssh z wykorzystaniem pary kluczy RSA. Jeśli pliki są tworzone lokalnie na tej samej maszynie na ktorej pracuje skrypt najprościej jest podać w konfiguracji adres IP 127.0.0.1. 
 
-
-
-W celu optymalnej wydajności fw.sh korzysta z ipset. 
+W celu optymalnej wydajności przetwarzania pakietów fw.sh korzysta z ipset. To pozwala na wykorzystanie go w sieciach z tysiącami komputerów.
 
 Skrypt posiada mechanizm pozwalający na unikanie, kiedy tylko to możliwe niepotrzebnego przeładowania reguł iptables, korzystając z mechanizmu podmiany gotowych list ipset podczas którego transmisja pakietów nie ulega przerwaniu. 
 
