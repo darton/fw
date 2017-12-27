@@ -8,7 +8,7 @@ Sposó użycia
 Usage: fw.sh start|stop|restart|reload|stats|lmsd|qos|status
 
 
-Przygotowanie plików konfiguracyjnych dla skryptu jest banalne proste.
+Przygotowanie plików konfiguracyjnych dla skryptu jest banalne proste (za wyjątkiem pliku shapera :-)).
 
 Konieczne do uruchomienia skryptu pliki konfiguracyjne (mogą być puste):
 
