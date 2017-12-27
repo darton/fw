@@ -2,7 +2,7 @@ fw.sh
 
 Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) i/lub shaper pobierając swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl) lub dowolny inny program, można też pliki konfiguracyjne stworzyć ręcznie lub w dowolnym języku skryptowym bash/python/power_shell itd.
 
-POrzygotowanie konfiguracji dla skryptu jest banalne.
+Przygotowanie konfiguracji dla skryptu jest banalne.
 Np plik z adresami IP które mają być natowane na inny adres IP powinien mieć nazwę np fw_nat_ip1
 a jego zawartość powinna wygladać np tak:
 
@@ -94,14 +94,19 @@ Poniższe pliki konfiguracyjne dla skryptu fw.sh powinny być generowane przez l
 
 fw_public_ip	#Zawiera listę hostów z publicznymi adresami IP w formacie: "grantedhost|deniedhost|warnedhost adres_ip"
 
-fw_nat_1-1	#Zawiera listę hostów z prywatnymi adresami IP natowanymi 1-1 na adresy publiczne w formacie: "grantedhost|deniedhost|warnedhost prywatny_adres_ip publiczny_adres_ip"
+fw_nat_1-1	</br>
+Zawiera listę hostów z prywatnymi adresami IP natowanymi 1-1 na adresy publiczne w formacie: "grantedhost|deniedhost|warnedhost prywatny_adres_ip publiczny_adres_ip"
 
-fw_nat_1-n	#Zawiera listę w formacie: "nazwa_pliku publiczny_adres_ip", opisującego powiązania plików z prywatnymi adresami IP i odpowiadającymi im publicznymi adresami IP na które będą NAT-owane
+fw_nat_1-n	</br>
+Zawiera listę w formacie: "nazwa_pliku publiczny_adres_ip", opisującego powiązania plików z prywatnymi adresami IP i odpowiadającymi im publicznymi adresami IP na które będą NAT-owane
 
-fw_lan_banned_dst_ports		#Zawiera listę portów TCP/IP w formacie: "numer_portu"
+fw_lan_banned_dst_ports </br>
+Zawiera listę portów TCP/IP w formacie: "numer_portu"
 
-rc.htb		#Zawiera gotowy do uruchomienia skrypt shapera z regułami tc dla wszystkich hostów
+rc.htb </br>
+Zawiera gotowy do uruchomienia skrypt shapera z regułami tc dla wszystkich hostów
 
-dhcpd.conf	#Zawiera gotowy plik konfiguracyjny dla serwera dhcp
+dhcpd.conf </br>
+Zawiera gotowy plik konfiguracyjny dla serwera dhcp
 
 
