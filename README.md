@@ -92,7 +92,8 @@ Skrypt ten odczyta plik /var/log/traffic.log i zapisze wartości do tabeli stats
 
 Poniższe pliki konfiguracyjne dla skryptu fw.sh powinny być generowane przez lmsd uruchomionego na maszynie z LMS:
 
-fw_public_ip	#Zawiera listę hostów z publicznymi adresami IP w formacie: "grantedhost|deniedhost|warnedhost adres_ip"
+fw_public_ip </br>
+Zawiera listę hostów z publicznymi adresami IP w formacie: "grantedhost|deniedhost|warnedhost adres_ip"
 
 fw_nat_1-1	</br>
 Zawiera listę hostów z prywatnymi adresami IP natowanymi 1-1 na adresy publiczne w formacie: "grantedhost|deniedhost|warnedhost prywatny_adres_ip publiczny_adres_ip"
