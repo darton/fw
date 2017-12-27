@@ -10,7 +10,7 @@ Usage: fw.sh start|stop|restart|reload|stats|lmsd|qos|status
 
 Przygotowanie plików konfiguracyjnych dla skryptu jest banalne proste (za wyjątkiem pliku shapera :-)).
 
-Konieczne do uruchomienia skryptu pliki konfiguracyjne (mogą być puste):
+Konieczne do uruchomienia skryptu pliki konfiguracyjne (domyślnie puste):
 
 fw_public_ip </br>
 Zawiera listę hostów z publicznymi adresami IP w formacie: "grantedhost|deniedhost|warnedhost adres_ip"
