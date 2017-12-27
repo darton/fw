@@ -102,7 +102,7 @@ wykona ./fw start a potem ./fw stop
 Przy wspólpracy z LMS skrypt może pracować w sposób automatyczny. Wtedy status przeładowania ustawia się w LMS (http://lms.org.pl)
 Aby to było możliwe należy skrypt uruchamiać w cron co minutę.
 
-* * * * * /opt/gateway/scripts/fw.sh lmsd
+"* * * * * /opt/gateway/scripts/fw.sh lmsd"
 
 Skrypt sprawdzi czy w LMS został ustawiony status przeładowania i wykona przeładowanie lub restart w zależności które pliki i co wnich zostało zmienione. Jeśli pliki nie zostały zmienione a w LMS został ustawiony status przeładowania, skrypt to wykryje, zmieni status przełądowania w LMS na wykonane,  ale nie wykona restartu/przeładowania, zapisze tylko informacje w logach.
 
