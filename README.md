@@ -1,6 +1,41 @@
 fw.sh
 
-Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) i/lub shaper pobierając swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl). 
+Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) i/lub shaper pobierając swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl) lub dowolny inny program, można też pliki konfiguracyjne stworzyć ręcznie lub skryptem w bash.
+
+Np plik z adresami ip które mają być natowane na adres ip powinien mieć nazwę np fw_nat_ip1
+a jego zawartość np:
+
+grantedhost 192.168.102.96
+deniedhost 192.168.102.99
+grantedhost 192.168.102.101
+grantedhost 192.168.102.105
+grantedhost 192.168.102.108
+grantedhost 192.168.102.110
+deniedhost 192.168.102.112
+grantedhost 192.168.102.118
+grantedhost 192.168.102.134
+grantedhost 192.168.102.147
+grantedhost 192.168.102.151
+grantedhost 192.168.102.153
+
+Jeśli mamy wiele adresów ip na ktore chemy natować  w systemie jeden do wielu np cztery adresy ip, tworzymy osobne pliki dla nich np.: 
+fw_nat_ip1 fw_nat_ip2 fw_nat_ip3 fw_nat_ip4 i do każdego wrzucami listę adresów ip hostów wraz z ich statusami (denied| granted)
+W pliku fw_nat_1-n zapisujemy powiązania pomiędzy tymi plikami a adresami ip na które ma odbywać się natowanie
+ 
+Przykładowa  zawrtość pliku fw_nat_1-n
+ 
+fw_nat_ip1 172.16.0.1
+fw_nat_ip2 172.16.0.111
+fw_nat_ip3 172.16.0.222
+fw_nat_ip4 172.16.0.253
+
+Wtedy wszystkie adresy op jakie zawiera plik fw_nat_ip1 bedą natowane na adres 172.16.0.1, zaś wszystkie adresy ip zawarte w pliku  
+fw_nat_ipe będą natowane na adres ip 172.16.0.111 ... itd.
+
+Nazwy plików mogą być dowolne trzeba je tylko zadeklarować w pliku fw.sh oraz fw_nat_1-n.
+W przykładzie opisane są nazwy jakie są skonfigurowane domyśłnie.
+
+
 
 W celu optymalnej wydajności przetwarzania pakietów, korzysta z ipset.
 
