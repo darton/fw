@@ -417,6 +417,24 @@ function static_routing_down {
     done < $confdir/$routed_ip_file
 }
 
+function fw_cron {
+    if [ "$1" = "start" ]
+    then
+echo '# Run the fw.sh cron jobs
+SHELL=/bin/bash
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+MAILTO=""
+* * * * * root /opt/gateway/scripts/fw.sh lmsd  > /dev/null 2>&1
+01 22 * * * root /opt/gateway/scripts/fw.sh qos  > /dev/null 2>&1
+01 10 * * * root /opt/gateway/scripts/fw.sh qos  > /dev/null 2>&1
+' > /etc/cron.d/fw_sh
+    fi
+
+    if [ "$1" = "stop" ]
+    then
+        rm /etc/cron.d/fw_sh
+    fi
+}
 
 
     stop ()
