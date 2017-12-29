@@ -443,6 +443,7 @@ MAILTO=""
         firewall_down
         htb_cmd stop
         destroy_all_hashtables
+	fw_cron stop
     }
 
 
@@ -454,6 +455,7 @@ MAILTO=""
         firewall_up
 	htb_cmd start
 	dhcpd_restart
+	fw_cron start
     }
 
 
