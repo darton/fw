@@ -35,11 +35,10 @@ scpurl=root@192.168.102.79:/opt/gateway
 sshurl=root@192.168.102.79
 
 #Kwerenda do serwera bazy danych LMS, pobierająca  status przeładowania lmsd
-dburl="mysql -s -u gateway lms -e \"select reload from hosts where id=4\""
+dburl="mysql -s -u lmsd_reload lms -e \"select reload from hosts where id=4\""
 
 #Adres IP serwera proxy
 proxy_ip=192.168.100.1
-
 
 
 ####Deklaracje funkcji używanych w skrypcie####
@@ -361,7 +360,7 @@ function lmsd_reload {
     then
 	echo "Status przeładowania lmsd został ustawiony" 
 	echo "Przeładowywuję lmsd na zdalnej maszynie"
-	ssh $sshurl '/usr/local/lms/bin/lmsd -q -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
+	ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
         echo "Pobieram konfigurację z LMS"
 	get_config
         echo "Sprawdzam czy zmieniła się konfiguracja"
@@ -383,7 +382,7 @@ function lmsd_reload_new {
     then
 	echo "Status przeładowania lmsd został ustawiony" 
 	echo "Wykonuję reload lmsd na zdalnej maszynie"
-	ssh $sshurl '/usr/local/lms/bin/lmsd -q -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
+	ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
         echo "Pobieram konfigurację z LMS"
 	get_config
 	echo "Sprawdzam czy konieczny jest restart czy wystarczy reload"
