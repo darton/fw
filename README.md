@@ -113,7 +113,7 @@ Jeśli mamy skonfigurowany skrypt rc.htb którego zawarość zmienia się dwa ra
 00 22 * * * /opt/gateway/scripts/fw.sh qos
 00 10 * * * /opt/gateway/scripts/fw.sh qos
 
-Skrypt posiada także tryb maintenance. W tym trybie wyłącza zaporę, wyłącza interfejsy LAN i WAN, podnosi zaś  interfejs zdefiniowany jako MGMNT (management).
+Skrypt posiada także tryb maintenance. W tym trybie wyłącza zaporę, wyłącza interfejsy LAN i WAN, podnosi zaś  interfejs zdefiniowany jako MGMT (management).
 
 #### Statystyki ruchu w LMS ####
 
