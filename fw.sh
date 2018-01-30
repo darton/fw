@@ -65,8 +65,6 @@ function get_config {
 }
 
 
-
-
 function get_qos_config {
         cd $confdir
         mv $confdir/rc.htb $oldconfdir/rc.htb
