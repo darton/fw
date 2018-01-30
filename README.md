@@ -33,7 +33,7 @@ Zawiera gotowy plik konfiguracyjny dla serwera dhcp
 
 
 
-Np plik z adresami IP które mają być natowane na inny adres IP powinien mieć nazwę np. fw_nat_ip1
+Np. plik z adresami IP, które mają być natowane na inny adres IP powinien mieć nazwę np. fw_nat_ip1
 a jego zawartość powinna wygladać np tak:
 
 grantedhost 192.168.102.96 </br>
@@ -49,9 +49,9 @@ grantedhost 192.168.102.147 </br>
 grantedhost 192.168.102.151 </br>
 grantedhost 192.168.102.153 </br>
 
-Jeśli mamy wiele adresów ip na ktore chemy natować  w systemie jeden do wielu np cztery adresy ip, tworzymy osobne pliki dla nich np.: 
+Jeśli mamy wiele adresów ip na które chemy natować  w systemie jeden do wielu np. cztery adresy ip, tworzymy osobne pliki dla nich np.: 
 fw_nat_ip1, fw_nat_ip2, fw_nat_ip3, fw_nat_ip4. Do każdego pliku wrzucami listę adresów IP hostów wraz z ich statusami (denied| granted)
-W pliku fw_nat_1-n zapisujemy powiązania pomiędzy tymi plikami a adresami IP na które ma odbywać się natowanie.
+W pliku fw_nat_1-n zapisujemy powiązania pomiędzy tymi plikami a adresami IP, na które ma odbywać się natowanie.
  
 Przykładowa  zawrtość pliku fw_nat_1-n:
  
@@ -104,9 +104,9 @@ Aby to było możliwe należy skrypt uruchamiać w cron co minutę.
 
 "* * * * * /opt/gateway/scripts/fw.sh lmsd"
 
-Skrypt sprawdzi czy w LMS został ustawiony przez operatora status przeładowania i wykona przeładowanie lub restart w zależności, które pliki i co w nich zostało zmienione. Jeśli pliki nie zostały zmienione a w LMS został ustawiony status przeładowania, skrypt to wykryje, zmieni status przełądowania w LMS na wykonane,  ale nie wykona restartu/przeładowania, zapisze tylko informacje w logach.
+Skrypt sprawdzi czy w LMS został ustawiony przez operatora status przeładowania i wykona przeładowanie lub restart w zależności, które pliki i co w nich zostało zmienione. Jeśli pliki nie zostały zmienione a w LMS został ustawiony status przeładowania, skrypt to wykryje, zmieni status przeładowania w LMS na wykonane,  ale nie wykona restartu/przeładowania, zapisze tylko informacje w logach.
 
-Jeśli mamy skonfigurowany skrypt rc.htb którego zawarość zmienia się dwa razy w ciągu dnia (taryfa dzienn/nocna) i chemy aby shpaer został przeładowany np o godzinie 22:00 oraz 10:00 wtedy dodajemy do cron wpisy uruchamiające skrypt fw.sh z parametrem qos, który przeładują reguły shaper'a.
+Jeśli mamy skonfigurowany skrypt rc.htb którego zawarość zmienia się dwa razy w ciągu dnia (taryfa dzienn/nocna) i chcemy aby shaper został przeładowany np. o godzinie 22:00 oraz 10:00, wtedy dodajemy do cron wpisy uruchamiające skrypt fw.sh z parametrem qos, który przeładują reguły shaper'a.
 
 00 22 * * * /opt/gateway/scripts/fw.sh qos
 00 10 * * * /opt/gateway/scripts/fw.sh qos
@@ -114,7 +114,7 @@ Jeśli mamy skonfigurowany skrypt rc.htb którego zawarość zmienia się dwa ra
 
 #### Statystyki ruchu w LMS ####
 
-Jeśli chcemy mieć satystki ruchu naszych klientów na maszynie z zainstalowanym LMS należy uruchamiać cyklicznie np co 5 minut skrypt zapisujący statystyki do bazy danych LMS, wykonujący dwa polecenia: 
+Jeśli chcemy mieć satystki ruchu naszych klientów na maszynie z zainstalowanym LMS, należy uruchamiać cyklicznie np. co 5 minut skrypt zapisujący statystyki do bazy danych LMS, wykonujący dwa polecenia: 
 
 1# ssh -p 222 root@192.168.100.1 '/opt/gateway/scripts/fw.sh stats' > /var/log/traffic.log
 
