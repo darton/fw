@@ -13,52 +13,65 @@
 
 PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
 
-#Ścieżki do katalogu z plikami konfiguracyjnymi dla skryptu
+#PATHS to config dirs
 confdir=/opt/gateway/conf
 oldconfdir=/opt/gateway/oldconf
 
-#Deklaracja interfejsów sieciowych WAN -> od strony Internetu, LAN -> od strony klientów
+#Interfaces
 WAN=enp2s0
 LAN=enp3s0
+MGMT=eno1
 
-#Deklaracja nazw plików konfiguracyjnych
+#Names of config files
 nat_11_file=fw_nat_1-1
 nat_1n_ip_file=fw_nat_1-n
 public_ip_file=fw_public_ip
 lan_banned_dst_ports_file=fw_lan_banned_dst_ports
 routed_ip_file=fw_routed_ip
 
-#Adres do wygenerowanych przez LMS plików dla niniejszego skryptu 
-scpurl=root@192.168.102.79:/opt/gateway
+#LMS ip address
+lms_ip=10.10.10.10
 
-#Adres bazy danych LMS 
-sshurl=root@192.168.102.79
+#PROXY ip address
+proxy_ip=192.168.1.1
 
-#Kwerenda do serwera bazy danych LMS, pobierająca  status przeładowania lmsd
+#Source of config files
+scpurl=root@$lms_ip:/opt/gateway
+
+#URL to LMS database server. 
+sshurl=root@$lms_ip
+
+#Warning: user lmsd_reload has SELECT privileges to lms.hosts table only with no password
 dburl="mysql -s -u lmsd_reload lms -e \"select reload from hosts where id=4\""
 
-#Adres IP serwera proxy
-proxy_ip=192.168.100.1
+
+####Makes necessary dirs and files####
+[[ -d /run/fw-sh/ ]] || mkdir /run/fw-sh
+touch /run/fw-sh/maintenance.pid
+
+[[ -d $confdir ]] || mkdir $confdir
+[[ -d $oldconfdir ]] || mkdir $oldconfdir
 
 
-####Deklaracje funkcji używanych w skrypcie####
-
+#### Functions ####
 function get_config {
-	cd $confdir
+        cd $confdir
     for FILENAME in *
     do
-	mv $FILENAME $oldconfdir/$FILENAME
-    done 
-	echo "Łącze się z LMS i pobieram pliki konfiguracyjne"
-	scp $scpurl/* $confdir/
+        mv $FILENAME $oldconfdir/$FILENAME
+    done
+        echo "Łącze się z LMS i pobieram pliki konfiguracyjne"
+        /usr/bin/scp $scpurl/* $confdir/
 }
 
 
+
+
 function get_qos_config {
-	cd $confdir
-	mv $confdir/rc.htb $oldconfdir/rc.htb
-	echo "Łącze się z serwerem i pobieram plik qos"
-	scp $scpurl/rc.htb $confdir/
+        cd $confdir
+        mv $confdir/rc.htb $oldconfdir/rc.htb
+        echo "Łącze się z serwerem i pobieram plik qos"
+        /usr/bin/scp $scpurl/rc.htb $confdir/
 }
 
 
@@ -66,23 +79,23 @@ function compare_config_files {
     cd $confdir
     for f in *
     do
-	diff -q $confdir/$f $oldconfdir/$f > /tmp/fw.diff
+        diff -q $confdir/$f $oldconfdir/$f > /tmp/fw.diff
     done
 
     if [ -s "/tmp/fw.diff" ]
     then
-	echo ""
-	echo "Status konfiguracji"
-	echo "-------------------"
-	echo "Pliki konfiguracyjne zostały zmienione, wykonuję następne polecenia"
-	echo ""
+        echo ""
+        echo "Status konfiguracji"
+        echo "-------------------"
+        echo "Pliki konfiguracyjne zostały zmienione, wykonuję następne polecenia"
+        echo ""
     else
-    	echo ""
-	echo "Status konfiguracji"
-	echo "-------------------"
-	echo "Nowa konfiguracja jest identyczna, kończę działanie programu."
-	echo ""
-	exit
+        echo ""
+        echo "Status konfiguracji"
+        echo "-------------------"
+        echo "Nowa konfiguracja jest identyczna, kończę działanie programu."
+        echo ""
+        exit
     fi
 }
 
@@ -93,10 +106,10 @@ dhcpd_conf_new=$(cat $oldconfdir/dhcpd.conf |sha1sum)
 
     if [ "$dhcpd_conf_current" != "$dhcpd_conf_new" ]
     then
-	echo "Plik dhcpd.conf ma nową konfigurację, restartuję serwer DHCP - `date`" >> /tmp/lms.status 
-	systemctl restart dhcpd.service
+        echo "Plik dhcpd.conf ma nową konfigurację, restartuję serwer DHCP - `date`" >> /tmp/lms.status
+        systemctl restart dhcpd.service
     else
-	echo "Konfiguracja dhcpd.conf jest identyczna, restart nie jest potrzebny"
+        echo "Konfiguracja dhcpd.conf jest identyczna, restart nie jest potrzebny"
     fi
 }
 
@@ -108,7 +121,7 @@ function htb_cmd {
     rc_htb_new=$(cat $oldconfdir/rc.htb |sha1sum)
         if [ "$rc_htb_current" != "$rc_htb_new" ]
         then
-            echo "Plik rc.htb ma nową konfigurację, restartuję Shaper - `date`" >> /tmp/lms.status 
+            echo "Plik rc.htb ma nową konfigurację, restartuję Shaper - `date`" >> /tmp/lms.status
             bash $confdir/rc.htb stop
             bash $confdir/rc.htb start
         else
@@ -129,21 +142,21 @@ function htb_cmd {
 
 
 function create_fw_hashtables {
-#hashtable for granted host 
-	ipset create fw_ip hash:ip hashsize 2048
+#hashtable for granted host
+        ipset create fw_ip hash:ip hashsize 2048
 
 #hashtable for denied host
-	ipset create fw_denied_hosts hash:ip hashsize 1024
+        ipset create fw_denied_hosts hash:ip hashsize 1024
 
 #hashtable for warned host
-	ipset create fw_warned_hosts hash:ip hashsize 2048
+        ipset create fw_warned_hosts hash:ip hashsize 2048
 
 #hashtable for banned dst ports on LAN interface
-	ipset create fw_lan_banned_dst_ports bitmap:port range 0-65535
+        ipset create fw_lan_banned_dst_ports bitmap:port range 0-65535
 
 #hashtable for nat1-n host
     while read nat_name ip; do
-	ipset create "$nat_name" hash:ip hashsize 1024
+        ipset create "$nat_name" hash:ip hashsize 1024
     done <$confdir/$nat_1n_ip_file
 }
 
@@ -247,7 +260,7 @@ function load_new_ipset_hashtables {
 
      if [ "$current" != "$new" ]
      then
-        echo "Ładuję nową zawartość do $ipsetname" >> /tmp/lms.status 
+        echo "Ładuję nową zawartość do $ipsetname" >> /tmp/lms.status
         ipset -W $ipsetname $ipsetname.tmp
      fi
         ipset -X $ipsetname.tmp
@@ -257,43 +270,43 @@ function load_new_ipset_hashtables {
 
 function load_nat_1n_fw_rules {
     while read nat_name ip; do
-	iptables -t nat -A POSTROUTING -o $WAN -m set --match-set $nat_name src -j SNAT --to-source $ip
+        iptables -t nat -A POSTROUTING -o $WAN -m set --match-set $nat_name src -j SNAT --to-source $ip
     done <$confdir/$nat_1n_ip_file
 }
 
 
 function load_nat_11_fw_rules {
     while read status i ipub; do
-	if [ "$status" = "grantedhost" ]
-	then
-	    iptables -t nat -A POSTROUTING -o $WAN -s $i -j SNAT --to-source $ipub
-	    iptables -t nat -A PREROUTING -i $WAN -d $ipub -j DNAT --to-destination $i
-	fi
+        if [ "$status" = "grantedhost" ]
+        then
+            iptables -t nat -A POSTROUTING -o $WAN -s $i -j SNAT --to-source $ipub
+            iptables -t nat -A PREROUTING -i $WAN -d $ipub -j DNAT --to-destination $i
+        fi
     done < $confdir/$nat_11_file
 }
 
 
 function firewall_up {
-#Zwiększenie tablicy ARP
+#Change default ARP table
     echo "8192" > /proc/sys/net/ipv4/neigh/default/gc_thresh3
     echo "4096" > /proc/sys/net/ipv4/neigh/default/gc_thresh2
     echo "2048" > /proc/sys/net/ipv4/neigh/default/gc_thresh1
 
-#Ustawienie domyślnej polityki
+#Set default policy
     iptables -P FORWARD DROP
 
-#Włączenie przesyłania pakietów między interfejsami sieciowymi
+#Enable port forwardings
     sysctl -w net.ipv4.ip_forward=1
 
-#Blokada wybranych portów docelowych w sieci LAN
+#Drops some ports 
 #    iptables -A FORWARD -i $WAN -m set --match-set fw_lan_banned_dst_ports dst -j DROP
+#    iptables -A FORWARD -i $WAN -o $LAN -d 172.16.0.0/16 -m set --match-set fw_lan_banned_dst_ports dst -j DROP
     iptables -A FORWARD -i $WAN -o $LAN -m set --match-set fw_lan_banned_dst_ports dst -j DROP
 
-#Włączenie logowania nowych pakietów mających swoje żródło w naszej sieci.
+#Enable packet logging
     iptables -A FORWARD -i $LAN -m state --state NEW -j ULOG --ulog-nlgroup 1 --ulog-prefix FORWARDED-CONN
 
 #Ładowanie reguł FORWARD dla wszystkich upoważnionych hostów.
-# Zezwolenie na przesył pakietów pomiędzy dowolnymi interfejsami ethernet firewalla dla wybranych hostów z listy fw_ip
 #   iptables -A FORWARD -m set --match-set fw_ip src,dst -j ACCEPT
 # Zezwolenie na przesył pakietów tylko pomiędzy interfejscami LAN i WAN dla wybranych hostów z listy fw_ip
     iptables -A FORWARD -i $LAN -o $WAN -m set --match-set fw_ip src -j ACCEPT
@@ -323,8 +336,8 @@ function firewall_down {
 
 #Ustawienie domyśłnej polityki dla wyłączonego firewalla
         iptables -P FORWARD DROP
-	iptables -P INPUT ACCEPT
-	iptables -P OUTPUT ACCEPT
+        iptables -P INPUT ACCEPT
+        iptables -P OUTPUT ACCEPT
 }
 
 
@@ -342,8 +355,8 @@ function flush_hashtables {
 
 
 function load_fw_hashtables {
-	destroy_tmp_hashtables
-	create_tmp_hashtables
+        destroy_tmp_hashtables
+        create_tmp_hashtables
         load_tmp_fw_ip_hashtable
         load_tmp_nat1n_hashtables
         load_tmp_nat_11_hashtable
@@ -355,20 +368,20 @@ function load_fw_hashtables {
 function lmsd_reload {
 #Sprawdza czy ustawiony jest status przeładowania dla demona lmsd na maszynie z LMS
 
-	lms_status=`ssh $sshurl "$dburl"| grep -v reload`
+        lms_status=`ssh $sshurl "$dburl"| grep -v reload`
     if [ $lms_status = 1 ]
     then
-	echo "Status przeładowania lmsd został ustawiony" 
-	echo "Przeładowywuję lmsd na zdalnej maszynie"
-	ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
+        echo "Status przeładowania lmsd został ustawiony"
+        echo "Przeładowywuję lmsd na zdalnej maszynie"
+        ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
         echo "Pobieram konfigurację z LMS"
-	get_config
+        get_config
         echo "Sprawdzam czy zmieniła się konfiguracja"
-	compare_config_files
+        compare_config_files
         echo "Pliki konfiguracyjne zostały zmienione, ładuję nową konfigurację. Uruchamiam skrypt w trybie reload"
-	reload
+        reload
     else
-	echo "Status przeładowania lmsd nie został ustawiony, kończę program"
+        echo "Status przeładowania lmsd nie został ustawiony, kończę program"
     exit
     fi
 }
@@ -377,42 +390,46 @@ function lmsd_reload {
 function lmsd_reload_new {
 #Sprawdza czy ustawiony jest status przeładowania dla demona lmsd na maszynie z LMS
 
-	lms_status=`ssh $sshurl "$dburl"| grep -v reload`
+        lms_status=`ssh $sshurl "$dburl"| grep -v reload`
     if [ $lms_status = 1 ]
     then
-	echo "Status przeładowania lmsd został ustawiony" 
-	echo "Wykonuję reload lmsd na zdalnej maszynie"
-	ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
-        echo "Pobieram konfigurację z LMS"
-	get_config
-	echo "Sprawdzam czy konieczny jest restart czy wystarczy reload"
-	nat_11_current_sha1sum=$(cat $oldconfdir/$nat_11_file |sort |sha1sum)
-	nat_11_new_sha1sum=$(cat $confdir/$nat_11_file |sort |sha1sum)
-	nat_1n_current_sha1sum=$(cat $oldconfdir/$nat_1n_ip_file |sort |sha1sum)
-	nat_1n_new_sha1sum=$(cat $confdir/$nat_1n_ip_file |sort |sha1sum)
+        echo "Status przeładowania lmsd został ustawiony   - `date`" >> /tmp/lms.status
+        echo "Wykonuję reload lmsd na zdalnej maszynie - `date`" >> /tmp/lms.status
+        ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
+        echo "Czekam 30 sekund na wygenerowanie nowych plików konfiguracyjnych - `date`" >> /tmp/lms.status
+        sleep 30
+        echo "Pobieram konfigurację z LMS  - `date`" >> /tmp/lms.status
+
+        get_config
+
+        echo "Sprawdzam czy konieczny jest restart czy wystarczy reload"
+        nat_11_current_sha1sum=$(cat $oldconfdir/$nat_11_file |sort |sha1sum)
+        nat_11_new_sha1sum=$(cat $confdir/$nat_11_file |sort |sha1sum)
+        nat_1n_current_sha1sum=$(cat $oldconfdir/$nat_1n_ip_file |sort |sha1sum)
+        nat_1n_new_sha1sum=$(cat $confdir/$nat_1n_ip_file |sort |sha1sum)
         if [ "$nat_11_current_sha1sum" != "$nat_11_new_sha1sum" ] || [ "$nat_1n_current_sha1sum" != "$nat_1n_new_sha1sum" ]
         then
-        echo "Wykonuję restart firewalla. - `date`" >> /tmp/lms.status
-        restart
+            echo "Wykonuję restart firewalla. - `date`" >> /tmp/lms.status
+            restart
         else
-        echo "Wykonuję reload firewalla. - `date`" >> /tmp/lms.status
-        newreload
+            echo "Wykonuję reload firewalla. - `date`" >> /tmp/lms.status
+            newreload
         fi
     else
-	echo "Status przeładowania lmsd nie został ustawiony, kończę program. - `date`"
+        echo "Status przeładowania lmsd nie został ustawiony, kończę program. - `date`"
     exit
     fi
 }
 
 function static_routing_up {
     while read net gw interface; do
-    	ip route add $net via $gw dev $interface
+        ip route add $net via $gw dev $interface
     done < $confdir/$routed_ip_file
 }
 
 function static_routing_down {
     while read net gw; do
-    	ip route del $net via $gw dev $interface
+        ip route del $net via $gw dev $interface
     done < $confdir/$routed_ip_file
 }
 
@@ -436,39 +453,94 @@ MAILTO=""
 }
 
 
-    stop ()
+    maintenance-on ()
     {
-	static_routing_down
+        mpid=`cat /run/fw-sh/maintenance.pid`
+        if [ $mpid = 1 ]
+        then
+            echo ""
+            echo "Jesteś już w trybie diagnostycznym !"
+            echo "Aby wyjśc z trybu diagnostycznego wykonaj:"
+            echo ""
+            echo "/etc/init.d/fw.sh maintenance-off"
+            echo ""
+            exit
+        else
+        echo ""
+        echo "Włączam tryb diagnostyczny."
+        echo ""
+        static_routing_down
         firewall_down
         htb_cmd stop
         destroy_all_hashtables
-	fw_cron stop
+        fw_cron stop
+        ifup $MGMT
+        ifdown $WAN
+        ifdown $LAN
+        echo 1 > /run/fw-sh/maintenance.pid
+        fi
+    }
+
+
+    maintenance-off ()
+    {
+        mpid=`cat /run/fw-sh/maintenance.pid`
+        if [ $mpid = 0 ]
+        then
+            echo ""
+            echo "Wyszedłeś już z trybu diagnostycznego !"
+            echo ""
+            exit
+        else
+        echo "Wyłączam tryb diagnostyczny."
+        ifup $LAN
+        ifup $WAN
+        static_routing_up
+        create_fw_hashtables
+        load_fw_hashtables
+        firewall_up
+        htb_cmd start
+        dhcpd_restart
+        fw_cron start
+        echo 0 > /run/fw-sh/maintenance.pid
+        ifdown $MGMT
+        fi
+    }
+
+
+    stop ()
+    {
+        static_routing_down
+        firewall_down
+        htb_cmd stop
+        destroy_all_hashtables
+        fw_cron stop
     }
 
 
     start ()
     {
-	static_routing_up
-	create_fw_hashtables
-	load_fw_hashtables
+        static_routing_up
+        create_fw_hashtables
+        load_fw_hashtables
         firewall_up
-	htb_cmd start
-	dhcpd_restart
-	fw_cron start
+        htb_cmd start
+        dhcpd_restart
+        fw_cron start
     }
 
 
     lmsd ()
     {
-	lmsd_reload_new
+        lmsd_reload_new
     }
 
 
     reload ()
     {
-	echo "Wykonuję reload"
-	firewall_down
-	load_fw_hashtables
+        echo "Wykonuję reload"
+        firewall_down
+        load_fw_hashtables
         firewall_up
         htb_cmd restart
         dhcpd_restart
@@ -477,8 +549,8 @@ MAILTO=""
 
     newreload ()
     {
-	echo "Wykonuję reload"
-	load_fw_hashtables
+        echo "Wykonuję warunkowy reload modułów"
+        load_fw_hashtables
         htb_cmd restart
         dhcpd_restart
     }
@@ -487,33 +559,33 @@ MAILTO=""
     restart ()
     {
         echo "Wykonuję restart"
-	echo "Restartuję Firewall"
-	firewall_down
-	destroy_all_hashtables
-	create_fw_hashtables
-	load_fw_hashtables
-	firewall_up
-	echo "Sprawdzam czy konieczny jest restart Shaper'a"
-	htb_cmd restart
-	echo "Sprawdzam czy konieczny jest restart serwera DHCP"
-	dhcpd_restart
+        echo "Restartuję Firewall"
+        firewall_down
+        destroy_all_hashtables
+        create_fw_hashtables
+        load_fw_hashtables
+        firewall_up
+        echo "Sprawdzam czy konieczny jest restart Shaper'a"
+        htb_cmd restart
+        echo "Sprawdzam czy konieczny jest restart serwera DHCP"
+        dhcpd_restart
     }
 
     qos ()
     {
         get_qos_config
-	htb_cmd restart
+        htb_cmd restart
     }
 
 
     stats ()
     {
         iptables -t mangle -nvxL COUNTERSOUT |tail -n +3 | awk '{print $8 " "$2}' |grep -v 0.0.0.0 > /tmp/upload.tmp
-	iptables -t mangle -nvxL COUNTERSIN |tail -n +3 | awk '{print $9 " "$2}' |grep -v 0.0.0.0 > /tmp/download.tmp
-	join /tmp/upload.tmp /tmp/download.tmp
-	rm /tmp/upload.tmp /tmp/download.tmp
-	iptables -t mangle -Z COUNTERSIN
-	iptables -t mangle -Z COUNTERSOUT
+        iptables -t mangle -nvxL COUNTERSIN |tail -n +3 | awk '{print $9 " "$2}' |grep -v 0.0.0.0 > /tmp/download.tmp
+        join /tmp/upload.tmp /tmp/download.tmp
+        rm /tmp/upload.tmp /tmp/download.tmp
+        iptables -t mangle -Z COUNTERSIN
+        iptables -t mangle -Z COUNTERSOUT
     }
 
 
@@ -525,27 +597,27 @@ MAILTO=""
         echo ""
     for tablename in raw filter nat mangle
     do
-	echo "-------"
-	echo "$tablename"
-	echo "-------"
-	iptables -t $tablename -nvL
-	echo ""
+        echo "-------"
+        echo "$tablename"
+        echo "-------"
+        iptables -t $tablename -nvL
+        echo ""
     done
 
         echo "-----"
         echo "IPSET"
         echo "-----"
-	echo ""
+        echo ""
     for ipsetname in `ipset list -n`
     do
-	ipset list $ipsetname
-	echo ""	
+        ipset list $ipsetname
+        echo ""
     done
         echo "----------"
         echo "IPSET LIST"
         echo "----------"
-	echo ""
-	ipset list -n
+        echo ""
+        ipset list -n
     }
 
 
@@ -560,7 +632,7 @@ case "$1" in
         stop
     ;;
     'stats')
-	stats
+        stats
     ;;
     'status')
         status
@@ -580,10 +652,16 @@ case "$1" in
     ;;
     'qos')
         qos
-        
     ;;
+    'maintenance-on')
+        maintenance-on
+    ;;
+    'maintenance-off')
+        maintenance-off
+    ;;
+
         *)
-        echo -e "\nUsage: fw.sh start|stop|restart|reload|stats|lmsd|qos|status"
+        echo -e "\nUsage: fw.sh start|stop|restart|reload|stats|lmsd|qos|status|maintenance-on|maintenance-off"
     ;;
 
 esac
