@@ -325,7 +325,7 @@ function firewall_down {
 #Wyłączenie przesyłania pakietów między interfejsami.
     sysctl -w net.ipv4.ip_forward=0
 
-#Usunięcie raguł iptables
+#Usunięcie reguł iptables
     for i in raw filter nat mangle
     do
         iptables -t $i -F
