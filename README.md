@@ -81,13 +81,15 @@ Sieć/prefiks adres_IP_bramki
 172.16.1.128/30 172.16.1.8 </br>
 172.16.3.128/30 172.16.1.9 </br>
 
-Domyślnie skrypt pobiera swoje pliki konfiguracyjne łącząc się ze zdalną maszyną na której są tworzone za pomocą ssh z wykorzystaniem pary kluczy RSA. Jeśli pliki są tworzone lokalnie na tej samej maszynie na ktorej pracuje skrypt najprościej jest podać w konfiguracji adres IP 127.0.0.1. 
+Domyślnie skrypt pobiera swoje pliki konfiguracyjne łącząc się przez ssh ze zdalną maszyną, na której są tworzone. 
+Dla łączenia przez ssh najlepiej użyć pary kluczy RSA. 
+Jeśli pliki są tworzone lokalnie na tej samej maszynie, na ktorej pracuje skrypt najprościej jest podać w konfiguracji adres IP 127.0.0.1. 
 
 W celu optymalnej wydajności przetwarzania pakietów fw.sh korzysta z ipset. To pozwala na wykorzystanie go w sieciach z tysiącami komputerów.
 
-Skrypt posiada mechanizm pozwalający na unikanie, kiedy tylko to możliwe niepotrzebnego przeładowania reguł iptables, korzystając z mechanizmu podmiany gotowych list ipset podczas którego transmisja pakietów nie ulega przerwaniu. 
+Skrypt posiada mechanizm pozwalający na unikanie, kiedy tylko to możliwe, niepotrzebnego przeładowania reguł iptables, korzystając z mechanizmu podmiany gotowych list ipset, podczas którego transmisja pakietów nie ulega przerwaniu. 
 
-Odczytuje także cyklicznie stany liczników pakietów i ładuje je do tabeli stats bazy danych LMS, co pozwala na generowanie statystyk ruchu dla klientów. 
+Odczytuje także cyklicznie stany liczników pakietów i ładuje je do pliku, Lms posiada skrypty (np lms-traffic) które pozwalają parsować taki plik i wrzucać z niego dane do tabeli stats swojej bazy danych, co pozwala na generowanie statystyk ruchu dla klientów. 
 
 Gdy już mamy gotowe pliki konfiguracyjne uruchamiamy skrypt: </br>
 
@@ -111,6 +113,7 @@ Jeśli mamy skonfigurowany skrypt rc.htb którego zawarość zmienia się dwa ra
 00 22 * * * /opt/gateway/scripts/fw.sh qos
 00 10 * * * /opt/gateway/scripts/fw.sh qos
 
+Skrypt posiada także tryb maintenance. W tym trybie wyłącza zaporę, wyłącza interfejsy LAN i WAN, podnosi zaś  interfejs zdefiniowany jako MGMNT (management).
 
 #### Statystyki ruchu w LMS ####
 
@@ -129,5 +132,5 @@ Skrypt ten odczyta plik /var/log/traffic.log i zapisze wartości do tabeli stats
  
 ### Opis konfiguracji LMS ###
 
-Pliki konfiguracyjne dla skryptu fw.sh powinny być generowane przez lmsd uruchomionego na maszynie z LMS:
+Pliki konfiguracyjne dla skryptu fw.sh powinny być generowane np. przez lmsd uruchomionego na maszynie z LMS:
 
