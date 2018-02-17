@@ -218,7 +218,7 @@ while read nat_name ip; do
         then
             ipset add fw_warned_hosts.tmp $i
         else
-        echo    echo "Plik $nat_name ma nieprawidłowy format, prawidłowy to: grantedhost|deniedhost|warnedhost ip_addres"
+        echo "Plik $nat_name ma nieprawidłowy format, prawidłowy to: grantedhost|deniedhost|warnedhost ip_addres"
         fi
     done < $confdir/$nat_name
 done <$confdir/$nat_1n_ip_file
