@@ -285,10 +285,14 @@ function load_nat_11_fw_rules {
 
 
 function firewall_up {
-#Change default ARP table
-    echo "8192" > /proc/sys/net/ipv4/neigh/default/gc_thresh3
-    echo "4096" > /proc/sys/net/ipv4/neigh/default/gc_thresh2
+
+#Change default ARP table for large networks.
+ if [ $(cat /proc/sys/net/ipv4/neigh/default/gc_thresh1) -lt 2048 ]
+ then 
     echo "2048" > /proc/sys/net/ipv4/neigh/default/gc_thresh1
+    echo "4096" > /proc/sys/net/ipv4/neigh/default/gc_thresh2
+    echo "8192" > /proc/sys/net/ipv4/neigh/default/gc_thresh3
+ fi
 
 #Set default policy
     iptables -P FORWARD DROP
