@@ -1,3 +1,10 @@
+#TO INSTALL
+
+mkdir -p /opt/gateway/scripts
+curl -sS https://raw.githubusercontent.com/darton/fw/master/fw.sh > /opt/gateway/scripts/fw.sh
+chmod u+x /opt/gateway/scripts/fw.sh
+
+
 fw.sh
 
 Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) i/lub shaper pobierając swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl) lub dowolny inny program, można też pliki konfiguracyjne stworzyć ręcznie.
