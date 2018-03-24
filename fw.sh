@@ -370,28 +370,6 @@ function load_fw_hashtables {
 }
 
 
-function lmsd_reload {
-#Sprawdza czy ustawiony jest status przeładowania dla demona lmsd na maszynie z LMS
-
-        lms_status=`ssh $sshurl "$dburl"| grep -v reload`
-    if [ $lms_status = 1 ]
-    then
-        echo "Status przeładowania lmsd został ustawiony"
-        echo "Przeładowywuję lmsd na zdalnej maszynie"
-        ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
-        echo "Pobieram konfigurację z LMS"
-        get_config
-        echo "Sprawdzam czy zmieniła się konfiguracja"
-        compare_config_files
-        echo "Pliki konfiguracyjne zostały zmienione, ładuję nową konfigurację. Uruchamiam skrypt w trybie reload"
-        reload
-    else
-        echo "Status przeładowania lmsd nie został ustawiony, kończę program"
-    exit
-    fi
-}
-
-
 function lmsd_reload_new {
 #Sprawdza czy ustawiony jest status przeładowania dla demona lmsd na maszynie z LMS
 
@@ -543,17 +521,6 @@ MAILTO=""
     }
 
 
-    reload ()
-    {
-        echo "Wykonuję reload"
-        firewall_down
-        load_fw_hashtables
-        firewall_up
-        htb_cmd restart
-        dhcpd_restart
-    }
-
-
     newreload ()
     {
         echo "Wykonuję warunkowy reload modułów"
@@ -649,9 +616,6 @@ case "$1" in
         start
     ;;
     'reload')
-        reload
-    ;;
-    'newreload')
         newreload
     ;;
     'lmsd')
