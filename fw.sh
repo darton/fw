@@ -286,6 +286,9 @@ function load_nat_11_fw_rules {
 
 function firewall_up {
 
+#Increase nf_conntrack table size
+echo 524288 > /proc/sys/net/netfilter/nf_conntrack_max
+
 #Change default ARP table for large networks.
  if [ $(cat /proc/sys/net/ipv4/neigh/default/gc_thresh1) -lt 2048 ]
  then 
