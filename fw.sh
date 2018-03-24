@@ -522,6 +522,8 @@ MAILTO=""
 
     start ()
     {
+        #for Centos 7 uncomment 
+        #tuned-adm profile network-latency
         static_routing_up
         create_fw_hashtables
         load_fw_hashtables
