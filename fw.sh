@@ -45,7 +45,7 @@ sshurl=root@$lms_ip
 dburl="mysql -s -u lmsd_reload lms -e \"select reload from hosts where id=4\""
 
 
-####Makes necessary dirs and files####
+####Makes necessary config directories and files####
 [[ -d /run/fw-sh/ ]] || mkdir /run/fw-sh
 [[ -f /run/fw-sh/maintenance.pid ]] || echo 0 > /run/fw-sh/maintenance.pid
 
