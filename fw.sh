@@ -47,11 +47,16 @@ dburl="mysql -s -u lmsd_reload lms -e \"select reload from hosts where id=4\""
 
 ####Makes necessary dirs and files####
 [[ -d /run/fw-sh/ ]] || mkdir /run/fw-sh
-touch /run/fw-sh/maintenance.pid
+[[ -f /run/fw-sh/maintenance.pid ]] || echo 0 > /run/fw-sh/maintenance.pid
 
 [[ -d $confdir ]] || mkdir $confdir
 [[ -d $oldconfdir ]] || mkdir $oldconfdir
 
+[[ -f $confdir/$nat_11_file ]] || touch $confdir/$nat_11_file
+[[ -f $confdir/$nat_1n_ip_file ]] || touch $confdir/$nat_1n_ip_file
+[[ -f $confdir/$public_ip_file ]] || touch $confdir/$public_ip_file
+[[ -f $confdir/$routed_nets_file ]] || touch $confdir/$routed_nets_file
+[[ -f $confdir/$lan_banned_dst_ports_file ]] || touch $confdir/$lan_banned_dst_ports_file
 
 #### Functions ####
 function get_config {
