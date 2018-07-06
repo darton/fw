@@ -302,10 +302,10 @@ echo 524288 > /proc/sys/net/netfilter/nf_conntrack_max
     echo "8192" > /proc/sys/net/ipv4/neigh/default/gc_thresh3
  fi
 
-#Set default policy
+#Set FORWARD default policy
     iptables -P FORWARD DROP
 
-#Enable port forwardings
+#Enable IP forwardings
     sysctl -w net.ipv4.ip_forward=1
 
 #Drops some ports 
