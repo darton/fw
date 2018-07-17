@@ -60,11 +60,7 @@ dburl="mysql -s -u lmsd_reload lms -e \"select reload from hosts where id=4\""
 
 #### Functions ####
 function get_config {
-        cd $confdir
-    for FILENAME in *
-    do
-        mv $FILENAME $oldconfdir/$FILENAME
-    done
+        mv $confdir/* $oldconfdir/
         echo "Łącze się z LMS i pobieram pliki konfiguracyjne"
         /usr/bin/scp $scpurl/* $confdir/
 }
