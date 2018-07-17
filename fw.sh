@@ -67,7 +67,6 @@ function get_config {
 
 
 function get_qos_config {
-        cd $confdir
         mv $confdir/rc.htb $oldconfdir/rc.htb
         echo "Łącze się z serwerem i pobieram plik qos"
         /usr/bin/scp $scpurl/rc.htb $confdir/
