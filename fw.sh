@@ -73,31 +73,6 @@ function get_qos_config {
 }
 
 
-function compare_config_files {
-    cd $confdir
-    for f in *
-    do
-        diff -q $confdir/$f $oldconfdir/$f > /tmp/fw.diff
-    done
-
-    if [ -s "/tmp/fw.diff" ]
-    then
-        echo ""
-        echo "Status konfiguracji"
-        echo "-------------------"
-        echo "Pliki konfiguracyjne zostały zmienione, wykonuję następne polecenia"
-        echo ""
-    else
-        echo ""
-        echo "Status konfiguracji"
-        echo "-------------------"
-        echo "Nowa konfiguracja jest identyczna, kończę działanie programu."
-        echo ""
-        exit
-    fi
-}
-
-
 function dhcpd_restart {
 dhcpd_conf_current=$(cat $confdir/dhcpd.conf |sha1sum)
 dhcpd_conf_new=$(cat $oldconfdir/dhcpd.conf |sha1sum)
