@@ -31,16 +31,16 @@ routed_nets_file=fw_routed_ip
 lan_banned_dst_ports_file=fw_lan_banned_dst_ports
 
 #Source of config files
-scpurl=root@10.10.10.10:/opt/gateway
+scpurl=root@77.55.208.92:/opt/gateway
 
 #URL to LMS database server.
-sshurl=root@10.10.10.10
+sshurl=root@77.55.208.92
 
 #Warning: user lmsd_reload has SELECT privileges to lms.hosts table only with no password
 dburl="mysql -s -u lmsd_reload lms -e \"select reload from hosts where id=4\""
 
 #PROXY IP ADDRESS
-proxy_ip=192.168.1.1
+proxy_ip=80.48.183.138
 
 #Ethernet interfaces
 #WAN=$(ip r|grep default |awk '{print $5}')
@@ -64,328 +64,11 @@ MGMT=eno1
 
 current_time=$(date '+%Y-%m-%d %H:%M:%S')
 
-source ./lib/modify_nat11_fw_rules
-source ./lib/modify_nat1n_fw_rules
+source /opt/gateway/scripts/fwfunctions
 
-
-#### Functions ####
-function get_config {
-        cd $confdir
-    for FILENAME in *
-    do
-        mv $FILENAME $oldconfdir/$FILENAME
-    done
-        echo "Łącze się z LMS i pobieram pliki konfiguracyjne"
-        /usr/bin/scp $scpurl/* $confdir/
-    echo "$current_time - get_config OK" >> $logdir/$logfile
-}
-
-
-function get_qos_config {
-        cd $confdir
-        mv $confdir/rc.htb $oldconfdir/rc.htb
-        echo "Łącze się z serwerem i pobieram plik qos"
-        /usr/bin/scp $scpurl/rc.htb $confdir/
-        echo "$current_time - get_qos_config OK" >> $logdir/$logfile
-}
-
-
-function dhcpd_restart {
-dhcpd_conf_current=$(cat $confdir/dhcpd.conf |sha1sum)
-dhcpd_conf_new=$(cat $oldconfdir/dhcpd.conf |sha1sum)
-
-    if [ "$dhcpd_conf_current" != "$dhcpd_conf_new" ]; then
-        echo "$current_time - Plik dhcpd.conf ma nową konfigurację, restartuję serwer DHCP" >> $logdir/$logfile
-        systemctl restart dhcpd.service
-    else
-        echo "Konfiguracja dhcpd.conf jest identyczna, restart nie jest potrzebny"
-    fi
-}
-
-
-function htb_cmd {
-    if [ "$1" = "restart" ]; then
-    rc_htb_current=$(cat $confdir/rc.htb |sha1sum)
-    rc_htb_new=$(cat $oldconfdir/rc.htb |sha1sum)
-        if [ "$rc_htb_current" != "$rc_htb_new" ]; then
-            echo "$current_time - Plik rc.htb ma nową konfigurację, restartuję Shaper" >> $logdir/$logfile
-            bash $confdir/rc.htb stop
-            bash $confdir/rc.htb start
-        else
-            echo "Konfiguracja rc.htb jest identyczna, restart nie jest potrzebny"
-        fi
-    fi
-    if [ "$1" = "stop" ]; then
-    bash $confdir/rc.htb stop
-    echo "$current_time - htb_cmd stop OK" >> $logdir/$logfile
-    fi
-    if [ "$1" = "start" ]; then
-    echo "Uruchamiam Shaper"
-    bash $confdir/rc.htb start
-    fi
-}
-
-
-function create_fw_hashtables {
-
-#hashtable for granted host
-current_ipset_list=$(ipset -q --list fw_ip)
-if ([ "$current_ipset_list" = "" ]); then
-        ipset create fw_ip hash:ip hashsize 2048
-fi
-
-#hashtable for denied host
-current_ipset_list=$(ipset -q --list fw_denied_hosts)
-if ([ "$current_ipset_list" = "" ]); then
-        ipset create fw_denied_hosts hash:ip hashsize 1024
-fi
-
-#hashtable for warned host
-current_ipset_list=$(ipset -q --list fw_warned_hosts)
-if ([ "$current_ipset_list" = "" ]); then
-        ipset create fw_warned_hosts hash:ip hashsize 2048
-fi
-
-#hashtable for banned dst ports on LAN interface
-current_ipset_list=$(ipset -q --list fw_lan_banned_dst_ports)
-if ([ "$current_ipset_list" = "" ]); then
-        ipset create fw_lan_banned_dst_ports bitmap:port range 0-65535
-fi
-
-#hashtable for nat1-n host
-    while read nat_name ip; do
-        ipset create "$nat_name" hash:ip hashsize 1024
-    done <$confdir/$nat_1n_ip_file
-echo "$current_time - create_fw_hashtables OK" >> $logdir/$logfile
-}
-
-function destroy_tmp_hashtables {
-#remove all *.tmp ipset hashtables
-    for ipsetlist in `ipset list -n|grep .tmp`
-    do
-        ipset destroy $ipsetlist
-    done
-echo "$current_time - destroy_tmp_hashtables OK" >> $logdir/$logfile
-}
-
-function create_tmp_hashtables {
-#create tmp hashtable for granted host
-        ipset create fw_ip.tmp hash:ip hashsize 2048
-
-#create tmp hashtable for denied host
-        ipset create fw_denied_hosts.tmp hash:ip hashsize 1024
-
-#create tmp hashtable for warned host
-        ipset create fw_warned_hosts.tmp hash:ip hashsize 2048
-
-#create tmp hashtable for banned dst ports on LAN interface
-        ipset create fw_lan_banned_dst_ports.tmp bitmap:port range 0-65535
-
-#create tmp hashtable for nat1-n host
-    while read nat_name ip; do
-        ipset create "$nat_name".tmp hash:ip hashsize 1024
-    done <$confdir/$nat_1n_ip_file
-echo "$current_time - create_tmp_hashtables OK" >> $logdir/$logfile
-}
-
-
-function load_tmp_fw_ip_hashtable {
-    while read status i; do
-        if [ "$status" = "grantedhost" ]; then
-            ipset add fw_ip.tmp $i
-        elif [ "$status" = "deniedhost" ]; then
-            ipset add fw_denied_hosts.tmp $i
-        elif [ "$status" = "warnedhost" ]; then
-            ipset add fw_warned_hosts.tmp $i
-        else
-            echo "Plik $public_ip_file ma nieprawidłowy format, prawidłowy to: grantedhost|deniedhost|warnedhost ip_addres"
-        fi
-    done < $confdir/$public_ip_file
-echo "$current_time - load_tmp_fw_ip_hashtable OK" >> $logdir/$logfile
-}
-
-
-function load_tmp_nat1n_hashtables {
-while read nat_name ip; do
-    while read status i; do
-        if [ "$status" = "grantedhost" ]; then
-            ipset add $nat_name.tmp $i
-            ipset add fw_ip.tmp $i
-        elif [ "$status" = "deniedhost" ]; then
-            ipset add fw_denied_hosts.tmp $i
-        elif [ "$status" = "warnedhost" ]; then
-            ipset add fw_warned_hosts.tmp $i
-        else
-             echo "Plik $nat_name ma nieprawidłowy format, prawidłowy to: grantedhost|deniedhost|warnedhost ip_addres"
-        fi
-    done < $confdir/$nat_name
-done <$confdir/$nat_1n_ip_file
-echo "$current_time - load_tmp_nat1n_hashtables OK" >> $logdir/$logfile
-}
-
-
-function load_tmp_nat_11_hashtable {
-    while read status i ipub; do
-        if [ "$status" = "grantedhost" ]; then
-            ipset add fw_ip.tmp $i
-        elif [ "$status" = "deniedhost" ]; then
-            ipset add fw_denied_hosts.tmp $i
-        elif [ "$status" = "warnedhost" ]; then
-            ipset add fw_warned_hosts.tmp $i
-        else
-            echo "File $nat_11_file has the wrong format, correct format: grantedhost|deniedhost|warnedhost ip_adres ipub_adres"
-        fi
-    done < $confdir/$nat_11_file
-echo "$current_time - load_tmp_nat_11_hashtable OK" >> $logdir/$logfile
-}
-
-
-function load_tmp_lan_banned_dst_ports_hashtable {
-    while read ports; do
-            ipset add fw_lan_banned_dst_ports.tmp $ports
-    done < $confdir/$lan_banned_dst_ports_file
-echo "$current_time - load_tmp_lan_banned_dst_ports_hashtable OK" >> $logdir/$logfile
-}
-
-
-function load_new_ipset_hashtables {
-    for ipsetname in `ipset list -n|grep -v .tmp`
-    do
-        current=$(ipset list $ipsetname |tail -n +8 |sort |sha1sum)
-        new=$(ipset list $ipsetname.tmp |tail -n +8 |sort |sha1sum)
-
-     if [ "$current" != "$new" ]; then
-        echo "$current_time - Ładuję nową zawartość do $ipsetname" >> $logdir/$logfile
-        ipset -W $ipsetname $ipsetname.tmp
-     fi
-        ipset -X $ipsetname.tmp
-        echo "$current_time - Kasuję $ipsetname.tmp" >> $logdir/$logfile
-    done
-echo "$current_time - load_new_ipset_hashtables OK" >> $logdir/$logfile
-}
-
-
-function load_nat_1n_fw_rules {
-    while read nat_name ip; do
-        iptables -t nat -A POSTROUTING -o $WAN -m set --match-set $nat_name src -j SNAT --to-source $ip
-    done <$confdir/$nat_1n_ip_file
-echo "$current_time - load_nat_1n_fw_rules OK" >> $logdir/$logfile
-}
-
-function load_nat_11_fw_rules {
-    while read status i ipub; do
-        if [ "$status" = "grantedhost" ]; then
-            iptables -t nat -A POSTROUTING -o $WAN -s $i -j SNAT --to-source $ipub
-            iptables -t nat -A PREROUTING -i $WAN -d $ipub -j DNAT --to-destination $i
-        fi
-    done < $confdir/$nat_11_file
-echo "$current_time - load_nat_11_fw_rules OK" >> $logdir/$logfile
-}
-
-
-function firewall_up {
-
-#Change default ARP table for large networks.
- if [ $(cat /proc/sys/net/ipv4/neigh/default/gc_thresh1) -lt 2048 ]; then
-    echo "2048" > /proc/sys/net/ipv4/neigh/default/gc_thresh1
-    echo "4096" > /proc/sys/net/ipv4/neigh/default/gc_thresh2
-    echo "8192" > /proc/sys/net/ipv4/neigh/default/gc_thresh3
- fi
-
-#Increasing nf_conntrack table size
-    echo 524288 > /proc/sys/net/netfilter/nf_conntrack_max
-
-#Set FORWARD default policy
-    iptables -P FORWARD DROP
-    iptables -P INPUT ACCEPT
-    iptables -P OUTPUT ACCEPT
-
-#Enable IP forwardings
-    sysctl -w net.ipv4.ip_forward=1
-
-#INPUT CHAIN
-    iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
-    iptables -A INPUT -p icmp -j ACCEPT
-    iptables -A INPUT -i lo -j ACCEPT
-    iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
-    iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 222 -j ACCEPT
-    iptables -A INPUT -i $LAN -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
-    iptables -A INPUT -i $LAN -p tcp -m state --state NEW -m tcp --dport 3128 -j ACCEPT
-    iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
-
-#Drops some ports
-#    iptables -A FORWARD -i $WAN -m set --match-set fw_lan_banned_dst_ports dst -j DROP
-#    iptables -A FORWARD -i $WAN -o $LAN -d 172.16.0.0/16 -m set --match-set fw_lan_banned_dst_ports dst -j DROP
-    iptables -A FORWARD -i $WAN -o $LAN -m set --match-set fw_lan_banned_dst_ports dst -j DROP
-
-#Enable packet logging
-    iptables -A FORWARD -i $LAN -m state --state NEW -j ULOG --ulog-nlgroup 1 --ulog-prefix FORWARDED-CONN
-
-#Ładowanie reguł FORWARD dla wszystkich upoważnionych hostów.
-#Zezwolenie na przesył pakietów tylko pomiędzy interfejscami LAN i WAN dla wybranych hostów z listy fw_ip
-    iptables -A FORWARD -i $LAN -o $WAN -m set --match-set fw_ip src -j ACCEPT
-    iptables -A FORWARD -i $WAN -o $LAN -m set --match-set fw_ip dst -j ACCEPT
-
-#Redirect dla klientów z włączonym ostrzeżeniem w LMS
-    iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -p tcp --dport 80 -j DNAT --to $proxy_ip:3128
-
-#Załadowanie reguł SNAT dla użytkowników NAT 1:n
-    load_nat_1n_fw_rules
-
-#Załadowanie reguł SNAT/DNAT dla użytkowników NAT 1:1
-    load_nat_11_fw_rules
-echo "$current_time - firewall_up OK" >> $logdir/$logfile
-}
-
-
-function firewall_down {
-#Wyłączenie przesyłania pakietów między interfejsami.
-    sysctl -w net.ipv4.ip_forward=0
-
-#Usunięcie reguł iptables
-    for i in raw filter nat mangle
-    do
-        iptables -t $i -F
-        iptables -t $i -X
-    done
-
-#Ustawienie domyśłnej polityki dla wyłączonego firewalla
-        iptables -P FORWARD DROP
-        iptables -P INPUT ACCEPT
-        iptables -P OUTPUT ACCEPT
-echo "$current_time - firewall_down OK" >> $logdir/$logfile
-}
-
-
-function destroy_all_hashtables {
-    for ipsetlist in `ipset list -n`
-    do
-        ipset destroy $ipsetlist
-    done
-echo "$current_time - destroy_all_hashtables OK" >> $logdir/$logfile
-}
-
-
-function flush_hashtables {
-    ipset -F
-}
-
-
-function load_fw_hashtables {
-        echo "$current_time - load_fw_hashtables OK" >> $logdir/$logfile
-        destroy_tmp_hashtables
-        create_tmp_hashtables
-        load_tmp_fw_ip_hashtable
-        load_tmp_nat1n_hashtables
-        load_tmp_nat_11_hashtable
-        load_tmp_lan_banned_dst_ports_hashtable
-        load_new_ipset_hashtables
-}
-
-
-function lmsd_reload_new {
-#Sprawdza czy ustawiony jest status przeładowania dla demona lmsd na maszynie z LMS
-
+    lmsd_reload_new ()
+    {
+        #Sprawdza czy ustawiony jest status przeładowania dla demona lmsd na maszynie z LMS
         lms_status=`ssh $sshurl "$dburl"| grep -v reload`
     if [ $lms_status = 1 ]; then
         echo "$current_time - Status przeładowania lmsd został ustawiony" >> $logdir/$logfile
@@ -414,46 +97,7 @@ function lmsd_reload_new {
         echo "Status przeładowania lmsd nie został ustawiony, kończę program."
     exit
     fi
-}
-
-function static_routing_up {
-if [ -s $confdir/$routed_nets_file ]; then
-    while read net gw interface; do
-        ip route add $net via $gw dev $interface
-    done < $confdir/$routed_nets_file
-    echo "$current_time - Dodaje wpisy routingu statycznego" >> $logdir/$logfile
-else
-    echo "$current_time - Brak konfiguracji dla routingu statycznego" >> $logdir/$logfile
-fi
-}
-
-function static_routing_down {
-    while read net gw interface; do
-        ip route del $net via $gw dev $interface
-    done < $confdir/$routed_nets_file
-    echo "$current_time - Usuwam wpisy routingu statycznego" >> $logdir/$logfile
-}
-
-function fw_cron {
-    if [ "$1" = "start" ]; then
-echo '# Run the fw.sh cron jobs
-SHELL=/bin/bash
-PATH=/sbin:/bin:/usr/sbin:/usr/bin
-MAILTO=""
-* * * * * root /opt/gateway/scripts/fw.sh lmsd  > /dev/null 2>&1
-01 22 * * * root /opt/gateway/scripts/fw.sh qos  > /dev/null 2>&1
-01 10 * * * root /opt/gateway/scripts/fw.sh qos  > /dev/null 2>&1
-' > /etc/cron.d/fw_sh
-        echo "$current_time - Włączam cron dla fw.sh" >> $logdir/$logfile
-    fi
-
-    if [ "$1" = "stop" ]; then
-        if [ -f /etc/cron.d/fw_sh ]; then
-            rm /etc/cron.d/fw_sh
-        fi
-        echo "$current_time - Wyłączam cron dla fw.sh" >> $logdir/$logfile
-    fi
-}
+    }
 
 
     maintenance-on ()
@@ -546,10 +190,11 @@ MAILTO=""
         echo "Firewall newreload"
         echo "$current_time - Firewall newreload" >> $logdir/$logfile
         load_fw_hashtables
-        htb_cmd restart
-        dhcpd_restart
         modify_nat11_fw_rules
         modify_nat1n_fw_rules
+        htb_cmd restart
+        dhcpd_restart
+
     }
 
 
@@ -571,50 +216,6 @@ MAILTO=""
     {
         get_qos_config
         htb_cmd restart
-    }
-
-
-    stats ()
-    {
-        iptables -t mangle -nvxL COUNTERSOUT |tail -n +3 | awk '{print $8 " "$2}' |grep -v 0.0.0.0 > /tmp/upload.tmp
-        iptables -t mangle -nvxL COUNTERSIN |tail -n +3 | awk '{print $9 " "$2}' |grep -v 0.0.0.0 > /tmp/download.tmp
-        join /tmp/upload.tmp /tmp/download.tmp
-        rm /tmp/upload.tmp /tmp/download.tmp
-        iptables -t mangle -Z COUNTERSIN
-        iptables -t mangle -Z COUNTERSOUT
-    }
-
-
-    fwstatus ()
-    {
-        echo "########"
-        echo "IPTABLES"
-        echo "########"
-        echo ""
-    for tablename in raw filter nat mangle
-    do
-        echo "-------"
-        echo "$tablename"
-        echo "-------"
-        iptables -t $tablename -nvL
-        echo ""
-    done
-
-        echo "-----"
-        echo "IPSET"
-        echo "-----"
-        echo ""
-    for ipsetname in `ipset list -n`
-    do
-        ipset list $ipsetname
-        echo ""
-    done
-        echo "----------"
-        echo "IPSET LIST"
-        echo "----------"
-        echo ""
-        ipset list -n
-        echo "$current_time - fwstatus OK" >> $logdir/$logfile
     }
 
 
