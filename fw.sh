@@ -156,7 +156,6 @@ fi
     while read nat_name ip; do
         ipset create "$nat_name" hash:ip hashsize 1024
     done <$confdir/$nat_1n_ip_file
-
 echo "$current_time - create_fw_hashtables OK" >> $logdir/$logfile
 }
 
