@@ -1,1 +1,34 @@
+#--fw.sh function--
 
+function modify_nat1n_fw_rules {
+
+lista_zmian=$(diff  --unchanged-line-format="" --old-line-format="removed %L" --new-line-format="added %L" $oldconfdir/$nat_1n_ip_file $confdir/$nat_1n_ip_file)
+
+while read arg1 arg2 arg3
+do
+    if ([ "$arg1" = "removed" ])
+        then
+            current_iptables_nat1n_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set)
+            while read ipt1 ipt2 ipt3 ipt4 ipt5 ipt6 ipt7 ipt8 ipt9 ipt10
+                do
+                    if [ "to:$arg3" = "$ipt10" ]
+                        then
+                            iptables -t nat -D POSTROUTING $ipt1
+                            ipset destroy $arg2
+                    fi
+                done < <(echo -e "$current_iptables_nat1n_postrouting_rules")
+    fi
+
+    if ([ "$arg1" = "added" ])
+        then
+            current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set|grep $arg3$)
+            current_ipset_list=$(ipset -q --list $arg2)
+                    if ([ "$current_iptables_postrouting_rules" = "" ] && [ "$current_ipset_list" = "" ])
+                        then
+                            ipset create "$arg2" hash:ip hashsize 1024
+                            iptables -t nat -I POSTROUTING -o $WAN -m set --match-set $arg2 src -j SNAT --to-source $arg3
+                    fi
+    fi
+done < <(echo -e "$lista_zmian")
+echo "$current_time - modify_nat1n_fw_rules OK" >> $logdir/$logfile
+}
