@@ -1,1 +1,48 @@
+#--fw.sh function--
 
+function modify_nat11_fw_rules {
+
+lista_zmian=$(diff  --unchanged-line-format="" --old-line-format="removed %L" --new-line-format="added %L" $oldconfdir/$nat_11_file $confdir/$nat_11_file)
+
+while read arg1 arg2 arg3 arg4
+do
+    if ([ "$arg1" = "added" ] && [ "$arg2" = "deniedhost" ]) || ([ "$arg1" = "removed" ] && [ "$arg2" = "grantedhost" ])
+        then
+            current_iptables_nat11_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep NAT)
+            while read ipt_num ipt_target ipt_prot ipt_opt ipt_source ipt_destination ipt_destination2
+                do
+                    if [ "$arg3" = "$ipt_source" ]
+                        then
+                            iptables -t nat -D POSTROUTING $ipt_num
+                    fi
+                done < <(echo -e "$current_iptables_nat11_postrouting_rules")
+
+            current_iptables_nat11_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep NAT)
+            while read ipt_num ipt_target ipt_prot ipt_opt ipt_source ipt_destination ipt_destination2
+                do
+                    if [ "$arg4" = "$ipt_destination" ]
+                        then
+                            iptables -t nat -D PREROUTING $ipt_num
+                    fi
+                done < <(echo -e "$current_iptables_nat11_prerouting_rules")
+    fi
+
+    if ([ "$arg1" = "added" ] && [ "$arg2" = "grantedhost" ])
+        then
+#           current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep SNAT|awk '{print $5}'| grep $arg3$)
+            current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep SNAT|grep $arg4$)
+                    if [ "$current_iptables_postrouting_rules" = "" ]
+                        then
+                            iptables -t nat -A POSTROUTING -o $WAN -s $arg3 -j SNAT --to-source $arg4
+                    fi
+
+#           current_iptables_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep DNAT|awk '{print $6}'|grep $arg4$)
+            current_iptables_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep DNAT|grep $arg3$)
+                    if [ "$current_iptables_prerouting_rules" = "" ]
+                        then
+                            iptables -t nat -A PREROUTING -i $WAN -d $arg4 -j DNAT --to-destination $arg3
+                    fi
+    fi
+done < <(echo -e "$lista_zmian")
+echo "$current_time - modify_nat11_fw_rules OK" >> $logdir/$logfile
+}
