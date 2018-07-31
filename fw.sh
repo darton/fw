@@ -239,9 +239,6 @@ case "$1" in
         start
     ;;
     'reload')
-        reload
-    ;;
-    'newreload')
         newreload
     ;;
     'lmsd')
@@ -258,7 +255,7 @@ case "$1" in
     ;;
 
         *)
-        echo -e "\nUsage: fw.sh start|stop|restart|newreload|stats|lmsd|qos|fwstatus|maintenance-on|maintenance-off"
+        echo -e "\nUsage: fw.sh start|stop|restart|reload|stats|lmsd|qos|fwstatus|maintenance-on|maintenance-off"
         echo "$current_time - fw.sh running without parameter OK" >> $logdir/$logfile
     ;;
 
