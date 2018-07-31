@@ -261,7 +261,6 @@ function load_tmp_nat_11_hashtable {
             echo "File $nat_11_file has the wrong format, correct format: grantedhost|deniedhost|warnedhost ip_adres ipub_adres"
         fi
     done < $confdir/$nat_11_file
-
 echo "$current_time - load_tmp_nat_11_hashtable OK" >> $logdir/$logfile
 }
 
@@ -270,7 +269,7 @@ function load_tmp_lan_banned_dst_ports_hashtable {
     while read ports; do
             ipset add fw_lan_banned_dst_ports.tmp $ports
     done < $confdir/$lan_banned_dst_ports_file
-    echo "$current_time - load_tmp_lan_banned_dst_ports_hashtable OK" >> $logdir/$logfile
+echo "$current_time - load_tmp_lan_banned_dst_ports_hashtable OK" >> $logdir/$logfile
 }
 
 
@@ -287,7 +286,7 @@ function load_new_ipset_hashtables {
         ipset -X $ipsetname.tmp
         echo "$current_time - Kasuję $ipsetname.tmp" >> $logdir/$logfile
     done
-        echo "$current_time - load_new_ipset_hashtables OK" >> $logdir/$logfile
+echo "$current_time - load_new_ipset_hashtables OK" >> $logdir/$logfile
 }
 
 
@@ -295,7 +294,7 @@ function load_nat_1n_fw_rules {
     while read nat_name ip; do
         iptables -t nat -A POSTROUTING -o $WAN -m set --match-set $nat_name src -j SNAT --to-source $ip
     done <$confdir/$nat_1n_ip_file
-    echo "$current_time - load_nat_1n_fw_rules OK" >> $logdir/$logfile
+echo "$current_time - load_nat_1n_fw_rules OK" >> $logdir/$logfile
 }
 
 function load_nat_11_fw_rules {
@@ -305,7 +304,7 @@ function load_nat_11_fw_rules {
             iptables -t nat -A PREROUTING -i $WAN -d $ipub -j DNAT --to-destination $i
         fi
     done < $confdir/$nat_11_file
-    echo "$current_time - load_nat_11_fw_rules OK" >> $logdir/$logfile
+echo "$current_time - load_nat_11_fw_rules OK" >> $logdir/$logfile
 }
 
 
@@ -326,7 +325,6 @@ function firewall_up {
     iptables -P INPUT ACCEPT
     iptables -P OUTPUT ACCEPT
 
-
 #Enable IP forwardings
     sysctl -w net.ipv4.ip_forward=1
 
@@ -339,7 +337,6 @@ function firewall_up {
     iptables -A INPUT -i $LAN -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
     iptables -A INPUT -i $LAN -p tcp -m state --state NEW -m tcp --dport 3128 -j ACCEPT
     iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
-
 
 #Drops some ports
 #    iptables -A FORWARD -i $WAN -m set --match-set fw_lan_banned_dst_ports dst -j DROP
@@ -362,7 +359,7 @@ function firewall_up {
 
 #Załadowanie reguł SNAT/DNAT dla użytkowników NAT 1:1
     load_nat_11_fw_rules
-    echo "$current_time - firewall_up OK" >> $logdir/$logfile
+echo "$current_time - firewall_up OK" >> $logdir/$logfile
 }
 
 
@@ -381,7 +378,7 @@ function firewall_down {
         iptables -P FORWARD DROP
         iptables -P INPUT ACCEPT
         iptables -P OUTPUT ACCEPT
-        echo "$current_time - firewall_down OK" >> $logdir/$logfile
+echo "$current_time - firewall_down OK" >> $logdir/$logfile
 }
 
 
@@ -390,7 +387,7 @@ function destroy_all_hashtables {
     do
         ipset destroy $ipsetlist
     done
-    echo "$current_time - destroy_all_hashtables OK" >> $logdir/$logfile
+echo "$current_time - destroy_all_hashtables OK" >> $logdir/$logfile
 }
 
 
@@ -687,8 +684,6 @@ case "$1" in
         *)
         echo -e "\nUsage: fw.sh start|stop|restart|stats|lmsd|qos|fwstatus|maintenance-on|maintenance-off"
         echo "$current_time - fw.sh running without parameter OK" >> $logdir/$logfile
-#       modify_nat11_fw_rules
-#       modify_nat1n_fw_rules
     ;;
 
 esac
