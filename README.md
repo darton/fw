@@ -3,6 +3,7 @@
 mkdir -p /opt/gateway/scripts
 
 curl -sS https://raw.githubusercontent.com/darton/fw/master/fw.sh > /opt/gateway/scripts/fw.sh
+curl -sS https://raw.githubusercontent.com/darton/fw/master/fwfunctions > /opt/gateway/scripts/fwfunctions
 
 chmod u+x /opt/gateway/scripts/fw.sh
 
