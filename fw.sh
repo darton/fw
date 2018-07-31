@@ -13,7 +13,6 @@
 
 PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
 
-
 #Paths to config dirs
 confdir=/opt/gateway/conf
 oldconfdir=/opt/gateway/oldconf
@@ -21,7 +20,6 @@ oldconfdir=/opt/gateway/oldconf
 #Path to log
 logdir=/var/log
 logfile=fw.log
-
 
 #Names of config files
 nat_11_file=fw_nat_1-1
@@ -99,7 +97,6 @@ source /opt/gateway/scripts/fwfunctions
     fi
     }
 
-
     maintenance-on ()
     {
         mpid=`cat /run/fw-sh/maintenance.pid`
@@ -127,7 +124,6 @@ source /opt/gateway/scripts/fwfunctions
         fi
     }
 
-
     maintenance-off ()
     {
         mpid=`cat /run/fw-sh/maintenance.pid`
@@ -152,7 +148,6 @@ source /opt/gateway/scripts/fwfunctions
         fi
     }
 
-
     stop ()
     {
         echo "$current_time - Firewall Stop" >> $logdir/$logfile
@@ -162,7 +157,6 @@ source /opt/gateway/scripts/fwfunctions
         firewall_down
         destroy_all_hashtables
     }
-
 
     start ()
     {
@@ -178,12 +172,10 @@ source /opt/gateway/scripts/fwfunctions
         fw_cron start
     }
 
-
     lmsd ()
     {
         lmsd_reload_new
     }
-
 
     newreload ()
     {
@@ -196,7 +188,6 @@ source /opt/gateway/scripts/fwfunctions
         dhcpd_restart
 
     }
-
 
     restart ()
     {
@@ -217,7 +208,6 @@ source /opt/gateway/scripts/fwfunctions
         get_qos_config
         htb_cmd restart
     }
-
 
 #####Program główny####
 
