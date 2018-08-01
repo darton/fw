@@ -59,6 +59,7 @@ MGMT=eno1
 [[ -f $confdir/$public_ip_file ]] || touch $confdir/$public_ip_file
 [[ -f $confdir/$routed_nets_file ]] || touch $confdir/$routed_nets_file
 [[ -f $confdir/$lan_banned_dst_ports_file ]] || touch $confdir/$lan_banned_dst_ports_file
+[[ -f $logdir/$logfile ]] || touch $logdir/$logfile
 
 current_time=$(date '+%Y-%m-%d %H:%M:%S')
 
