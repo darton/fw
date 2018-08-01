@@ -76,21 +76,16 @@ source /opt/gateway/scripts/fwfunctions
 
     maintenance-on ()
     {
-        echo "Firewall maintenance on"
-        echo "$current_time - Firewall maintenance on" >> $logdir/$logfile
         mpid=`cat /run/fw-sh/maintenance.pid`
         if [ $mpid = 1 ]; then
             echo ""
-            echo "Jesteś już w trybie diagnostycznym !"
-            echo "Aby wyjśc z trybu diagnostycznego wykonaj:"
+            echo "Firewall maintenance is allready on"
+            echo "To exit from maintenance mode run:"
             echo ""
             echo "/etc/init.d/fw.sh maintenance-off"
             echo ""
             exit
         else
-        echo ""
-        echo "$current_time - Włączam tryb diagnostyczny" >> $logdir/$logfile
-        echo ""
         fw_cron stop
         htb_cmd stop
         static_routing_down
@@ -102,21 +97,21 @@ source /opt/gateway/scripts/fwfunctions
         ifdown $LAN
         echo 1 > /run/fw-sh/maintenance.pid
         fi
-        echo "$current_time - Firewall maintenance on OK" >> $logdir/$logfile
+        echo ""
+        echo "Firewall maintenance is on"
+        echo ""
+        echo "$current_time - Firewall maintenance is on" >> $logdir/$logfile
     }
 
     maintenance-off ()
     {
-        echo "Firewall maintenance off"
-        echo "$current_time - Firewall maintenance off" >> $logdir/$logfile
         mpid=`cat /run/fw-sh/maintenance.pid`
         if [ $mpid = 0 ]; then
             echo ""
-            echo "Wyszedłeś już z trybu diagnostycznego !"
+            echo "Firewall maintenance is allready off"
             echo ""
             exit
         else
-        echo "$current_time - Wyłączam tryb diagnostyczny" >> $logdir/$logfile
         ifup $LAN
         ifup $WAN
         static_routing_up
@@ -129,7 +124,10 @@ source /opt/gateway/scripts/fwfunctions
         echo 0 > /run/fw-sh/maintenance.pid
         ifdown $MGMT
         fi
-        echo "$current_time - Firewall maintenance off OK" >> $logdir/$logfile
+        echo ""
+        echo "Firewall maintenance is off"
+        echo ""
+        echo "$current_time - Firewall maintenance is off" >> $logdir/$logfile
     }
 
     stop ()
