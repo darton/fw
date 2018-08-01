@@ -210,7 +210,8 @@ source /opt/gateway/scripts/fwfunctions
     fi
     }
 
-function lmsd_reload_old {
+    lmsd_reload_old ()
+    {
 #Sprawdza czy ustawiony jest status przeładowania dla demona lmsd na maszynie z LMS
 
         lms_status=`ssh $sshurl "$dburl"| grep -v reload`
@@ -238,7 +239,7 @@ function lmsd_reload_old {
         echo "Status przeładowania lmsd nie został ustawiony, kończę program."
     exit
     fi
-}
+    }
 
 
 #####Program główny####
