@@ -11,7 +11,6 @@ function get_config {
     echo "$current_time - get_config OK" >> $logdir/$logfile
 }
 
-
 function get_qos_config {
         cd $confdir
         mv $confdir/rc.htb $oldconfdir/rc.htb
@@ -19,7 +18,6 @@ function get_qos_config {
         /usr/bin/scp $scpurl/rc.htb $confdir/
         echo "$current_time - get_qos_config OK" >> $logdir/$logfile
 }
-
 
 function dhcpd_restart {
 dhcpd_conf_current=$(cat $confdir/dhcpd.conf |sha1sum)
@@ -32,7 +30,6 @@ dhcpd_conf_new=$(cat $oldconfdir/dhcpd.conf |sha1sum)
         echo "Konfiguracja dhcpd.conf jest identyczna, restart nie jest potrzebny"
     fi
 }
-
 
 function htb_cmd {
     if [ "$1" = "restart" ]; then
@@ -55,7 +52,6 @@ function htb_cmd {
     bash $confdir/rc.htb start
     fi
 }
-
 
 function create_fw_hashtables {
 
@@ -120,7 +116,6 @@ function create_tmp_hashtables {
 echo "$current_time - create_tmp_hashtables OK" >> $logdir/$logfile
 }
 
-
 function load_tmp_fw_ip_hashtable {
     while read status i; do
         if [ "$status" = "grantedhost" ]; then
@@ -135,7 +130,6 @@ function load_tmp_fw_ip_hashtable {
     done < $confdir/$public_ip_file
 echo "$current_time - load_tmp_fw_ip_hashtable OK" >> $logdir/$logfile
 }
-
 
 function load_tmp_nat1n_hashtables {
 while read nat_name ip; do
@@ -155,7 +149,6 @@ done <$confdir/$nat_1n_ip_file
 echo "$current_time - load_tmp_nat1n_hashtables OK" >> $logdir/$logfile
 }
 
-
 function load_tmp_nat_11_hashtable {
     while read status i ipub; do
         if [ "$status" = "grantedhost" ]; then
@@ -172,14 +165,12 @@ function load_tmp_nat_11_hashtable {
 echo "$current_time - load_tmp_nat_11_hashtable OK" >> $logdir/$logfile
 }
 
-
 function load_tmp_lan_banned_dst_ports_hashtable {
     while read ports; do
             ipset add fw_lan_banned_dst_ports.tmp $ports
     done < $confdir/$lan_banned_dst_ports_file
     echo "$current_time - load_tmp_lan_banned_dst_ports_hashtable OK" >> $logdir/$logfile
 }
-
 
 function load_new_ipset_hashtables {
     for ipsetname in `ipset list -n|grep -v .tmp`
@@ -197,7 +188,6 @@ function load_new_ipset_hashtables {
         echo "$current_time - load_new_ipset_hashtables OK" >> $logdir/$logfile
 }
 
-
 function load_nat_1n_fw_rules {
     while read nat_name ip; do
         iptables -t nat -A POSTROUTING -o $WAN -m set --match-set $nat_name src -j SNAT --to-source $ip
@@ -214,7 +204,6 @@ function load_nat_11_fw_rules {
     done < $confdir/$nat_11_file
     echo "$current_time - load_nat_11_fw_rules OK" >> $logdir/$logfile
 }
-
 
 function modify_nat11_fw_rules {
 
@@ -263,7 +252,6 @@ done < <(echo -e "$lista_zmian")
 echo "$current_time - modify_nat11_fw_rules OK" >> $logdir/$logfile
 }
 
-
 function modify_nat1n_fw_rules {
 
 lista_zmian=$(diff  --unchanged-line-format="" --old-line-format="removed %L" --new-line-format="added %L" $oldconfdir/$nat_1n_ip_file $confdir/$nat_1n_ip_file)
@@ -297,7 +285,6 @@ done < <(echo -e "$lista_zmian")
 echo "$current_time - modify_nat1n_fw_rules OK" >> $logdir/$logfile
 }
 
-
 function firewall_up {
 
 #Change default ARP table for large networks.
@@ -315,7 +302,6 @@ function firewall_up {
     iptables -P INPUT ACCEPT
     iptables -P OUTPUT ACCEPT
 
-
 #Enable IP forwardings
     sysctl -w net.ipv4.ip_forward=1
 
@@ -328,7 +314,6 @@ function firewall_up {
     iptables -A INPUT -i $LAN -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
     iptables -A INPUT -i $LAN -p tcp -m state --state NEW -m tcp --dport 3128 -j ACCEPT
     iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
-
 
 #Drops some ports
 #    iptables -A FORWARD -i $WAN -m set --match-set fw_lan_banned_dst_ports dst -j DROP
@@ -354,7 +339,6 @@ function firewall_up {
     echo "$current_time - firewall_up OK" >> $logdir/$logfile
 }
 
-
 function firewall_down {
 #Wyłączenie przesyłania pakietów między interfejsami.
     sysctl -w net.ipv4.ip_forward=0
@@ -373,7 +357,6 @@ function firewall_down {
         echo "$current_time - firewall_down OK" >> $logdir/$logfile
 }
 
-
 function destroy_all_hashtables {
     for ipsetlist in `ipset list -n`
     do
@@ -382,11 +365,9 @@ function destroy_all_hashtables {
     echo "$current_time - destroy_all_hashtables OK" >> $logdir/$logfile
 }
 
-
 function flush_hashtables {
     ipset -F
 }
-
 
 function load_fw_hashtables {
         echo "$current_time - load_fw_hashtables OK" >> $logdir/$logfile
@@ -398,7 +379,6 @@ function load_fw_hashtables {
         load_tmp_lan_banned_dst_ports_hashtable
         load_new_ipset_hashtables
 }
-
 
 function static_routing_up {
 if [ -s $confdir/$routed_nets_file ]; then
@@ -439,7 +419,6 @@ MAILTO=""
     fi
 }
 
-
 function stats {
         iptables -t mangle -nvxL COUNTERSOUT |tail -n +3 | awk '{print $8 " "$2}' |grep -v 0.0.0.0 > /tmp/upload.tmp
         iptables -t mangle -nvxL COUNTERSIN |tail -n +3 | awk '{print $9 " "$2}' |grep -v 0.0.0.0 > /tmp/download.tmp
@@ -448,7 +427,6 @@ function stats {
         iptables -t mangle -Z COUNTERSIN
         iptables -t mangle -Z COUNTERSOUT
 }
-
 
 function fwstatus {
         echo "########"
