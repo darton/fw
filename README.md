@@ -137,8 +137,4 @@ Polecenie to uruchomi zdalnie na maszynie GATEWAY skrypt fw.sh z parametrem stat
 
 Skrypt ten odczyta plik /var/log/traffic.log i zapisze wartości do tabeli stats w bazie danych LMS.
 
- 
-### Opis konfiguracji LMS ###
-
-Pliki konfiguracyjne dla skryptu fw.sh powinny być generowane np. przez lmsd uruchomionego na maszynie z LMS:
 
