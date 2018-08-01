@@ -130,7 +130,7 @@ Skrypt posiada także tryb maintenance. W tym trybie wyłącza zaporę, wyłącz
 
 #### Statystyki ruchu w LMS ####
 
-Jeśli chcemy mieć satystki ruchu naszych klientów na maszynie z zainstalowanym LMS, należy uruchamiać cyklicznie np. co 5 minut skrypt zapisujący statystyki do bazy danych LMS, wykonujący dwa polecenia: 
+Jeśli chcemy mieć statystki ruchu naszych klientów na maszynie z zainstalowanym LMS, należy uruchamiać cyklicznie np. co 5 minut skrypt zapisujący statystyki do bazy danych LMS, wykonujący dwa polecenia: 
 
 1# ssh -p 222 root@192.168.100.1 '/opt/gateway/scripts/fw.sh stats' > /var/log/traffic.log
 
