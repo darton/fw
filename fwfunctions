@@ -1,3 +1,4 @@
+#!/bin/bash
 #### Functions ####
 
 function get_config {
@@ -19,16 +20,25 @@ function get_qos_config {
         echo "$current_time - get_qos_config OK" >> $logdir/$logfile
 }
 
-function dhcpd_restart {
+function dhcpd_cmd {
+if [ "$1" = "restart" ]; then
 dhcpd_conf_current=$(cat $confdir/dhcpd.conf |sha1sum)
 dhcpd_conf_new=$(cat $oldconfdir/dhcpd.conf |sha1sum)
-
     if [ "$dhcpd_conf_current" != "$dhcpd_conf_new" ]; then
         echo "$current_time - Plik dhcpd.conf ma nową konfigurację, restartuję serwer DHCP" >> $logdir/$logfile
         systemctl restart dhcpd.service
     else
         echo "Konfiguracja dhcpd.conf jest identyczna, restart nie jest potrzebny"
     fi
+fi
+
+if [ "$1" = "start" ]; then
+    systemctl restart dhcpd.service
+fi
+
+if [ "$1" = "stop" ]; then
+    systemctl stop dhcpd.service
+fi
 }
 
 function htb_cmd {
@@ -302,6 +312,7 @@ function firewall_up {
     iptables -P INPUT ACCEPT
     iptables -P OUTPUT ACCEPT
 
+
 #Enable IP forwardings
     sysctl -w net.ipv4.ip_forward=1
 
@@ -314,6 +325,7 @@ function firewall_up {
     iptables -A INPUT -i $LAN -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
     iptables -A INPUT -i $LAN -p tcp -m state --state NEW -m tcp --dport 3128 -j ACCEPT
     iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
+
 
 #Drops some ports
 #    iptables -A FORWARD -i $WAN -m set --match-set fw_lan_banned_dst_ports dst -j DROP
