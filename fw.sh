@@ -49,11 +49,8 @@ MGMT=eno1
 ####Makes necessary config directories and files####
 [[ -d /run/fw-sh/ ]] || mkdir /run/fw-sh
 [[ -f /run/fw-sh/maintenance.pid ]] || echo 0 > /run/fw-sh/maintenance.pid
-
-
 [[ -d $confdir ]] || mkdir -p $confdir
 [[ -d $oldconfdir ]] || mkdir -p $oldconfdir
-
 [[ -f $confdir/$nat_11_file ]] || touch $confdir/$nat_11_file
 [[ -f $confdir/$nat_1n_ip_file ]] || touch $confdir/$nat_1n_ip_file
 [[ -f $confdir/$public_ip_file ]] || touch $confdir/$public_ip_file
