@@ -14,8 +14,10 @@
 PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
 
 #Paths to config dirs
-confdir=/opt/gateway/conf
-oldconfdir=/opt/gateway/oldconf
+installdir=/opt/gateway
+scriptsdir=$installdir/scripts
+confdir=$installdir/conf
+oldconfdir=$installdir/oldconf
 
 #Path to log
 logdir=/var/log
@@ -27,18 +29,20 @@ nat_1n_ip_file=fw_nat_1-n
 public_ip_file=fw_public_ip
 routed_nets_file=fw_routed_ip
 lan_banned_dst_ports_file=fw_lan_banned_dst_ports
+shaper_file=rc.htb
+dhcp_conf_file=dhcpd.conf
 
 #Source of config files
-scpurl=root@10.10.10.10:/opt/gateway
+scpurl=root@77.55.208.92:/opt/gateway
 
-#URL to LMS database server.
-sshurl=root@10.10.10.10
+#URL to LMS database server
+sshurl=root@77.55.208.92
 
 #Warning: user lmsd_reload has SELECT privileges to lms.hosts table only with no password
 dburl="mysql -s -u lmsd_reload lms -e \"select reload from hosts where id=4\""
 
 #PROXY IP ADDRESS
-proxy_ip=192.168.1.254
+proxy_ip=80.48.183.138
 
 #Ethernet interfaces
 #WAN=$(ip r|grep default |awk '{print $5}')
@@ -51,11 +55,18 @@ MGMT=eno1
 [[ -f /run/fw-sh/maintenance.pid ]] || echo 0 > /run/fw-sh/maintenance.pid
 [[ -d $confdir ]] || mkdir -p $confdir
 [[ -d $oldconfdir ]] || mkdir -p $oldconfdir
-[[ -f $confdir/$nat_11_file ]] || touch $confdir/$nat_11_file
-[[ -f $confdir/$nat_1n_ip_file ]] || touch $confdir/$nat_1n_ip_file
-[[ -f $confdir/$public_ip_file ]] || touch $confdir/$public_ip_file
-[[ -f $confdir/$routed_nets_file ]] || touch $confdir/$routed_nets_file
-[[ -f $confdir/$lan_banned_dst_ports_file ]] || touch $confdir/$lan_banned_dst_ports_file
+
+for param in $confdir $oldconfdir
+do
+[[ -f $param/$nat_11_file ]] || touch $param/$nat_11_file
+[[ -f $param/$nat_1n_ip_file ]] || touch $param/$nat_1n_ip_file
+[[ -f $param/$public_ip_file ]] || touch $param/$public_ip_file
+[[ -f $param/$routed_nets_file ]] || touch $param/$routed_nets_file
+[[ -f $param/$lan_banned_dst_ports_file ]] || touch $param/$lan_banned_dst_ports_file
+[[ -f $param/$shaper_file ]] || touch $param/$shaper_file
+[[ -f $param/$dhcp_conf_file ]] || touch $param/$dhcp_conf_file
+done
+
 [[ -f $logdir/$logfile ]] || touch $logdir/$logfile
 
 current_time=$(date '+%Y-%m-%d %H:%M:%S')
@@ -115,6 +126,7 @@ source /opt/gateway/scripts/fwfunctions
         htb_cmd stop
         destroy_all_hashtables
         fw_cron stop
+        dhcpd_cmd stop
         ifup $MGMT
         ifdown $WAN
         ifdown $LAN
@@ -139,7 +151,7 @@ source /opt/gateway/scripts/fwfunctions
         load_fw_hashtables
         firewall_up
         htb_cmd start
-        dhcpd_restart
+        dhcpd_cmd start
         fw_cron start
         echo 0 > /run/fw-sh/maintenance.pid
         ifdown $MGMT
@@ -166,7 +178,7 @@ source /opt/gateway/scripts/fwfunctions
         load_fw_hashtables
         firewall_up
         htb_cmd start
-        dhcpd_restart
+        dhcpd_cmd start
         fw_cron start
     }
 
@@ -183,7 +195,7 @@ source /opt/gateway/scripts/fwfunctions
         modify_nat11_fw_rules
         modify_nat1n_fw_rules
         htb_cmd restart
-        dhcpd_restart
+        dhcpd_cmd restart
 
     }
 
@@ -198,7 +210,7 @@ source /opt/gateway/scripts/fwfunctions
         load_fw_hashtables
         firewall_up
         htb_cmd start
-        dhcpd_restart
+        dhcpd_cmd restart
     }
 
     qos ()
@@ -241,7 +253,6 @@ case "$1" in
     'maintenance-off')
         maintenance-off
     ;;
-
         *)
         echo -e "\nUsage: fw.sh start|stop|restart|reload|stats|lmsd|qos|status|maintenance-on|maintenance-off"
         echo "$current_time - fw.sh running without parameter OK" >> $logdir/$logfile
