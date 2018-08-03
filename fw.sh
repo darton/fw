@@ -73,7 +73,6 @@ current_time=$(date '+%Y-%m-%d %H:%M:%S')
 
 source /opt/gateway/scripts/fwfunctions
 
-
     maintenance-on ()
     {
         mpid=`cat /run/fw-sh/maintenance.pid`
