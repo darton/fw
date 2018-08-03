@@ -80,10 +80,7 @@ source /opt/gateway/scripts/fwfunctions
         if [ $mpid = 1 ]; then
             echo ""
             echo "Firewall maintenance is allready on"
-            echo "To exit from maintenance mode run:"
-            echo ""
-            echo "/etc/init.d/fw.sh maintenance-off"
-            echo ""
+            echo -n "To exit from maintenance mode run: /etc/init.d/fw.sh maintenance-off \n"
             exit
         else
         fw_cron stop
@@ -98,8 +95,7 @@ source /opt/gateway/scripts/fwfunctions
         echo 1 > /run/fw-sh/maintenance.pid
         fi
         echo ""
-        echo "Firewall maintenance is on"
-        echo ""
+        echo -e "Firewall maintenance is on \n"
         echo "$current_time - Firewall maintenance is on" >> $logdir/$logfile
     }
 
@@ -108,8 +104,7 @@ source /opt/gateway/scripts/fwfunctions
         mpid=`cat /run/fw-sh/maintenance.pid`
         if [ $mpid = 0 ]; then
             echo ""
-            echo "Firewall maintenance is allready off"
-            echo ""
+            echo -e "Firewall maintenance is allready off \n"
             exit
         else
         ifup $LAN
@@ -125,8 +120,7 @@ source /opt/gateway/scripts/fwfunctions
         ifdown $MGMT
         fi
         echo ""
-        echo "Firewall maintenance is off"
-        echo ""
+        echo -e "Firewall maintenance is off \n"
         echo "$current_time - Firewall maintenance is off" >> $logdir/$logfile
     }
 
