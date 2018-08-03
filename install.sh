@@ -42,3 +42,4 @@ done
 curl -sS https://raw.githubusercontent.com/darton/fw/master/fw.sh > $scriptsdir/fw.sh
 chmod u+x $scriptsdir/fw.sh
 curl -sS https://raw.githubusercontent.com/darton/fw/master/fwfunctions > $scriptsdir/fwfunctions
+export PATH=$PATH:$scriptsdir
