@@ -104,7 +104,7 @@ source /opt/gateway/scripts/fwfunctions
         mpid=`cat /run/fw-sh/maintenance.pid`
         if [ $mpid = 0 ]; then
             echo ""
-            echo -e "Firewall maintenance is allready off \n"
+            echo "Firewall maintenance is allready off"
             exit
         else
         ifup $LAN
