@@ -39,7 +39,7 @@ grantedhost 192.168.102.96 </br>
 deniedhost 192.168.102.99 </br>
 
 Jeśli mamy wiele adresów ip na które chemy natować  w systemie jeden do wielu np. cztery adresy ip, tworzymy osobne pliki dla nich np.: 
-fw_nat_ip1, fw_nat_ip2, fw_nat_ip3, fw_nat_ip4. Do każdego pliku wrzucami listę adresów IP hostów wraz z ich statusami (denied| granted)
+fw_nat_ip1, fw_nat_ip2, fw_nat_ip3, fw_nat_ip4. Do każdego pliku wrzucamy listę adresów IP hostów wraz z ich statusami (denied| granted)
 W pliku fw_nat_1-n zapisujemy powiązania pomiędzy tymi plikami a adresami IP, na które ma odbywać się natowanie.
  
 Przykładowa  zawrtość pliku fw_nat_1-n:
