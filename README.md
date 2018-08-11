@@ -10,7 +10,7 @@ Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) i/lub s
  /opt/gateway/scripts/fw.sh </br>
 Usage: fw.sh start|stop|restart|reload|stats|lmsd|qos|status|maintenance-on|maintenance-off
 
-# Przygotowanie plików konfiguracyjnych dla skryptu jest banalne proste (za wyjątkiem pliku shapera :-)).
+# Przygotowanie plików konfiguracyjnych dla skryptu
 
 Konieczne do uruchomienia skryptu pliki konfiguracyjne (domyślnie puste):
 
