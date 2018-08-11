@@ -1,16 +1,16 @@
 
 Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) i/lub shaper pobierając swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl) lub dowolny inny program, można też pliki konfiguracyjne stworzyć ręcznie.
 
-# TO INSTALL
+# Instalacja
 
 #curl -sS https://raw.githubusercontent.com/darton/fw/master/install.sh |bash
 
-Sposób użycia
+# Sposób użycia
 
  /opt/gateway/scripts/fw.sh </br>
 Usage: fw.sh start|stop|restart|reload|stats|lmsd|qos|status|maintenance-on|maintenance-off
 
-Przygotowanie plików konfiguracyjnych dla skryptu jest banalne proste (za wyjątkiem pliku shapera :-)).
+# Przygotowanie plików konfiguracyjnych dla skryptu jest banalne proste (za wyjątkiem pliku shapera :-)).
 
 Konieczne do uruchomienia skryptu pliki konfiguracyjne (domyślnie puste):
 
@@ -102,7 +102,7 @@ Jeśli mamy skonfigurowany skrypt rc.htb którego zawarość zmienia się dwa ra
 
 Skrypt posiada także tryb maintenance. W tym trybie wyłącza zaporę, wyłącza interfejsy LAN i WAN, podnosi zaś  interfejs zdefiniowany jako MGMT (management).
 
-#### Statystyki ruchu w LMS ####
+# Statystyki ruchu w LMS
 
 Jeśli chcemy mieć statystki ruchu naszych klientów na maszynie z zainstalowanym LMS, należy uruchamiać cyklicznie np. co 5 minut skrypt zapisujący statystyki do bazy danych LMS, wykonujący dwa polecenia: 
 
