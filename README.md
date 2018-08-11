@@ -32,9 +32,6 @@ Zawiera gotowy do uruchomienia skrypt shapera z regułami tc dla wszystkich host
 dhcpd.conf </br>
 Zawiera gotowy plik konfiguracyjny dla serwera dhcp
 
-
-
-
 Np. plik z adresami IP, które mają być natowane na inny adres IP powinien mieć nazwę np. fw_nat_ip1
 a jego zawartość powinna wygladać np tak:
 
