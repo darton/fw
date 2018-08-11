@@ -86,7 +86,14 @@ Wykonanie ./fw.sh stop zatrzyma zaporę, wyłączy forwardowanie pakietów włac
 
 ./fw.sh restart </br>
 
-wykona ./fw start a potem ./fw stop
+wykona ./fw start a potem ./fw stop czyli usunie wszystkie reguły iptables oraz ipset i utworzy je na nowo, powoduje to zerwanie wszystkich połączeń i przerę w transmisji na kilka sekund.
+
+
+./fw.sh reload </br> 
+
+wykona zmiany tylko tych reguł iptables, które się zmieniły: czyli np. usunie lub doda konkretną regułę iptables, lub podmieni tablice ipset. Aby uniknąć przew w transmisji pakietów odczuwalnych dla wszystkich użytkowników należy korzystać właśnie z opcji reload przy wprowadzaniu zmian.
+Aktualnie tylko reguły shapera są za każdym razem usuwane i dodawane od nowa przy każdej zmianie.
+
 
 Przy wspólpracy z LMS skrypt może pracować w sposób automatyczny. Wtedy status przeładowania ustawia operator LMS (http://lms.org.pl)
 Aby to było możliwe należy skrypt uruchamiać w cron co minutę.
