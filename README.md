@@ -40,16 +40,6 @@ a jego zawartość powinna wygladać np tak:
 
 grantedhost 192.168.102.96 </br>
 deniedhost 192.168.102.99 </br>
-grantedhost 192.168.102.101 </br>
-grantedhost 192.168.102.105 </br>
-grantedhost 192.168.102.108 </br>
-grantedhost 192.168.102.110 </br>
-deniedhost 192.168.102.112 </br>
-grantedhost 192.168.102.118 </br>
-grantedhost 192.168.102.134 </br>
-grantedhost 192.168.102.147 </br>
-grantedhost 192.168.102.151 </br>
-grantedhost 192.168.102.153 </br>
 
 Jeśli mamy wiele adresów ip na które chemy natować  w systemie jeden do wielu np. cztery adresy ip, tworzymy osobne pliki dla nich np.: 
 fw_nat_ip1, fw_nat_ip2, fw_nat_ip3, fw_nat_ip4. Do każdego pliku wrzucami listę adresów IP hostów wraz z ich statusami (denied| granted)
@@ -71,8 +61,6 @@ W przykładzie opisane są nazwy jakie są skonfigurowane domyślnie.
 Plik fw_public_ip służy do prowadzenia rejestru adresów IP które mają beć rutowane (bez NAT)
 w formacie analogicznym jak dla adresów Natowanych czyli
 
-grantedhost 192.168.102.96 </br>
-deniedhost 192.168.102.99 </br>
 grantedhost 192.168.102.101 </br>
 grantedhost 192.168.102.105 </br>
 
