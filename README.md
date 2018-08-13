@@ -78,23 +78,22 @@ Skrypt posiada mechanizm pozwalający na unikanie, kiedy tylko to możliwe, niep
 
 Odczytuje także cyklicznie stany liczników pakietów i ładuje je do pliku, Lms posiada skrypty (np lms-traffic) które pozwalają parsować taki plik i wrzucać z niego dane do tabeli stats swojej bazy danych, co pozwala na generowanie statystyk ruchu dla klientów. 
 
-Gdy już mamy gotowe pliki konfiguracyjne uruchamiamy skrypt: </br>
+Gdy już mamy gotowe pliki konfiguracyjne uruchamiamy zaporę wykonuja skrypt z opcją: </br>
 
 # fw.sh start </br>
+Polecenie fw.sh start uruchomi zaporę odczytując parametry konfiguracyjne zawarte w plikach konfiguracyjncyh, dokana restartu serwera DHCP oraz reguł shapera.
 
-Wykonanie ./fw.sh stop zatrzyma zaporę, wyłączy forwardowanie pakietów właczy domyślnie ustawione na taką okoliczność polityki dla iptables (np FORWARD DENY).
+# fw.sh stop </br>
+Wykonanie fw.sh stop zatrzyma zaporę, wyłączy forwardowanie pakietów, włączy domyśłne polityki dla iptables (np FORWARD DENY).
 
 # fw.sh restart </br>
-
-wykona ./fw start a potem ./fw stop czyli usunie wszystkie reguły iptables oraz ipset i utworzy je na nowo, powoduje to zerwanie wszystkich połączeń i przerę w transmisji na kilka sekund.
+wykona fw.sh start a potem ./fw stop czyli usunie wszystkie reguły iptables oraz ipset i utworzy je na nowo, powoduje to zerwanie wszystkich połączeń i przerę w transmisji na kilka sekund.
 
 
 # fw.sh reload </br> 
-
 wykona zmiany tylko tych reguł iptables, które się zmieniły: czyli np. usunie lub doda konkretną regułę iptables, lub podmieni tablice ipset. Aby uniknąć przerw w transmisji pakietów odczuwalnych dla wszystkich użytkowników należy korzystać właśnie z opcji reload przy wprowadzaniu zmian.
 
 # fw.sh lmsd
-
 Ta opcja prztydaje się przy wspólpracy z LMS, skrypt może wtedy pracować w sposób automatyczny. Wtedy status przeładowania skryptu ustawia operator LMS (http://lms.org.pl). Skrypt sprawdzi czy w LMS został ustawiony przez operatora status przeładowania i wykona przeładowanie lub restart w zależności, które pliki i co w nich zostało zmienione. Jeśli pliki nie zostały zmienione a w LMS został ustawiony status przeładowania, skrypt to wykryje, zmieni status przeładowania w LMS na wykonane,  ale nie wykona restartu/przeładowania, zapisze tylko informacje w logach.
 
 # fw.sh qos
