@@ -93,15 +93,23 @@ wykona ./fw start a potem ./fw stop czyli usunie wszystkie reguły iptables oraz
 
 wykona zmiany tylko tych reguł iptables, które się zmieniły: czyli np. usunie lub doda konkretną regułę iptables, lub podmieni tablice ipset. Aby uniknąć przerw w transmisji pakietów odczuwalnych dla wszystkich użytkowników należy korzystać właśnie z opcji reload przy wprowadzaniu zmian.
 
-Przy wspólpracy z LMS skrypt może pracować w sposób automatyczny. Wtedy status przeładowania ustawia operator LMS (http://lms.org.pl)
-Skrypt sprawdzi czy w LMS został ustawiony przez operatora status przeładowania i wykona przeładowanie lub restart w zależności, które pliki i co w nich zostało zmienione. Jeśli pliki nie zostały zmienione a w LMS został ustawiony status przeładowania, skrypt to wykryje, zmieni status przeładowania w LMS na wykonane,  ale nie wykona restartu/przeładowania, zapisze tylko informacje w logach.
+./fw.sh lmsd
 
-Jeśli mamy skonfigurowany skrypt rc.htb którego zawarość zmienia się dwa razy w ciągu dnia (taryfa dzienn/nocna) i chcemy aby shaper został przeładowany np. o godzinie 22:00 oraz 10:00, wtedy edytujemy wpisy uruchamiające skrypt fw.sh z parametrem qos, który przeładują reguły shaper'a.
+Ta opcja prztydaje się przy wspólpracy z LMS, skrypt może wtedy pracować w sposób automatyczny. Wtedy status przeładowania skryptu ustawia operator LMS (http://lms.org.pl). Skrypt sprawdzi czy w LMS został ustawiony przez operatora status przeładowania i wykona przeładowanie lub restart w zależności, które pliki i co w nich zostało zmienione. Jeśli pliki nie zostały zmienione a w LMS został ustawiony status przeładowania, skrypt to wykryje, zmieni status przeładowania w LMS na wykonane,  ale nie wykona restartu/przeładowania, zapisze tylko informacje w logach.
 
-Aby dostosować ustaawienia do własnych potrzeb nalezy wyedytowac funcję fw_cron w pliku fwfunction.
+./fw.sh qos
+ta opcja przydaje się jeśli mamy skonfigurowany skrypt rc.htb, którego zawarość zmienia się w ciągu doby dwa razy (taryfa dzienn/nocna) i chcemy aby shaper został przeładowany np. o godzinie 22:00 oraz 10:00, wtedy edytujemy wpisy uruchamiające skrypt fw.sh z parametrem qos, który przeładowują reguły shaper'a.
+
+Aby dostosować ustawienia zadań wykonywanych przez fw.sh w cron do własnych potrzeb, należy wyedytowac funcję fw_cron w pliku fwfunction.
+
 Domyślne wartości ustawione dla dunckji fw_cron:
 
+Jak często ma być uruchamiany skrzypt ./fw.sh z opcją lmsd:
+
 "* * * * * /opt/gateway/scripts/fw.sh lmsd"</br>
+
+Terminy przeładowania skryptu ./fw.sh z opcją qos:
+
 "00 22 * * * /opt/gateway/scripts/fw.sh qos"</br>
 "00 10 * * * /opt/gateway/scripts/fw.sh qos"</br>
 
