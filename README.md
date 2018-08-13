@@ -98,7 +98,7 @@ wykona zmiany tylko tych reguł iptables, które się zmieniły: czyli np. usuni
 Ta opcja prztydaje się przy wspólpracy z LMS, skrypt może wtedy pracować w sposób automatyczny. Wtedy status przeładowania skryptu ustawia operator LMS (http://lms.org.pl). Skrypt sprawdzi czy w LMS został ustawiony przez operatora status przeładowania i wykona przeładowanie lub restart w zależności, które pliki i co w nich zostało zmienione. Jeśli pliki nie zostały zmienione a w LMS został ustawiony status przeładowania, skrypt to wykryje, zmieni status przeładowania w LMS na wykonane,  ale nie wykona restartu/przeładowania, zapisze tylko informacje w logach.
 
 # fw.sh qos
-ta opcja przydaje się jeśli mamy skonfigurowany skrypt rc.htb, którego zawarość zmienia się w ciągu doby dwa razy (taryfa dzienn/nocna) i chcemy aby shaper został przeładowany np. o godzinie 22:00 oraz 10:00, wtedy edytujemy wpisy uruchamiające skrypt fw.sh z parametrem qos, który przeładowują reguły shaper'a.
+ta opcja przydaje się jeśli mamy skonfigurowany skrypt rc.htb, którego zawartość zmienia się w ciągu doby np dwa razy (taryfa dzienn/nocna) i chcemy aby shaper został przeładowany np. o godzinie 22:00 oraz 10:00, wtedy edytujemy wpisy uruchamiające skrypt fw.sh z parametrem qos, który przeładowują reguły shaper'a.
 
 Aby dostosować ustawienia zadań wykonywanych przez fw.sh w cron do własnych potrzeb, należy wyedytowac funcję fw_cron w pliku fwfunction.
 
