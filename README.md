@@ -127,6 +127,6 @@ bash /var/www/html/lms/bin/lms-traffic</br>
 
 gdzie 192.168.100.1 to adres IP naszego rutera na którym pracuje skryp fw.sh.
 
-Polecenie pierwsze uruchomi zdalnie skrypt fw.sh z parametrem stats, który odczyta liczniki przesłanych danych dla wszystkich hostów i zapisze je do pliku. Zaś uruchomienie dugiego polecenia uruchomi skrypt, który odczyta plik /var/log/traffic.log i zapisze wartości do tabeli stats w bazie danych LMS.
+Polecenie pierwsze uruchomi zdalnie skrypt fw.sh z opcją stats, który odczyta liczniki przesłanych danych dla wszystkich hostów i zapisze je do pliku. Zaś uruchomienie dugiego polecenia uruchomi skrypt, który odczyta plik /var/log/traffic.log i zapisze wartości do tabeli stats w bazie danych LMS.
 
 
