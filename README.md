@@ -100,7 +100,7 @@ Ta opcja prztydaje się przy wspólpracy z LMS, skrypt może wtedy pracować w s
 # fw.sh qos
 ta opcja przydaje się jeśli mamy skonfigurowany skrypt rc.htb, którego zawartość zmienia się w ciągu doby np dwa razy (taryfa dzienn/nocna) i chcemy aby shaper został przeładowany np. o godzinie 22:00 oraz 10:00, wtedy edytujemy wpisy uruchamiające skrypt fw.sh z parametrem qos, który przeładowują reguły shaper'a.
 
-Aby dostosować ustawienia zadań wykonywanych przez fw.sh w cron do własnych potrzeb, należy wyedytowac funcję fw_cron w pliku fwfunction.
+Aby dostosować ustawienia zadań wykonywanych przez fw.sh w cron do własnych potrzeb, należy wyedytowac funcję fw_cron w pliku fwfunction a jeśli już skrypt pracuje (został uruchomiony produkcyjnie) to także plik /etc/cron.d/fw_sh
 
 Domyślne wartości ustawione dla dunckji fw_cron:
 
