@@ -91,23 +91,31 @@ wykona ./fw start a potem ./fw stop czyli usunie wszystkie reguły iptables oraz
 
 ./fw.sh reload </br> 
 
-wykona zmiany tylko tych reguł iptables, które się zmieniły: czyli np. usunie lub doda konkretną regułę iptables, lub podmieni tablice ipset. Aby uniknąć przew w transmisji pakietów odczuwalnych dla wszystkich użytkowników należy korzystać właśnie z opcji reload przy wprowadzaniu zmian.
-Aktualnie tylko reguły shapera są za każdym razem usuwane i dodawane od nowa przy każdej zmianie.
-
+wykona zmiany tylko tych reguł iptables, które się zmieniły: czyli np. usunie lub doda konkretną regułę iptables, lub podmieni tablice ipset. Aby uniknąć przerw w transmisji pakietów odczuwalnych dla wszystkich użytkowników należy korzystać właśnie z opcji reload przy wprowadzaniu zmian.
 
 Przy wspólpracy z LMS skrypt może pracować w sposób automatyczny. Wtedy status przeładowania ustawia operator LMS (http://lms.org.pl)
-Aby to było możliwe należy skrypt uruchamiać w cron co minutę.
-
-"* * * * * /opt/gateway/scripts/fw.sh lmsd"
-
 Skrypt sprawdzi czy w LMS został ustawiony przez operatora status przeładowania i wykona przeładowanie lub restart w zależności, które pliki i co w nich zostało zmienione. Jeśli pliki nie zostały zmienione a w LMS został ustawiony status przeładowania, skrypt to wykryje, zmieni status przeładowania w LMS na wykonane,  ale nie wykona restartu/przeładowania, zapisze tylko informacje w logach.
 
-Jeśli mamy skonfigurowany skrypt rc.htb którego zawarość zmienia się dwa razy w ciągu dnia (taryfa dzienn/nocna) i chcemy aby shaper został przeładowany np. o godzinie 22:00 oraz 10:00, wtedy dodajemy do cron wpisy uruchamiające skrypt fw.sh z parametrem qos, który przeładują reguły shaper'a.
+Jeśli mamy skonfigurowany skrypt rc.htb którego zawarość zmienia się dwa razy w ciągu dnia (taryfa dzienn/nocna) i chcemy aby shaper został przeładowany np. o godzinie 22:00 oraz 10:00, wtedy edytujemy wpisy uruchamiające skrypt fw.sh z parametrem qos, który przeładują reguły shaper'a.
 
+Aby dostosować ustaawienia do własnych potrzeb nalezy wyedytowac funcję fw_cron w pliku fwfunction.
+Domyślne wartości ustawione dla dunckji fw_cron:
+
+* * * * * /opt/gateway/scripts/fw.sh lmsd
 00 22 * * * /opt/gateway/scripts/fw.sh qos
 00 10 * * * /opt/gateway/scripts/fw.sh qos
 
-Skrypt posiada także tryb maintenance. W tym trybie wyłącza zaporę, wyłącza interfejsy LAN i WAN, podnosi zaś  interfejs zdefiniowany jako MGMT (management).
+
+Skrypt posiada także tryb maintenance.
+
+./fw.sh maintenance-on
+
+ W tym trybie wyłącza zaporę, wyłącza interfejsy LAN i WAN, podnosi zaś  interfejs zdefiniowany jako MGMT (management).
+ 
+ Przejście do normalnego trybu pracy wymaga wykonania komendy
+
+./fw.sh maintenance-off
+
 
 # Statystyki ruchu w LMS
 
