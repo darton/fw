@@ -114,14 +114,11 @@ Terminy przeładowania skryptu ./fw.sh z opcją qos:
 "00 10 * * * /opt/gateway/scripts/fw.sh qos"</br>
 
 # fw.sh maintenance-on
-
  W tym trybie wyłącza zaporę, wyłącza interfejsy LAN i WAN, podnosi zaś  interfejs zdefiniowany jako MGMT (management).
- 
- Przejście do normalnego trybu pracy wymaga wykonania komendy
 
 # fw.sh maintenance-off
-
-
+Przejście do normalnego trybu pracy wymaga wykonania komendy.
+ 
 # Statystyki ruchu w LMS
 
 Jeśli chcemy mieć statystki ruchu naszych klientów na maszynie z zainstalowanym LMS, należy uruchamiać cyklicznie np. co 5 minut skrypt zapisujący statystyki do bazy danych LMS, wykonujący dwa polecenia: 
