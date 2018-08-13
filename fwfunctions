@@ -296,13 +296,26 @@ echo "$current_time - modify_nat1n_fw_rules OK" >> $logdir/$logfile
 }
 
 function firewall_up {
+#Network Tuning Factors
 
 #Change default ARP table for large networks.
- if [ $(cat /proc/sys/net/ipv4/neigh/default/gc_thresh1) -lt 2048 ]; then
+ if [ $(cat /proc/sys/net/ipv4/neigh/default/gc_thresh1) -lt 2048 ]; then.
     echo "2048" > /proc/sys/net/ipv4/neigh/default/gc_thresh1
     echo "4096" > /proc/sys/net/ipv4/neigh/default/gc_thresh2
     echo "8192" > /proc/sys/net/ipv4/neigh/default/gc_thresh3
  fi
+
+#Defines the default and maximum receive window size.
+if [ $(cat /proc/sys/net/core/rmem_default) -lt 1048576 ]; then
+    echo '1048576' > /proc/sys/net/core/rmem_default
+    echo '2097152' > /proc/sys/net/core/rmem_max
+fi
+
+#Defines the default and maximum send window size.
+if [ $(cat /proc/sys/net/core/wmem_default) -lt 1048576 ]; then
+    echo '1048576' > /proc/sys/net/core/wmem_default
+    echo '2097152' > /proc/sys/net/core/wmem_max
+fi
 
 #Increasing nf_conntrack table size
     echo 524288 > /proc/sys/net/netfilter/nf_conntrack_max
@@ -311,7 +324,6 @@ function firewall_up {
     iptables -P FORWARD DROP
     iptables -P INPUT ACCEPT
     iptables -P OUTPUT ACCEPT
-
 
 #Enable IP forwardings
     sysctl -w net.ipv4.ip_forward=1
