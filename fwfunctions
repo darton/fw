@@ -482,13 +482,14 @@ function fwstatus {
         ipset list -n
         
         echo Kernel Network Core Paremeters
-        cat /proc/sys/net/ipv4/neigh/default/gc_thresh1
-        cat /proc/sys/net/ipv4/neigh/default/gc_thresh2
-        cat /proc/sys/net/ipv4/neigh/default/gc_thresh3
-        cat /proc/sys/net/core/rmem_default
-        cat /proc/sys/net/core/rmem_max
-        cat /proc/sys/net/core/wmem_default
-        cat /proc/sys/net/core/wmem_max
-        cat /proc/sys/net/netfilter/nf_conntrack_max
+        sysctl net.ipv4.neigh.default.gc_thresh1
+        sysctl net.ipv4.neigh.default.gc_thresh2
+        sysctl net.ipv4.neigh.default.gc_thresh3
+        sysctl net.core.rmem_default
+        sysctl net.core.rmem_max
+        sysctl net.core.wmem_default
+        sysctl net.core.wmem_max
+        sysctl net.netfilter.nf_conntrack_max
+        sysctl net.netfilter.nf_conntrack_count
         echo "$current_time - fwstatus OK" >> $logdir/$logfile
 }
