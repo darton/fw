@@ -122,8 +122,8 @@ Przejście do normalnego trybu pracy wymaga wykonania komendy.
 
 Jeśli chcemy mieć statystki ruchu naszych klientów na maszynie z zainstalowanym LMS, należy na maszynie z LMS uruchamiać cyklicznie np. co 5 minut skrypt zapisujący statystyki do bazy danych LMS, wykonujący dwa polecenia: 
 
-ssh -p 222 root@192.168.100.1 '/opt/gateway/scripts/fw.sh stats' > /var/log/traffic.log
-bash /var/www/html/lms/bin/lms-traffic
+ssh -p 222 root@192.168.100.1 '/opt/gateway/scripts/fw.sh stats' > /var/log/traffic.log</br></br>
+bash /var/www/html/lms/bin/lms-traffic</br>
 
 gdzie 192.168.100.1 to adres IP naszego rutera na którym pracuje skryp fw.sh.
 
