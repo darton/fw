@@ -469,7 +469,6 @@ function fwstatus {
         echo "-----"
         echo "IPSET"
         echo "-----"
-        echo ""
     for ipsetname in `ipset list -n`
     do
         ipset list $ipsetname
@@ -478,10 +477,11 @@ function fwstatus {
         echo "----------"
         echo "IPSET LIST"
         echo "----------"
-        echo ""
         ipset list -n
-        
+        echo ""
+        echo "#############################
         echo Kernel Network Core Paremeters
+        echo "#############################
         sysctl net.ipv4.neigh.default.gc_thresh1
         sysctl net.ipv4.neigh.default.gc_thresh2
         sysctl net.ipv4.neigh.default.gc_thresh3
