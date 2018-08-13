@@ -101,9 +101,9 @@ Jeśli mamy skonfigurowany skrypt rc.htb którego zawarość zmienia się dwa ra
 Aby dostosować ustaawienia do własnych potrzeb nalezy wyedytowac funcję fw_cron w pliku fwfunction.
 Domyślne wartości ustawione dla dunckji fw_cron:
 
-* * * * * /opt/gateway/scripts/fw.sh lmsd</br>
-00 22 * * * /opt/gateway/scripts/fw.sh qos</br>
-00 10 * * * /opt/gateway/scripts/fw.sh qos</br>
+"* * * * * /opt/gateway/scripts/fw.sh lmsd"</br>
+"00 22 * * * /opt/gateway/scripts/fw.sh qos"</br>
+"00 10 * * * /opt/gateway/scripts/fw.sh qos"</br>
 
 
 Skrypt posiada także tryb maintenance.
