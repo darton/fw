@@ -299,10 +299,10 @@ function firewall_up {
 #Network Tuning Factors
 
 #Change default ARP table for large networks.
- if [ $(cat /proc/sys/net/ipv4/neigh/default/gc_thresh1) -lt 2048 ]; then.
-        sysctl -w net.ipv4.neigh.default.gc_thresh1=2048
-        sysctl -w net.ipv4.neigh.default.gc_thresh2=4096
-        sysctl -w net.ipv4.neigh.default.gc_thresh3=8192
+ if [ $(cat /proc/sys/net/ipv4/neigh/default/gc_thresh1) -lt 2048 ]; then
+    sysctl -w net.ipv4.neigh.default.gc_thresh1=2048
+    sysctl -w net.ipv4.neigh.default.gc_thresh2=4096
+    sysctl -w net.ipv4.neigh.default.gc_thresh3=8192
  fi
 
 #Defines the default and maximum receive window size.
