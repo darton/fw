@@ -300,25 +300,25 @@ function firewall_up {
 
 #Change default ARP table for large networks.
  if [ $(cat /proc/sys/net/ipv4/neigh/default/gc_thresh1) -lt 2048 ]; then.
-    echo "2048" > /proc/sys/net/ipv4/neigh/default/gc_thresh1
-    echo "4096" > /proc/sys/net/ipv4/neigh/default/gc_thresh2
-    echo "8192" > /proc/sys/net/ipv4/neigh/default/gc_thresh3
+        sysctl -w net.ipv4.neigh.default.gc_thresh1=2048
+        sysctl -w net.ipv4.neigh.default.gc_thresh2=4096
+        sysctl -w net.ipv4.neigh.default.gc_thresh3=8192
  fi
 
 #Defines the default and maximum receive window size.
 if [ $(cat /proc/sys/net/core/rmem_default) -lt 1048576 ]; then
-    echo '1048576' > /proc/sys/net/core/rmem_default
-    echo '2097152' > /proc/sys/net/core/rmem_max
+    sysctl -w net.core.rmem_default=1048576
+    sysctl -w net.core.rmem_max=2097152
 fi
 
 #Defines the default and maximum send window size.
 if [ $(cat /proc/sys/net/core/wmem_default) -lt 1048576 ]; then
-    echo '1048576' > /proc/sys/net/core/wmem_default
-    echo '2097152' > /proc/sys/net/core/wmem_max
+    sysctl -w net.core.wmem_default=1048576
+    sysctl -w net.core.wmem_max=2097152
 fi
 
 #Increasing nf_conntrack table size
-    echo 524288 > /proc/sys/net/netfilter/nf_conntrack_max
+    sysctl -w net.netfilter.nf_conntrack_max=524288
 
 #Set FORWARD default policy
     iptables -P FORWARD DROP
