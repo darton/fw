@@ -320,7 +320,7 @@ fi
 #Increasing nf_conntrack table size
     sysctl -w net.netfilter.nf_conntrack_max=524288
 
-#Set FORWARD default policy
+#Set default policy
     iptables -P FORWARD DROP
     iptables -P INPUT ACCEPT
     iptables -P OUTPUT ACCEPT
@@ -374,7 +374,7 @@ function firewall_down {
         iptables -t $i -X
     done
 
-#Ustawienie domyśłnej polityki dla wyłączonego firewalla
+#Set default policy
         iptables -P FORWARD DROP
         iptables -P INPUT ACCEPT
         iptables -P OUTPUT ACCEPT
