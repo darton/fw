@@ -49,8 +49,7 @@ fw_nat_ip2 172.16.0.111 </br>
 fw_nat_ip3 172.16.0.222 </br>
 fw_nat_ip4 172.16.0.253 </br>
 
-Wtedy wszystkie adresy IP jakie zawiera plik fw_nat_ip1 bedą natowane na adres 172.16.0.1, zaś wszystkie adresy IP zawarte w pliku  
-fw_nat_ip2 będą natowane na adres IP 172.16.0.111 ... itd.
+Wtedy wszystkie adresy IP jakie zawiera plik fw_nat_ip1 bedą natowane na adres 172.16.0.1, zaś wszystkie adresy IP zawarte w pliku fw_nat_ip2 będą natowane na adres IP 172.16.0.111 ... itd.
 
 Nazwy plików mogą być dowolne trzeba je tylko zadeklarować w pliku fw.sh oraz fw_nat_1-n.
 W przykładzie opisane są nazwy jakie są skonfigurowane domyślnie.
