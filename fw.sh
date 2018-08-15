@@ -28,21 +28,22 @@ nat_11_file=fw_nat_1-1
 nat_1n_ip_file=fw_nat_1-n
 public_ip_file=fw_public_ip
 routed_nets_file=fw_routed_ip
+blacklist_file=fw_blacklist
 lan_banned_dst_ports_file=fw_lan_banned_dst_ports
 shaper_file=rc.htb
 dhcp_conf_file=dhcpd.conf
 
 #Source of config files
-scpurl=root@10.10.10.10:/opt/gateway
+scpurl=root@77.55.208.92:/opt/gateway
 
 #URL to LMS database server
-sshurl=root@10.10.10.10
+sshurl=root@77.55.208.92
 
 #Warning: user lmsd_reload has SELECT privileges to lms.hosts table only with no password
 dburl="mysql -s -u lmsd_reload lms -e \"select reload from hosts where id=4\""
 
 #PROXY IP ADDRESS
-proxy_ip=192.168.1.1
+proxy_ip=80.48.183.138
 
 #Ethernet interfaces
 #WAN=$(ip r|grep default |awk '{print $5}')
@@ -73,17 +74,18 @@ current_time=$(date '+%Y-%m-%d %H:%M:%S')
 
 source /opt/gateway/scripts/fwfunctions
 
+
     maintenance-on ()
     {
         mpid=`cat /run/fw-sh/maintenance.pid`
         if [ $mpid = 1 ]; then
             echo ""
-            echo "Firewall maintenance is allready on"
-            echo -n "To exit from maintenance mode run: /etc/init.d/fw.sh maintenance-off \n"
+    	    echo -e "Firewall maintenance is allready on \n"
+            echo "To exit from maintenance mode run: /etc/init.d/fw.sh maintenance-off"
             exit
         else
         fw_cron stop
-        htb_cmd stop
+	htb_cmd stop
         static_routing_down
         firewall_down
         destroy_all_hashtables
@@ -94,8 +96,8 @@ source /opt/gateway/scripts/fwfunctions
         echo 1 > /run/fw-sh/maintenance.pid
         fi
         echo ""
-        echo -e "Firewall maintenance is on \n"
-        echo "$current_time - Firewall maintenance is on" >> $logdir/$logfile
+	echo -e "Firewall maintenance is on \n"
+	echo "$current_time - Firewall maintenance is on" >> $logdir/$logfile
     }
 
     maintenance-off ()
@@ -103,7 +105,7 @@ source /opt/gateway/scripts/fwfunctions
         mpid=`cat /run/fw-sh/maintenance.pid`
         if [ $mpid = 0 ]; then
             echo ""
-            echo "Firewall maintenance is allready off"
+	    echo -e "Firewall maintenance is allready off \n"
             exit
         else
         ifup $LAN
@@ -120,27 +122,27 @@ source /opt/gateway/scripts/fwfunctions
         fi
         echo ""
         echo -e "Firewall maintenance is off \n"
-        echo "$current_time - Firewall maintenance is off" >> $logdir/$logfile
+	echo "$current_time - Firewall maintenance is off" >> $logdir/$logfile
     }
 
     stop ()
     {
-        echo "Firewall Stop"
-        echo "$current_time - Firewall Stop" >> $logdir/$logfile
-        fw_cron stop
-        htb_cmd stop
-        static_routing_down
-        firewall_down
-        destroy_all_hashtables
-        echo "$current_time - Firewall Stop OK" >> $logdir/$logfile
+	echo "Firewall Stop"
+	echo "$current_time - Firewall Stop" >> $logdir/$logfile
+	fw_cron stop
+	htb_cmd stop
+	static_routing_down
+	firewall_down
+	destroy_all_hashtables
+	echo "$current_time - Firewall Stop OK" >> $logdir/$logfile
     }
 
     start ()
     {
-        #tuned-adm profile network-latency
-        echo "Firewall Start"
-        stop
-        echo "$current_time - Firewall Start" >> $logdir/$logfile
+	#tuned-adm profile network-latency
+	echo "Firewall Start"
+	stop
+	echo "$current_time - Firewall Start" >> $logdir/$logfile
         static_routing_up
         create_fw_hashtables
         load_fw_hashtables
@@ -148,40 +150,40 @@ source /opt/gateway/scripts/fwfunctions
         htb_cmd start
         dhcpd_cmd start
         fw_cron start
-        echo "$current_time - Firewall Start OK" >> $logdir/$logfile
+	echo "$current_time - Firewall Start OK" >> $logdir/$logfile
     }
 
     newreload ()
     {
-        echo "Firewall newreload"
-        echo "$current_time - Firewall newreload" >> $logdir/$logfile
-        load_fw_hashtables
-        modify_nat11_fw_rules
-        modify_nat1n_fw_rules
-        htb_cmd restart
-        dhcpd_cmd restart
-        echo "$current_time - Firewall newreload OK" >> $logdir/$logfile
+	echo "Firewall newreload"
+	echo "$current_time - Firewall newreload" >> $logdir/$logfile
+	load_fw_hashtables
+	modify_nat11_fw_rules
+	modify_nat1n_fw_rules
+	htb_cmd restart
+	dhcpd_cmd restart
+	echo "$current_time - Firewall newreload OK" >> $logdir/$logfile
     }
 
     restart ()
     {
-        echo "Firewall restart"
-        echo "$current_time - Firewall restart" >> $logdir/$logfile
-        htb_cmd stop
-        firewall_down
-        destroy_all_hashtables
-        create_fw_hashtables
-        load_fw_hashtables
-        firewall_up
-        htb_cmd start
-        dhcpd_cmd restart
-        echo "$current_time - Firewall restart OK" >> $logdir/$logfile
+	echo "Firewall restart"
+	echo "$current_time - Firewall restart" >> $logdir/$logfile
+	htb_cmd stop
+	firewall_down
+	destroy_all_hashtables
+	create_fw_hashtables
+	load_fw_hashtables
+	firewall_up
+	htb_cmd start
+	dhcpd_cmd restart
+	echo "$current_time - Firewall restart OK" >> $logdir/$logfile
     }
 
     qos ()
     {
-        get_qos_config
-        htb_cmd restart
+	get_qos_config
+	htb_cmd restart
     }
 
     lmsd ()
@@ -191,19 +193,19 @@ source /opt/gateway/scripts/fwfunctions
 
     lmsd_reload ()
     {
-        #Sprawdza czy ustawiony jest status przeładowania dla demona lmsd na maszynie z LMS
+	#Sprawdza czy ustawiony jest status przeładowania dla demona lmsd na maszynie z LMS
         lms_status=`ssh $sshurl "$dburl"| grep -v reload`
     if [ $lms_status = 1 ]; then
         echo "$current_time - Status przeładowania lmsd został ustawiony, wykonuje reload lmsd na zdalnej maszynie." >> $logdir/$logfile
         ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
         echo "$current_time - Wykonałem reload lmsd na zdalnej maszynie, czekam 10s, aż lmsd stworzy nowe pliki konfiguracyjne" >> $logdir/$logfile
         sleep 10
-        get_config
-        newreload
+	get_config
+	newreload
     fi
     }
 
-    lmsd_reload_old ()
+lmsd_reload_old ()
     {
 #Sprawdza czy ustawiony jest status przeładowania dla demona lmsd na maszynie z LMS
 
@@ -271,7 +273,7 @@ case "$1" in
     ;;
         *)
         echo -e "\nUsage: fw.sh start|stop|restart|reload|stats|lmsd|qos|status|maintenance-on|maintenance-off"
-        echo "$current_time - fw.sh running without parameter OK" >> $logdir/$logfile
+        echo "$current_time - fw.sh running without parameter" >> $logdir/$logfile
     ;;
 
 esac

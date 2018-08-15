@@ -7,8 +7,8 @@ function get_config {
     do
         mv $FILENAME $oldconfdir/$FILENAME
     done
-        echo "Łącze się z LMS i pobieram pliki konfiguracyjne"
-        /usr/bin/scp $scpurl/* $confdir/
+    echo "$current_time - Łącze się z LMS i pobieram pliki konfiguracyjne" >> $logdir/$logfile
+    /usr/bin/scp $scpurl/* $confdir/
     echo "$current_time - get_config OK" >> $logdir/$logfile
 }
 
@@ -17,7 +17,7 @@ function get_qos_config {
         mv $confdir/rc.htb $oldconfdir/rc.htb
         echo "Łącze się z serwerem i pobieram plik qos"
         /usr/bin/scp $scpurl/rc.htb $confdir/
-        echo "$current_time - get_qos_config OK" >> $logdir/$logfile
+	echo "$current_time - get_qos_config OK" >> $logdir/$logfile
 }
 
 function dhcpd_cmd {
@@ -83,6 +83,12 @@ if ([ "$current_ipset_list" = "" ]); then
         ipset create fw_warned_hosts hash:ip hashsize 2048
 fi
 
+#hashtable for blacklisted host/networks
+current_ipset_list=$(ipset -q --list fw_blacklist)
+if ([ "$current_ipset_list" = "" ]); then
+ipset create fw_blacklist hash:ip hashsize 2048
+fi
+
 #hashtable for banned dst ports on LAN interface
 current_ipset_list=$(ipset -q --list fw_lan_banned_dst_ports)
 if ([ "$current_ipset_list" = "" ]); then
@@ -93,8 +99,7 @@ fi
     while read nat_name ip; do
         ipset create "$nat_name" hash:ip hashsize 1024
     done <$confdir/$nat_1n_ip_file
-
-echo "$current_time - create_fw_hashtables OK" >> $logdir/$logfile
+    echo "$current_time - create_fw_hashtables OK" >> $logdir/$logfile
 }
 
 function destroy_tmp_hashtables {
@@ -103,7 +108,7 @@ function destroy_tmp_hashtables {
     do
         ipset destroy $ipsetlist
     done
-echo "$current_time - destroy_tmp_hashtables OK" >> $logdir/$logfile
+    echo "$current_time - destroy_tmp_hashtables OK" >> $logdir/$logfile
 }
 
 function create_tmp_hashtables {
@@ -116,6 +121,9 @@ function create_tmp_hashtables {
 #create tmp hashtable for warned host
         ipset create fw_warned_hosts.tmp hash:ip hashsize 2048
 
+#create tmp hashtable for blacklisted hosts/netwokrs
+        ipset create fw_blacklist.tmp hash:ip hashsize 2048
+
 #create tmp hashtable for banned dst ports on LAN interface
         ipset create fw_lan_banned_dst_ports.tmp bitmap:port range 0-65535
 
@@ -123,7 +131,7 @@ function create_tmp_hashtables {
     while read nat_name ip; do
         ipset create "$nat_name".tmp hash:ip hashsize 1024
     done <$confdir/$nat_1n_ip_file
-echo "$current_time - create_tmp_hashtables OK" >> $logdir/$logfile
+    echo "$current_time - create_tmp_hashtables OK" >> $logdir/$logfile
 }
 
 function load_tmp_fw_ip_hashtable {
@@ -138,7 +146,7 @@ function load_tmp_fw_ip_hashtable {
             echo "Plik $public_ip_file ma nieprawidłowy format, prawidłowy to: grantedhost|deniedhost|warnedhost ip_addres"
         fi
     done < $confdir/$public_ip_file
-echo "$current_time - load_tmp_fw_ip_hashtable OK" >> $logdir/$logfile
+    echo "$current_time - load_tmp_fw_ip_hashtable OK" >> $logdir/$logfile
 }
 
 function load_tmp_nat1n_hashtables {
@@ -152,11 +160,11 @@ while read nat_name ip; do
         elif [ "$status" = "warnedhost" ]; then
             ipset add fw_warned_hosts.tmp $i
         else
-             echo "Plik $nat_name ma nieprawidłowy format, prawidłowy to: grantedhost|deniedhost|warnedhost ip_addres"
+    	     echo "Plik $nat_name ma nieprawidłowy format, prawidłowy to: grantedhost|deniedhost|warnedhost ip_addres"
         fi
     done < $confdir/$nat_name
 done <$confdir/$nat_1n_ip_file
-echo "$current_time - load_tmp_nat1n_hashtables OK" >> $logdir/$logfile
+    echo "$current_time - load_tmp_nat1n_hashtables OK" >> $logdir/$logfile
 }
 
 function load_tmp_nat_11_hashtable {
@@ -171,9 +179,16 @@ function load_tmp_nat_11_hashtable {
             echo "File $nat_11_file has the wrong format, correct format: grantedhost|deniedhost|warnedhost ip_adres ipub_adres"
         fi
     done < $confdir/$nat_11_file
-
-echo "$current_time - load_tmp_nat_11_hashtable OK" >> $logdir/$logfile
+    echo "$current_time - load_tmp_nat_11_hashtable OK" >> $logdir/$logfile
 }
+
+function load_fw_blacklist_hashtable {
+    while read network; do
+            ipset add fw_blacklist.tmp $network
+    done < $confdir/$blacklist_file
+    echo "$current_time - load_fw_blacklist_hashtable OK" >> $logdir/$logfile
+}
+
 
 function load_tmp_lan_banned_dst_ports_hashtable {
     while read ports; do
@@ -195,7 +210,7 @@ function load_new_ipset_hashtables {
         ipset -X $ipsetname.tmp
         echo "$current_time - Kasuję $ipsetname.tmp" >> $logdir/$logfile
     done
-        echo "$current_time - load_new_ipset_hashtables OK" >> $logdir/$logfile
+    echo "$current_time - load_new_ipset_hashtables OK" >> $logdir/$logfile
 }
 
 function load_nat_1n_fw_rules {
@@ -222,44 +237,41 @@ lista_zmian=$(diff  --unchanged-line-format="" --old-line-format="removed %L" --
 while read arg1 arg2 arg3 arg4
 do
     if ([ "$arg1" = "added" ] && [ "$arg2" = "deniedhost" ]) || ([ "$arg1" = "removed" ] && [ "$arg2" = "grantedhost" ])
-        then
-            current_iptables_nat11_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep NAT)
-            while read ipt_num ipt_target ipt_prot ipt_opt ipt_source ipt_destination ipt_destination2
-                do
-                    if [ "$arg3" = "$ipt_source" ]
-                        then
-                            iptables -t nat -D POSTROUTING $ipt_num
-                    fi
-                done < <(echo -e "$current_iptables_nat11_postrouting_rules")
+	then
+	    current_iptables_nat11_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep NAT)
+	    while read ipt_num ipt_target ipt_prot ipt_opt ipt_source ipt_destination ipt_destination2
+		do
+		    if [ "$arg3" = "$ipt_source" ]
+			then
+			    iptables -t nat -D POSTROUTING $ipt_num
+		    fi
+		done < <(echo -e "$current_iptables_nat11_postrouting_rules")
 
-            current_iptables_nat11_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep NAT)
-            while read ipt_num ipt_target ipt_prot ipt_opt ipt_source ipt_destination ipt_destination2
-                do
-                    if [ "$arg4" = "$ipt_destination" ]
-                        then
-                            iptables -t nat -D PREROUTING $ipt_num
-                    fi
-                done < <(echo -e "$current_iptables_nat11_prerouting_rules")
+	    current_iptables_nat11_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep NAT)
+	    while read ipt_num ipt_target ipt_prot ipt_opt ipt_source ipt_destination ipt_destination2
+		do
+		    if [ "$arg4" = "$ipt_destination" ]
+			then
+			    iptables -t nat -D PREROUTING $ipt_num
+		    fi
+		done < <(echo -e "$current_iptables_nat11_prerouting_rules")
     fi
 
     if ([ "$arg1" = "added" ] && [ "$arg2" = "grantedhost" ])
-        then
-#           current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep SNAT|awk '{print $5}'| grep $arg3$)
-            current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep SNAT|grep $arg4$)
-                    if [ "$current_iptables_postrouting_rules" = "" ]
-                        then
-                            iptables -t nat -A POSTROUTING -o $WAN -s $arg3 -j SNAT --to-source $arg4
-                    fi
-
-#           current_iptables_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep DNAT|awk '{print $6}'|grep $arg4$)
-            current_iptables_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep DNAT|grep $arg3$)
-                    if [ "$current_iptables_prerouting_rules" = "" ]
-                        then
-                            iptables -t nat -A PREROUTING -i $WAN -d $arg4 -j DNAT --to-destination $arg3
-                    fi
+	then
+	    current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep SNAT|grep $arg4$)
+		    if [ "$current_iptables_postrouting_rules" = "" ]
+			then
+			    iptables -t nat -A POSTROUTING -o $WAN -s $arg3 -j SNAT --to-source $arg4
+		    fi
+	    current_iptables_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep DNAT|grep $arg3$)
+		    if [ "$current_iptables_prerouting_rules" = "" ]
+			then
+			    iptables -t nat -A PREROUTING -i $WAN -d $arg4 -j DNAT --to-destination $arg3
+		    fi
     fi
 done < <(echo -e "$lista_zmian")
-echo "$current_time - modify_nat11_fw_rules OK" >> $logdir/$logfile
+    echo "$current_time - modify_nat11_fw_rules OK" >> $logdir/$logfile
 }
 
 function modify_nat1n_fw_rules {
@@ -269,40 +281,40 @@ lista_zmian=$(diff  --unchanged-line-format="" --old-line-format="removed %L" --
 while read arg1 arg2 arg3
 do
     if ([ "$arg1" = "removed" ])
-        then
-            current_iptables_nat1n_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set)
-            while read ipt1 ipt2 ipt3 ipt4 ipt5 ipt6 ipt7 ipt8 ipt9 ipt10
-                do
-                    if [ "to:$arg3" = "$ipt10" ]
-                        then
-                            iptables -t nat -D POSTROUTING $ipt1
-                            ipset destroy $arg2
-                    fi
-                done < <(echo -e "$current_iptables_nat1n_postrouting_rules")
+	then
+	    current_iptables_nat1n_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set)
+	    while read ipt1 ipt2 ipt3 ipt4 ipt5 ipt6 ipt7 ipt8 ipt9 ipt10
+		do
+		    if [ "to:$arg3" = "$ipt10" ]
+			then
+			    iptables -t nat -D POSTROUTING $ipt1
+			    ipset destroy $arg2
+		    fi
+		done < <(echo -e "$current_iptables_nat1n_postrouting_rules")
     fi
-
+    
     if ([ "$arg1" = "added" ])
-        then
-            current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set|grep $arg3$)
-            current_ipset_list=$(ipset -q --list $arg2)
-                    if ([ "$current_iptables_postrouting_rules" = "" ] && [ "$current_ipset_list" = "" ])
-                        then
-                            ipset create "$arg2" hash:ip hashsize 1024
-                            iptables -t nat -I POSTROUTING -o $WAN -m set --match-set $arg2 src -j SNAT --to-source $arg3
-                    fi
+	then
+	    current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set|grep $arg3$)
+	    current_ipset_list=$(ipset -q --list $arg2)
+		    if ([ "$current_iptables_postrouting_rules" = "" ] && [ "$current_ipset_list" = "" ])
+			then
+			    ipset create "$arg2" hash:ip hashsize 1024
+			    iptables -t nat -I POSTROUTING -o $WAN -m set --match-set $arg2 src -j SNAT --to-source $arg3
+		    fi
     fi
 done < <(echo -e "$lista_zmian")
-echo "$current_time - modify_nat1n_fw_rules OK" >> $logdir/$logfile
+    echo "$current_time - modify_nat1n_fw_rules OK" >> $logdir/$logfile
 }
 
 function firewall_up {
 #Network Tuning Factors
 
 #Change default ARP table for large networks.
- if [ $(cat /proc/sys/net/ipv4/neigh/default/gc_thresh1) -lt 2048 ]; then
-    sysctl -w net.ipv4.neigh.default.gc_thresh1=2048
-    sysctl -w net.ipv4.neigh.default.gc_thresh2=4096
-    sysctl -w net.ipv4.neigh.default.gc_thresh3=8192
+ if [ $(cat /proc/sys/net/ipv4/neigh/default/gc_thresh1) -lt 2048 ]; then 
+	sysctl -w net.ipv4.neigh.default.gc_thresh1=2048
+	sysctl -w net.ipv4.neigh.default.gc_thresh2=4096
+	sysctl -w net.ipv4.neigh.default.gc_thresh3=8192
  fi
 
 #Defines the default and maximum receive window size.
@@ -320,32 +332,35 @@ fi
 #Increasing nf_conntrack table size
     sysctl -w net.netfilter.nf_conntrack_max=524288
 
-#Set default policy
+#Set FORWARD default policy
     iptables -P FORWARD DROP
     iptables -P INPUT ACCEPT
     iptables -P OUTPUT ACCEPT
 
+
 #Enable IP forwardings
     sysctl -w net.ipv4.ip_forward=1
 
+
 #INPUT CHAIN
+    iptables -A INPUT -p tcp --dport 22 -j SET --add-set fw_blacklist src
+    iptables -A INPUT -p tcp --dport 25 -j SET --add-set fw_blacklist src
     iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
     iptables -A INPUT -p icmp -j ACCEPT
     iptables -A INPUT -i lo -j ACCEPT
-    iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
-    iptables -A INPUT -p tcp -m state --state NEW -m tcp --dport 222 -j ACCEPT
-    iptables -A INPUT -i $LAN -p tcp -m state --state NEW -m tcp --dport 80 -j ACCEPT
-    iptables -A INPUT -i $LAN -p tcp -m state --state NEW -m tcp --dport 3128 -j ACCEPT
+    iptables -A INPUT -i $LAN -j ACCEPT
+    iptables -A INPUT -i $WAN -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+    iptables -A INPUT -i $WAN -p tcp -m state --state NEW -m tcp --dport 222 -j ACCEPT
     iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
 
 
-#Drops some ports
+#Drops some ports 
 #    iptables -A FORWARD -i $WAN -m set --match-set fw_lan_banned_dst_ports dst -j DROP
 #    iptables -A FORWARD -i $WAN -o $LAN -d 172.16.0.0/16 -m set --match-set fw_lan_banned_dst_ports dst -j DROP
     iptables -A FORWARD -i $WAN -o $LAN -m set --match-set fw_lan_banned_dst_ports dst -j DROP
 
 #Enable packet logging
-    iptables -A FORWARD -i $LAN -m state --state NEW -j ULOG --ulog-nlgroup 1 --ulog-prefix FORWARDED-CONN
+    iptables -A FORWARD -i $LAN -m state --state NEW -p tcp -j ULOG --ulog-nlgroup 1 --ulog-prefix FORWARDED-CONN
 
 #Ładowanie reguł FORWARD dla wszystkich upoważnionych hostów.
 #Zezwolenie na przesył pakietów tylko pomiędzy interfejscami LAN i WAN dla wybranych hostów z listy fw_ip
@@ -353,7 +368,12 @@ fi
     iptables -A FORWARD -i $WAN -o $LAN -m set --match-set fw_ip dst -j ACCEPT
 
 #Redirect dla klientów z włączonym ostrzeżeniem w LMS
-    iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -p tcp --dport 80 -j DNAT --to $proxy_ip:3128
+#    iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -p tcp --dport 80 -j DNAT --to $proxy_ip:3128
+    iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -m set --match-set fw_denied_hosts src -p tcp --dport 80 -j DNAT --to $proxy_ip:3128
+
+
+#Blacklisted host/network
+    iptables -t raw -A PREROUTING -m set --match-set fw_blacklist src -j DROP
 
 #Załadowanie reguł SNAT dla użytkowników NAT 1:n
     load_nat_1n_fw_rules
@@ -374,11 +394,11 @@ function firewall_down {
         iptables -t $i -X
     done
 
-#Set default policy
+#Ustawienie domyśłnej polityki dla wyłączonego firewalla
         iptables -P FORWARD DROP
         iptables -P INPUT ACCEPT
         iptables -P OUTPUT ACCEPT
-        echo "$current_time - firewall_down OK" >> $logdir/$logfile
+    echo "$current_time - firewall_down OK" >> $logdir/$logfile
 }
 
 function destroy_all_hashtables {
@@ -394,7 +414,6 @@ function flush_hashtables {
 }
 
 function load_fw_hashtables {
-        echo "$current_time - load_fw_hashtables OK" >> $logdir/$logfile
         destroy_tmp_hashtables
         create_tmp_hashtables
         load_tmp_fw_ip_hashtable
@@ -402,6 +421,7 @@ function load_fw_hashtables {
         load_tmp_nat_11_hashtable
         load_tmp_lan_banned_dst_ports_hashtable
         load_new_ipset_hashtables
+        echo "$current_time - load_fw_hashtables OK" >> $logdir/$logfile
 }
 
 function static_routing_up {
@@ -436,9 +456,9 @@ MAILTO=""
     fi
 
     if [ "$1" = "stop" ]; then
-        if [ -f /etc/cron.d/fw_sh ]; then
-            rm /etc/cron.d/fw_sh
-        fi
+	if [ -f /etc/cron.d/fw_sh ]; then
+    	    rm /etc/cron.d/fw_sh
+    	fi
         echo "$current_time - Wyłączam cron dla fw.sh" >> $logdir/$logfile
     fi
 }
@@ -462,34 +482,36 @@ function fwstatus {
         echo "-------"
         echo "$tablename"
         echo "-------"
-        iptables -t $tablename -nvL
+        iptables -t $tablename -nvL --line-numbers
         echo ""
     done
 
         echo "-----"
         echo "IPSET"
         echo "-----"
-    for ipsetname in `ipset list -n`
-    do
-        ipset list $ipsetname
         echo ""
-    done
+#    for ipsetname in `ipset list -n`
+#    do
+#        ipset list $ipsetname
+#        echo ""
+#    done
         echo "----------"
         echo "IPSET LIST"
         echo "----------"
         ipset list -n
-        echo ""
-        echo "#############################
-        echo Kernel Network Core Paremeters
-        echo "#############################
-        sysctl net.ipv4.neigh.default.gc_thresh1
-        sysctl net.ipv4.neigh.default.gc_thresh2
-        sysctl net.ipv4.neigh.default.gc_thresh3
-        sysctl net.core.rmem_default
-        sysctl net.core.rmem_max
-        sysctl net.core.wmem_default
-        sysctl net.core.wmem_max
-        sysctl net.netfilter.nf_conntrack_max
-        sysctl net.netfilter.nf_conntrack_count
-        echo "$current_time - fwstatus OK" >> $logdir/$logfile
+	echo ""
+	echo "#############################"
+	echo Kernel Network Core Paremeters
+	echo "#############################"
+	sysctl net.ipv4.neigh.default.gc_thresh1
+	sysctl net.ipv4.neigh.default.gc_thresh2
+	sysctl net.ipv4.neigh.default.gc_thresh3
+	sysctl net.core.rmem_default
+	sysctl net.core.rmem_max
+	sysctl net.core.wmem_default
+	sysctl net.core.wmem_max
+	sysctl net.netfilter.nf_conntrack_max
+	sysctl net.netfilter.nf_conntrack_count
+	echo ""
+	echo "$current_time - fwstatus OK" >> $logdir/$logfile
 }
