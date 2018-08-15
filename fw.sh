@@ -34,16 +34,16 @@ shaper_file=rc.htb
 dhcp_conf_file=dhcpd.conf
 
 #Source of config files
-scpurl=root@77.55.208.92:/opt/gateway
+scpurl=root@10.10.10.10:/opt/gateway
 
 #URL to LMS database server
-sshurl=root@77.55.208.92
+sshurl=root@10.10.10.10
 
 #Warning: user lmsd_reload has SELECT privileges to lms.hosts table only with no password
 dburl="mysql -s -u lmsd_reload lms -e \"select reload from hosts where id=4\""
 
 #PROXY IP ADDRESS
-proxy_ip=80.48.183.138
+proxy_ip=10.10.10.254
 
 #Ethernet interfaces
 #WAN=$(ip r|grep default |awk '{print $5}')
