@@ -344,8 +344,8 @@ fi
 
 
 #INPUT CHAIN
-    iptables -A INPUT -p tcp --dport 22 -j SET --add-set fw_blacklist src
-    iptables -A INPUT -p tcp --dport 25 -j SET --add-set fw_blacklist src
+    iptables -A INPUT -p tcp --dport 22 -j SET --add-set fw_time_blacklist src
+    iptables -A INPUT -p tcp --dport 25 -j SET --add-set fw_time_blacklist src
     iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
     iptables -A INPUT -p icmp -j ACCEPT
     iptables -A INPUT -i lo -j ACCEPT
@@ -374,7 +374,7 @@ fi
 
 
 #Blacklisted host/network
-    iptables -t raw -A PREROUTING -m set --match-set fw_blacklist src -j DROP
+    iptables -t raw -A PREROUTING -m set --match-set fw_permanent_blacklist src -m set --match-set fw_time_blacklist src -j DROP
 
 #Załadowanie reguł SNAT dla użytkowników NAT 1:n
     load_nat_1n_fw_rules
