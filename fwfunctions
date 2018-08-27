@@ -187,7 +187,7 @@ function load_fw_blacklist_hashtable {
     while read network; do
             ipset add fw_permanent_blacklist.tmp $network
     done < $confdir/$blacklist_file
-    echo "$current_time - load_fw_permanent_blacklist_hashtable OK" >> $logdir/$logfile
+    echo "$current_time - load_fw_permanent_blacklist_tmp_hashtable OK" >> $logdir/$logfile
 }
 
 
