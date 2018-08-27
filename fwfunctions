@@ -86,7 +86,8 @@ fi
 #hashtable for blacklisted host/networks
 current_ipset_list=$(ipset -q --list fw_blacklist)
 if ([ "$current_ipset_list" = "" ]); then
-ipset create fw_blacklist hash:ip hashsize 2048 timeout 600
+ipset create fw_time_blacklist hash:ip hashsize 2048 timeout 600
+ipset create fw_permanent_blacklist hash:ip hashsize 2048
 fi
 
 #hashtable for banned dst ports on LAN interface
@@ -122,7 +123,7 @@ function create_tmp_hashtables {
         ipset create fw_warned_hosts.tmp hash:ip hashsize 2048
 
 #create tmp hashtable for blacklisted hosts/netwokrs
-        ipset create fw_blacklist.tmp hash:ip hashsize 2048
+        ipset create fw_permanent_blacklist.tmp hash:ip hashsize 2048
 
 #create tmp hashtable for banned dst ports on LAN interface
         ipset create fw_lan_banned_dst_ports.tmp bitmap:port range 0-65535
@@ -184,9 +185,9 @@ function load_tmp_nat_11_hashtable {
 
 function load_fw_blacklist_hashtable {
     while read network; do
-            ipset add fw_blacklist.tmp $network
+            ipset add fw_permanent_blacklist.tmp $network
     done < $confdir/$blacklist_file
-    echo "$current_time - load_fw_blacklist_hashtable OK" >> $logdir/$logfile
+    echo "$current_time - load_fw_permanent_blacklist_hashtable OK" >> $logdir/$logfile
 }
 
 
