@@ -86,7 +86,7 @@ fi
 #hashtable for blacklisted host/networks
 current_ipset_list=$(ipset -q --list fw_blacklist)
 if ([ "$current_ipset_list" = "" ]); then
-ipset create fw_blacklist hash:ip hashsize 2048
+ipset create fw_blacklist hash:ip hashsize 2048 timeout 600
 fi
 
 #hashtable for banned dst ports on LAN interface
