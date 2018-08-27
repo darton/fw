@@ -63,6 +63,7 @@ do
 [[ -f $param/$nat_1n_ip_file ]] || touch $param/$nat_1n_ip_file
 [[ -f $param/$public_ip_file ]] || touch $param/$public_ip_file
 [[ -f $param/$routed_nets_file ]] || touch $param/$routed_nets_file
+[[ -f $param/$blacklist_file ]] || touch $blacklist_file
 [[ -f $param/$lan_banned_dst_ports_file ]] || touch $param/$lan_banned_dst_ports_file
 [[ -f $param/$shaper_file ]] || touch $param/$shaper_file
 [[ -f $param/$dhcp_conf_file ]] || touch $param/$dhcp_conf_file
