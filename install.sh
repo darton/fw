@@ -16,6 +16,7 @@ nat_11_file=fw_nat_1-1
 nat_1n_ip_file=fw_nat_1-n
 public_ip_file=fw_public_ip
 routed_nets_file=fw_routed_ip
+blacklist_file=fw_blacklist
 lan_banned_dst_ports_file=fw_lan_banned_dst_ports
 shaper_file=rc.htb
 dhcp_conf_file=dhcpd.conf
