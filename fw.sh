@@ -73,7 +73,7 @@ done
 
 current_time=$(date '+%Y-%m-%d %H:%M:%S')
 
-source /opt/gateway/scripts/fwfunctions
+source $scriptsdir/fwfunctions
 
 
     maintenance-on ()
