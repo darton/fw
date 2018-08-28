@@ -338,7 +338,7 @@ fi
 
 #Set FORWARD default policy
     iptables -P FORWARD DROP
-    iptables -P INPUT DROP
+    iptables -P INPUT ACCEPT
     iptables -P OUTPUT ACCEPT
 
 #INPUT CHAIN
