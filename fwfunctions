@@ -460,6 +460,24 @@ MAILTO=""
     fi
 }
 
+function shaper {
+
+while read arg1 arg2 arg3 arg4; do
+        if [ "$arg3" = "filter" ]; then
+                echo "iptables -t mangle -A COUNTERSOUT -s $arg2 -j CLASSIFY --set-class 2:$arg1"
+                echo  "iptables -t mangle -A COUNTERSIN -d $arg2 -j CLASSIFY --set-class 1:$arg1"
+        fi
+        if [ "$arg4" = "class_up" ]; then
+                echo "tc class add dev $WAN parent 2:1 classid 2:$arg1 htb rate $arg3 ceil $arg2 prio 2"
+                echo "tc qdisc add dev $WAN parent 2:$arg1 sfq perturb 10"
+        fi
+        if [ "$arg4" = "class_down" ]; then
+                echo "tc class add dev $LAN parent 1:2 classid 1:$arg1 htb rate $arg3 ceil $arg2 prio 2"
+                echo "tc qdisc add dev $LAN parent 1:$arg1 sfq perturb 10"
+        fi
+done < $confdir/$shaper_file
+}
+
 function stats {
         iptables -t mangle -nvxL COUNTERSOUT |tail -n +3 | awk '{print $8 " "$2}' |grep -v 0.0.0.0 > /tmp/upload.tmp
         iptables -t mangle -nvxL COUNTERSIN |tail -n +3 | awk '{print $9 " "$2}' |grep -v 0.0.0.0 > /tmp/download.tmp
