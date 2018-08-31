@@ -13,10 +13,13 @@ function get_config {
 }
 
 function get_qos_config {
-        cd $confdir
-        mv $confdir/rc.htb $oldconfdir/rc.htb
-        echo "Łącze się z serwerem i pobieram plik qos"
-        /usr/bin/scp $scpurl/rc.htb $confdir/
+	ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -i qos -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
+	ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -i qos-dev -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
+	sleep 10
+	cd $confdir
+	mv $confdir/rc.htb $oldconfdir/rc.htb
+	echo "Łącze się z serwerem i pobieram plik qos"
+	/usr/bin/scp $scpurl/rc.htb $confdir/
 	echo "$current_time - get_qos_config OK" >> $logdir/$logfile
 }
 
@@ -49,22 +52,96 @@ function htb_cmd {
             echo "$current_time - Plik rc.htb ma nową konfigurację, restartuję Shaper" >> $logdir/$logfile
             bash $confdir/rc.htb stop
             bash $confdir/rc.htb start
+            # shaper_cmd stop
+            # shaper_cmd start
         else
             echo "Konfiguracja rc.htb jest identyczna, restart nie jest potrzebny"
         fi
     fi
     if [ "$1" = "stop" ]; then
     bash $confdir/rc.htb stop
+    #shaper_cmd stop
     echo "$current_time - htb_cmd stop OK" >> $logdir/$logfile
     fi
     if [ "$1" = "start" ]; then
     echo "Uruchamiam Shaper"
     bash $confdir/rc.htb start
+    #shaper_cmd start
     fi
 }
 
-function create_fw_hashtables {
+function shaper_cmd {
 
+if [ "$1" = "stop" ]; then
+echo "    $IPT -t mangle -D FORWARD -i $WAN -j COUNTERSIN >/dev/null 2>&1
+    $IPT -t mangle -D FORWARD -o $WAN -j COUNTERSOUT >/dev/null 2>&1
+    $IPT -t mangle -F COUNTERSIN >/dev/null 2>&1
+    $IPT -t mangle -F COUNTERSOUT >/dev/null 2>&1
+    $IPT -t mangle -X COUNTERSIN >/dev/null 2>&1
+    $IPT -t mangle -X COUNTERSOUT >/dev/null 2>&1
+    $IPT -t mangle -F OUTPUT
+    $TC qdisc del dev $LAN root 2> /dev/null
+    $TC qdisc del dev $WAN root 2> /dev/null
+"
+fi
+
+if [ "$1" = "start" ]; then
+echo "
+    $IPT -t mangle -N COUNTERSIN
+    $IPT -t mangle -N COUNTERSOUT
+    $IPT -t mangle -I FORWARD -i $WAN -j COUNTERSIN
+    $IPT -t mangle -I FORWARD -o $WAN -j COUNTERSOUT
+    $IPT -t mangle -A OUTPUT -o $LAN -j CLASSIFY --set-class 1:4
+    $IPT -t mangle -A OUTPUT -o $WAN -j CLASSIFY --set-class 2:4
+
+#LAN
+# Set global limit for LAN interface
+    $TC qdisc add dev $LAN root handle 1:0 htb default 3 r2q 1
+    $TC class add dev $LAN parent 1:0 classid 1:1 htb rate 900000kbit ceil 900000kbit quantum 1500
+
+# Set limit for all traffic from Internet to LAN
+    $TC class add dev $LAN parent 1:1 classid 1:2 htb rate $ISPRXLIMIT ceil $ISPRXLIMIT quantum 1500
+
+#Set default limit for traffic from Internet to LAN
+    $TC class add dev $LAN parent 1:1 classid 1:3 htb rate 8kbit ceil $DEFAULTLIMIT prio 9 quantum 1500
+    $TC qdisc add dev $LAN parent 1:3 sfq perturb 10
+
+#Set limit from for traffic from GATEWAY to LAN
+    $TC class add dev $LAN parent 1:1 classid 1:4 htb rate 128kbit ceil $GW2LANLIMIT prio 2 quantum 1500
+    $TC qdisc add dev $LAN parent 1:4 sfq perturb 10
+
+#WAN
+# Set limit for all traffic from WAN to Internet
+    $TC qdisc add dev $WAN root handle 2:0 htb default 11 r2q 1
+    $TC class add dev $WAN parent 2:0 classid 2:1 htb rate $ISPTXLIMIT ceil $ISPTXLIMIT quantum 1500
+
+# Set default limit for traffic from WAN to Internet
+    $TC class add dev $WAN parent 2:1 classid 2:11 htb rate 8kbit ceil $DEFAULTLIMIT prio 9 quantum 1500
+    $TC qdisc add dev $WAN parent 2:11 sfq perturb 10
+    $TC filter add dev $WAN parent 2:0 protocol ip prio 9 u32 match ip dst 0/0 flowid 2:11
+
+#Set limit for traffic from GATEWAY to WAN
+    $TC class add dev $WAN parent 2:1 classid 2:4 htb rate 128kbit ceil $GW2WANLIMIT prio 2 quantum 1500
+    $TC qdisc add dev $WAN parent 2:4 sfq perturb 10
+"
+    while read arg1 arg2 arg3 arg4; do
+        if [ "$arg3" = "filter" ]; then
+                echo "iptables -t mangle -A COUNTERSOUT -s $arg2 -j CLASSIFY --set-class 2:$arg1"
+                echo "iptables -t mangle -A COUNTERSIN -d $arg2 -j CLASSIFY --set-class 1:$arg1"
+        fi
+        if [ "$arg4" = "class_up" ]; then
+                echo "tc class add dev $WAN parent 2:1 classid 2:$arg1 htb rate $arg2 ceil $arg3 prio 2"
+                echo "tc qdisc add dev $WAN parent 2:$arg1 sfq perturb 10"
+        fi
+        if [ "$arg4" = "class_down" ]; then
+                echo "tc class add dev $LAN parent 1:2 classid 1:$arg1 htb rate $arg2 ceil $arg3 prio 2"
+                echo "tc qdisc add dev $LAN parent 1:$arg1 sfq perturb 10"
+        fi
+    done < $confdir/$shaper_file
+fi
+}
+
+function create_fw_hashtables {
 #hashtable for granted host
 current_ipset_list=$(ipset -q --list fw_ip)
 if ([ "$current_ipset_list" = "" ]); then
@@ -183,13 +260,12 @@ function load_tmp_nat_11_hashtable {
     echo "$current_time - load_tmp_nat_11_hashtable OK" >> $logdir/$logfile
 }
 
-function load_fw_blacklist_hashtable {
+function load_tmp_fw_blacklist_hashtable {
     while read network; do
             ipset add fw_permanent_blacklist.tmp $network
     done < $confdir/$blacklist_file
     echo "$current_time - load_fw_permanent_blacklist_tmp_hashtable OK" >> $logdir/$logfile
 }
-
 
 function load_tmp_lan_banned_dst_ports_hashtable {
     while read ports; do
@@ -342,7 +418,7 @@ fi
     iptables -P OUTPUT ACCEPT
 
 #INPUT CHAIN
-    iptables -A INPUT -p tcp --match multiport --dport 22,25 -j SET --add-set fw_time_blacklist src
+    iptables -I INPUT -i $WAN -p tcp --match multiport --dport 22,25 -j SET --add-set fw_time_blacklist src
     iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
     iptables -A INPUT -p icmp -j ACCEPT
     iptables -A INPUT -i lo -j ACCEPT
@@ -370,7 +446,8 @@ fi
     iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -m set --match-set fw_denied_hosts src -p tcp --dport 80 -j DNAT --to $proxy_ip:3128
 
 #Blacklisted host/network
-    iptables -t raw -A PREROUTING -m set --match-set fw_permanent_blacklist src -m set --match-set fw_time_blacklist src -j DROP
+    iptables -t raw -A PREROUTING -m set --match-set fw_permanent_blacklist src -j DROP
+    iptables -t raw -A PREROUTING -m set --match-set fw_time_blacklist src -j DROP
 
 #Załadowanie reguł SNAT dla użytkowników NAT 1:n
     load_nat_1n_fw_rules
@@ -417,6 +494,7 @@ function load_fw_hashtables {
         load_tmp_nat1n_hashtables
         load_tmp_nat_11_hashtable
         load_tmp_lan_banned_dst_ports_hashtable
+        load_tmp_fw_blacklist_hashtable
         load_new_ipset_hashtables
         echo "$current_time - load_fw_hashtables OK" >> $logdir/$logfile
 }
@@ -446,8 +524,8 @@ SHELL=/bin/bash
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 MAILTO=""
 * * * * * root /opt/gateway/scripts/fw.sh lmsd  > /dev/null 2>&1
-01 22 * * * root /opt/gateway/scripts/fw.sh qos  > /dev/null 2>&1
-01 10 * * * root /opt/gateway/scripts/fw.sh qos  > /dev/null 2>&1
+00 22 * * * root /opt/gateway/scripts/fw.sh qos  > /dev/null 2>&1
+00 10 * * * root /opt/gateway/scripts/fw.sh qos  > /dev/null 2>&1
 ' > /etc/cron.d/fw_sh
         echo "$current_time - Włączam cron dla fw.sh" >> $logdir/$logfile
     fi
@@ -458,23 +536,6 @@ MAILTO=""
     	fi
         echo "$current_time - Wyłączam cron dla fw.sh" >> $logdir/$logfile
     fi
-}
-
-function shaper {
-while read arg1 arg2 arg3 arg4; do
-        if [ "$arg3" = "filter" ]; then
-                echo "iptables -t mangle -A COUNTERSOUT -s $arg2 -j CLASSIFY --set-class 2:$arg1"
-                echo "iptables -t mangle -A COUNTERSIN -d $arg2 -j CLASSIFY --set-class 1:$arg1"
-        fi
-        if [ "$arg4" = "class_up" ]; then
-                echo "tc class add dev $WAN parent 2:1 classid 2:$arg1 htb rate $arg3 ceil $arg2 prio 2"
-                echo "tc qdisc add dev $WAN parent 2:$arg1 sfq perturb 10"
-        fi
-        if [ "$arg4" = "class_down" ]; then
-                echo "tc class add dev $LAN parent 1:2 classid 1:$arg1 htb rate $arg3 ceil $arg2 prio 2"
-                echo "tc qdisc add dev $LAN parent 1:$arg1 sfq perturb 10"
-        fi
-done < $confdir/$shaper_file
 }
 
 function stats {

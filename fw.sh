@@ -30,7 +30,7 @@ public_ip_file=fw_public_ip
 routed_nets_file=fw_routed_ip
 blacklist_file=fw_blacklist
 lan_banned_dst_ports_file=fw_lan_banned_dst_ports
-shaper_file=fw_shaper
+shaper_file=fw_shaper_cfg
 dhcp_conf_file=dhcpd.conf
 
 #Source of config files
@@ -39,17 +39,27 @@ scpurl=root@10.10.10.10:/opt/gateway
 #URL to LMS database server
 sshurl=root@10.10.10.10
 
-#Warning: user lmsd_reload has SELECT privileges to lms.hosts table only with no password
-dburl="mysql -s -u lmsd_reload lms -e \"select reload from hosts where id=4\""
-
 #PROXY IP ADDRESS
 proxy_ip=10.10.10.254
+
+#Warning: user lmsd_reload has SELECT privileges to lms.hosts table only with no password
+dburl="mysql -s -u lmsd_reload lms -e \"select reload from hosts where id=4\""
 
 #Ethernet interfaces
 #WAN=$(ip r|grep default |awk '{print $5}')
 WAN=enp2s0
 LAN=enp3s0
 MGMT=eno1
+
+#Shaper configuration
+IPT=iptables
+TC=tc
+BURST="burst 30k"
+ISPRXLIMIT=470000kbit
+ISPTXLIMIT=470000kbit
+GW2LANLIMIT=1000000kbit
+GW2WANLIMIT=100000kbit
+DEFAULTLIMIT=128kbit
 
 ####Makes necessary config directories and files####
 [[ -d /run/fw-sh/ ]] || mkdir /run/fw-sh
@@ -63,7 +73,7 @@ do
 [[ -f $param/$nat_1n_ip_file ]] || touch $param/$nat_1n_ip_file
 [[ -f $param/$public_ip_file ]] || touch $param/$public_ip_file
 [[ -f $param/$routed_nets_file ]] || touch $param/$routed_nets_file
-[[ -f $param/$blacklist_file ]] || touch $blacklist_file
+[[ -f $param/$blacklist_file ]] || touch $param/$blacklist_file
 [[ -f $param/$lan_banned_dst_ports_file ]] || touch $param/$lan_banned_dst_ports_file
 [[ -f $param/$shaper_file ]] || touch $param/$shaper_file
 [[ -f $param/$dhcp_conf_file ]] || touch $param/$dhcp_conf_file
