@@ -14,13 +14,22 @@ function get_config {
 
 function get_qos_config {
 	ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -i qos -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
-	ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -i qos-dev -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
 	sleep 10
 	cd $confdir
 	mv $confdir/rc.htb $oldconfdir/rc.htb
 	echo "Łącze się z serwerem i pobieram plik qos"
 	/usr/bin/scp $scpurl/rc.htb $confdir/
 	echo "$current_time - get_qos_config OK" >> $logdir/$logfile
+}
+
+function get_shaper_config {
+	ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -i shaper -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
+	sleep 10
+	cd $confdir
+	mv $confdir/$shaper_file $oldconfdir/$shaper_file
+	echo "Łącze się z serwerem i pobieram plik konfiguracyjny dla Shaper'a"
+	scp $scpurl/$shaper_file $confdir/
+	echo "$current_time - get_shaper_config OK" >> $logdir/$logfile
 }
 
 function dhcpd_cmd {
@@ -52,90 +61,133 @@ function htb_cmd {
             echo "$current_time - Plik rc.htb ma nową konfigurację, restartuję Shaper" >> $logdir/$logfile
             bash $confdir/rc.htb stop
             bash $confdir/rc.htb start
-            # shaper_cmd stop
-            # shaper_cmd start
         else
             echo "Konfiguracja rc.htb jest identyczna, restart nie jest potrzebny"
         fi
     fi
     if [ "$1" = "stop" ]; then
     bash $confdir/rc.htb stop
-    #shaper_cmd stop
     echo "$current_time - htb_cmd stop OK" >> $logdir/$logfile
     fi
     if [ "$1" = "start" ]; then
     echo "Uruchamiam Shaper"
     bash $confdir/rc.htb start
-    #shaper_cmd start
     fi
 }
 
 function shaper_cmd {
+if [ "$1" = "restart" ]; then
+    shaper_current=$(cat $confdir/$shaper_file |sha1sum)
+    shaper_new=$(cat $oldconfdir/$shaper_file |sha1sum)
+    if [ "$shaper_current" != "$shaper_new" ]; then
+        echo "$current_time - Shaper ma nową konfigurację, restartuję Shaper" >> $logdir/$logfile
+        shaper_cmd stop
+        shaper_cmd start
+    else
+        echo "Konfiguracja Shapera jest identyczna, restart nie jest potrzebny"
+    fi
+fi
 
 if [ "$1" = "stop" ]; then
-echo "    $IPT -t mangle -D FORWARD -i $WAN -j COUNTERSIN >/dev/null 2>&1
-    $IPT -t mangle -D FORWARD -o $WAN -j COUNTERSOUT >/dev/null 2>&1
-    $IPT -t mangle -F COUNTERSIN >/dev/null 2>&1
-    $IPT -t mangle -F COUNTERSOUT >/dev/null 2>&1
-    $IPT -t mangle -X COUNTERSIN >/dev/null 2>&1
-    $IPT -t mangle -X COUNTERSOUT >/dev/null 2>&1
-    $IPT -t mangle -F OUTPUT
-    $TC qdisc del dev $LAN root 2> /dev/null
-    $TC qdisc del dev $WAN root 2> /dev/null
-"
+    iptables -t mangle -D FORWARD -i $WAN -j COUNTERSIN >/dev/null 2>&1
+    iptables -t mangle -D FORWARD -o $WAN -j COUNTERSOUT >/dev/null 2>&1
+    iptables -t mangle -F COUNTERSIN >/dev/null 2>&1
+    iptables -t mangle -F COUNTERSOUT >/dev/null 2>&1
+    iptables -t mangle -X COUNTERSIN >/dev/null 2>&1
+    iptables -t mangle -X COUNTERSOUT >/dev/null 2>&1
+    iptables -t mangle -F OUTPUT
+    tc qdisc del dev $LAN root 2> /dev/null
+    tc qdisc del dev $WAN root 2> /dev/null
+
 fi
 
 if [ "$1" = "start" ]; then
-echo "
-    $IPT -t mangle -N COUNTERSIN
-    $IPT -t mangle -N COUNTERSOUT
-    $IPT -t mangle -I FORWARD -i $WAN -j COUNTERSIN
-    $IPT -t mangle -I FORWARD -o $WAN -j COUNTERSOUT
-    $IPT -t mangle -A OUTPUT -o $LAN -j CLASSIFY --set-class 1:4
-    $IPT -t mangle -A OUTPUT -o $WAN -j CLASSIFY --set-class 2:4
+    iptables -t mangle -N COUNTERSIN
+    iptables -t mangle -N COUNTERSOUT
+    iptables -t mangle -I FORWARD -i $WAN -j COUNTERSIN
+    iptables -t mangle -I FORWARD -o $WAN -j COUNTERSOUT
+    iptables -t mangle -A OUTPUT -o $LAN -j CLASSIFY --set-class 1:4
+    iptables -t mangle -A OUTPUT -o $WAN -j CLASSIFY --set-class 2:4
+
+delimiter=$IFS
+
+while IFS='=' read arg1 arg2; do
+        if [ "$arg1" = "ISP_RX_LIMIT" ]; then
+            ISP_RX_LIMIT=$arg2
+        fi
+        if [ "$arg1" = "ISP_TX_LIMIT" ]; then
+            ISP_TX_LIMIT=$arg2
+        fi
+        if [ "$arg1" = "LAN_DEFAULT_LIMIT" ]; then
+            LAN_DEFAULT_LIMIT=$arg2
+        fi
+        if [ "$arg1" = "WAN_DEFAULT_LIMIT" ]; then
+            WAN_DEFAULT_LIMIT=$arg2
+        fi
+        if [ "$arg1" = "GW_TO_LAN_LIMIT" ]; then
+            GW_TO_LAN_LIMIT=$arg2
+        fi
+        if [ "$arg1" = "GW_TO_WAN_LIMIT" ]; then
+            GW_TO_WAN_LIMIT=$arg2
+        fi
+done < $confdir/$shaper_file
+
+IFS=$delimiter
+
+echo ISP_RX_LIMIT=$ISP_RX_LIMIT
+echo ISP_TX_LIMIT=$ISP_TX_LIMIT
+echo LAN_DEFAULT_LIMIT=$LAN_DEFAULT_LIMIT
+echo WAN_DEFAULT_LIMIT=$WAN_DEFAULT_LIMIT
+echo GW_TO_LAN_LIMIT=$GW_TO_LAN_LIMIT
+echo GW_TO_WAN_LIMIT=$GW_TO_WAN_LIMIT
 
 #LAN
 # Set global limit for LAN interface
-    $TC qdisc add dev $LAN root handle 1:0 htb default 3 r2q 1
-    $TC class add dev $LAN parent 1:0 classid 1:1 htb rate 900000kbit ceil 900000kbit quantum 1500
+    tc qdisc add dev $LAN root handle 1:0 htb default 3 r2q 1
+    tc class add dev $LAN parent 1:0 classid 1:1 htb rate 900000kbit ceil 900000kbit quantum 1500
 
 # Set limit for all traffic from Internet to LAN
-    $TC class add dev $LAN parent 1:1 classid 1:2 htb rate $ISPRXLIMIT ceil $ISPRXLIMIT quantum 1500
+    tc class add dev $LAN parent 1:1 classid 1:2 htb rate $ISP_RX_LIMIT ceil $ISP_RX_LIMIT quantum 1500
 
 #Set default limit for traffic from Internet to LAN
-    $TC class add dev $LAN parent 1:1 classid 1:3 htb rate 8kbit ceil $DEFAULTLIMIT prio 9 quantum 1500
-    $TC qdisc add dev $LAN parent 1:3 sfq perturb 10
+    tc class add dev $LAN parent 1:1 classid 1:3 htb rate 8kbit ceil $LAN_DEFAULT_LIMIT prio 9 quantum 1500
+    tc qdisc add dev $LAN parent 1:3 sfq perturb 10
 
 #Set limit from for traffic from GATEWAY to LAN
-    $TC class add dev $LAN parent 1:1 classid 1:4 htb rate 128kbit ceil $GW2LANLIMIT prio 2 quantum 1500
-    $TC qdisc add dev $LAN parent 1:4 sfq perturb 10
+    tc class add dev $LAN parent 1:1 classid 1:4 htb rate 128kbit ceil $GW_TO_LAN_LIMIT prio 2 quantum 1500
+    tc qdisc add dev $LAN parent 1:4 sfq perturb 10
 
 #WAN
 # Set limit for all traffic from WAN to Internet
-    $TC qdisc add dev $WAN root handle 2:0 htb default 11 r2q 1
-    $TC class add dev $WAN parent 2:0 classid 2:1 htb rate $ISPTXLIMIT ceil $ISPTXLIMIT quantum 1500
+    tc qdisc add dev $WAN root handle 2:0 htb default 11 r2q 1
+    tc class add dev $WAN parent 2:0 classid 2:1 htb rate $ISP_TX_LIMIT ceil $ISP_TX_LIMIT quantum 1500
 
 # Set default limit for traffic from WAN to Internet
-    $TC class add dev $WAN parent 2:1 classid 2:11 htb rate 8kbit ceil $DEFAULTLIMIT prio 9 quantum 1500
-    $TC qdisc add dev $WAN parent 2:11 sfq perturb 10
-    $TC filter add dev $WAN parent 2:0 protocol ip prio 9 u32 match ip dst 0/0 flowid 2:11
+    tc class add dev $WAN parent 2:1 classid 2:11 htb rate 8kbit ceil $WAN_DEFAULT_LIMIT prio 9 quantum 1500
+    tc qdisc add dev $WAN parent 2:11 sfq perturb 10
+    tc filter add dev $WAN parent 2:0 protocol ip prio 9 u32 match ip dst 0/0 flowid 2:11
 
 #Set limit for traffic from GATEWAY to WAN
-    $TC class add dev $WAN parent 2:1 classid 2:4 htb rate 128kbit ceil $GW2WANLIMIT prio 2 quantum 1500
-    $TC qdisc add dev $WAN parent 2:4 sfq perturb 10
-"
+    tc class add dev $WAN parent 2:1 classid 2:4 htb rate 128kbit ceil $GW_TO_WAN_LIMIT prio 2 quantum 1500
+    tc qdisc add dev $WAN parent 2:4 sfq perturb 10
+
+cp /dev/null /tmp/shaper.tmp
+
     while read arg1 arg2 arg3 arg4; do
-        if [ "$arg3" = "filter" ]; then
-                echo "iptables -t mangle -A COUNTERSOUT -s $arg2 -j CLASSIFY --set-class 2:$arg1"
-                echo "iptables -t mangle -A COUNTERSIN -d $arg2 -j CLASSIFY --set-class 1:$arg1"
+        if [ "$arg2" = "filter" ]; then
+                iptables -t mangle -A COUNTERSOUT -s $arg3 -j CLASSIFY --set-class 2:$arg1
+                iptables -t mangle -A COUNTERSIN -d $arg3 -j CLASSIFY --set-class 1:$arg1
         fi
-        if [ "$arg4" = "class_up" ]; then
-                echo "tc class add dev $WAN parent 2:1 classid 2:$arg1 htb rate $arg2 ceil $arg3 prio 2"
-                echo "tc qdisc add dev $WAN parent 2:$arg1 sfq perturb 10"
+        if [ "$arg2" = "class_up" ]; then
+                tc class add dev $WAN parent 2:1 classid 2:$arg1 htb rate $arg3 ceil $arg4 prio 2
+                tc qdisc add dev $WAN parent 2:$arg1 sfq perturb 10
         fi
-        if [ "$arg4" = "class_down" ]; then
-                echo "tc class add dev $LAN parent 1:2 classid 1:$arg1 htb rate $arg2 ceil $arg3 prio 2"
-                echo "tc qdisc add dev $LAN parent 1:$arg1 sfq perturb 10"
+        if [ "$arg2" = "class_down" ]; then
+                tc class add dev $LAN parent 1:2 classid 1:$arg1 htb rate $arg3 ceil $arg4 prio 2
+                tc qdisc add dev $LAN parent 1:$arg1 sfq perturb 10
+        fi
+        if [ "$arg2" = "customer" ]; then
+		echo customer_$arg3=$arg1 >> /tmp/shaper.tmp
         fi
     done < $confdir/$shaper_file
 fi
@@ -524,8 +576,8 @@ SHELL=/bin/bash
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 MAILTO=""
 * * * * * root /opt/gateway/scripts/fw.sh lmsd  > /dev/null 2>&1
-00 22 * * * root /opt/gateway/scripts/fw.sh qos  > /dev/null 2>&1
-00 10 * * * root /opt/gateway/scripts/fw.sh qos  > /dev/null 2>&1
+00 22 * * * root /opt/gateway/scripts/fw.sh shaper  > /dev/null 2>&1
+00 10 * * * root /opt/gateway/scripts/fw.sh shaper  > /dev/null 2>&1
 ' > /etc/cron.d/fw_sh
         echo "$current_time - Włączam cron dla fw.sh" >> $logdir/$logfile
     fi
