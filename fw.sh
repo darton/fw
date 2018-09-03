@@ -34,13 +34,13 @@ shaper_file=fw_shaper
 dhcp_conf_file=dhcpd.conf
 
 #Remote source of config files
-scpurl=root@10.10.10.10:/opt/gateway
+scpurl=root@77.55.208.92:/opt/gateway
 
 #URL to LMS (http://lms.org.pl) database server
-sshurl=root@10.10.10.10
+sshurl=root@77.55.208.92
 
 #PROXY IP ADDRESS
-proxy_ip=10.10.10.254
+proxy_ip=80.48.183.138
 
 #Warning: user lmsd_reload has SELECT privileges to lms.hosts table only with no password
 dburl="mysql -s -u lmsd_reload lms -e \"select reload from hosts where id=4\""
@@ -78,7 +78,7 @@ source $scriptsdir/fwfunctions
 
     maintenance-on ()
     {
-        mpid=`cat /run/fw-sh/maintenance.pid`
+        mpid=$(cat /run/fw-sh/maintenance.pid)
         if [ $mpid = 1 ]; then
             echo ""
     	    echo -e "Firewall maintenance is allready on \n"
@@ -103,7 +103,7 @@ source $scriptsdir/fwfunctions
 
     maintenance-off ()
     {
-        mpid=`cat /run/fw-sh/maintenance.pid`
+        mpid=$(cat /run/fw-sh/maintenance.pid)
         if [ $mpid = 0 ]; then
             echo ""
 	    echo -e "Firewall maintenance is allready off \n"
@@ -195,12 +195,10 @@ source $scriptsdir/fwfunctions
 
     lmsd ()
     {
-        lms_status=`ssh $sshurl "$dburl"| grep -v reload`
+    lms_status=$(ssh $sshurl "$dburl"| grep -v reload)
     if [ $lms_status = 1 ]; then
-        echo "$current_time - Status przeładowania lmsd został ustawiony, wykonuje reload lmsd na zdalnej maszynie." >> $logdir/$logfile
-        ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
-        echo "$current_time - Wykonałem reload lmsd na zdalnej maszynie, czekam 10s, aż lmsd stworzy nowe pliki konfiguracyjne" >> $logdir/$logfile
-        sleep 10
+        echo "$current_time - Status przeładowania lmsd został ustawiony" >> $logdir/$logfile
+	lmsd_reload
         get_config
         newreload
     fi

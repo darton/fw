@@ -34,6 +34,13 @@ function get_shaper_config {
 	echo "$current_time - get_shaper_config OK" >> $logdir/$logfile
 }
 
+function lmsd_reload {
+	echo "Wykonuję reload wszystkich instancji lmsd na zdalnej maszynie"
+        ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
+        echo "$current_time - Czekam 10s, aż lmsd stworzy nowe pliki konfiguracyjne" >> $logdir/$logfile
+        sleep 10
+}
+
 function dhcpd_cmd {
 if [ "$1" = "restart" ]; then
 dhcpd_conf_current=$(cat $confdir/dhcpd.conf |sha1sum)
@@ -236,7 +243,7 @@ fi
 
 function destroy_tmp_hashtables {
 #remove all *.tmp ipset hashtables
-    for ipsetlist in `ipset list -n|grep .tmp`
+    for ipsetlist in $(ipset list -n|grep .tmp)
     do
         ipset destroy $ipsetlist
     done
@@ -329,7 +336,7 @@ function load_tmp_lan_banned_dst_ports_hashtable {
 }
 
 function load_new_ipset_hashtables {
-    for ipsetname in `ipset list -n|grep -v .tmp`
+    for ipsetname in $(ipset list -n|grep -v .tmp)
     do
         current=$(ipset list $ipsetname |tail -n +8 |sort |sha1sum)
         new=$(ipset list $ipsetname.tmp |tail -n +8 |sort |sha1sum)
@@ -530,7 +537,7 @@ function firewall_down {
 }
 
 function destroy_all_hashtables {
-    for ipsetlist in `ipset list -n`
+    for ipsetlist in $(ipset list -n)
     do
         ipset destroy $ipsetlist
     done
@@ -619,7 +626,7 @@ function fwstatus {
         echo "IPSET"
         echo "-----"
         echo ""
-#    for ipsetname in `ipset list -n`
+#    for ipsetname in $(ipset list -n)
 #    do
 #        ipset list $ipsetname
 #        echo ""
