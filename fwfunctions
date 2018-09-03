@@ -630,12 +630,26 @@ MAILTO=""
 }
 
 function stats {
+
         iptables -t mangle -nvxL COUNTERSOUT |tail -n +3 | awk '{print $8 " "$2}' |grep -v 0.0.0.0 > /tmp/upload.tmp
         iptables -t mangle -nvxL COUNTERSIN |tail -n +3 | awk '{print $9 " "$2}' |grep -v 0.0.0.0 > /tmp/download.tmp
+
+#for IPT_TABLE_ELEMENT in $(iptables -t mangle -L FORWARD |grep COUNTERSOUT |awk '{print $1}'); do
+#    iptables -t mangle -nvxL $IPT_TABLE_ELEMENT |tail -n +3 | awk '{print $8 " "$2}' |grep -v 0.0.0.0 >> /tmp/upload.tmp
+#done
+#for IPT_TABLE_ELEMENT in $(iptables -t mangle -L FORWARD |grep COUNTERSIN |awk '{print $1}'); do
+#    iptables -t mangle -nvxL $IPT_TABLE_ELEMENT |tail -n +3 | awk '{print $9 " "$2}' |grep -v 0.0.0.0 >> /tmp/download.tmp
+#done
+
+
+for IPT_TABLE_ELEMENT in $(iptables -t mangle -L FORWARD |grep COUNTERSIN |awk '{print $1}'); do
+        iptables -t mangle -Z $IPT_TABLE_ELEMENT
+done
+for IPT_TABLE_ELEMENT in $(iptables -t mangle -L FORWARD |grep COUNTERSOUT |awk '{print $1}'); do
+        iptables -t mangle -Z $IPT_TABLE_ELEMENT
+done
         join /tmp/upload.tmp /tmp/download.tmp
         rm /tmp/upload.tmp /tmp/download.tmp
-        iptables -t mangle -Z COUNTERSIN
-        iptables -t mangle -Z COUNTERSOUT
 }
 
 function fwstatus {
