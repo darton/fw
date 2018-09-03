@@ -23,7 +23,7 @@ function get_qos_config {
 }
 
 function get_shaper_config {
-	ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -i shaper -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
+	ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -i fw_shaper -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
 	sleep 10
 	cd $confdir
 	mv $confdir/$shaper_file $oldconfdir/$shaper_file
