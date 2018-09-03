@@ -98,23 +98,48 @@ if [ "$1" = "restart" ]; then
 fi
 
 if [ "$1" = "stop" ]; then
-    iptables -t mangle -D FORWARD -i $WAN -j COUNTERSIN >/dev/null 2>&1
-    iptables -t mangle -D FORWARD -o $WAN -j COUNTERSOUT >/dev/null 2>&1
-    iptables -t mangle -F COUNTERSIN >/dev/null 2>&1
-    iptables -t mangle -F COUNTERSOUT >/dev/null 2>&1
-    iptables -t mangle -X COUNTERSIN >/dev/null 2>&1
-    iptables -t mangle -X COUNTERSOUT >/dev/null 2>&1
+
+for IPT_TABLE_ELEMENT in $(iptables -t mangle -L FORWARD |grep COUNTERSOUT |awk '{print $1}'); do
+echo	iptables -t mangle -D FORWARD -o $WAN -j $IPT_TABLE_ELEMENT >/dev/null 2>&1
+echo	iptables -t mangle -F $IPT_TABLE_ELEMENT >/dev/null 2>&1
+echo	iptables -t mangle -X $IPT_TABLE_ELEMENT >/dev/null 2>&1
+done
+
+for IPT_TABLE_ELEMENT in $(iptables -t mangle -L FORWARD |grep COUNTERSIN |awk '{print $1}'); do
+echo	iptables -t mangle -D FORWARD -i $WAN -j $IPT_TABLE_ELEMENT >/dev/null 2>&1
+echo	iptables -t mangle -F $IPT_TABLE_ELEMENT >/dev/null 2>&1
+echo	iptables -t mangle -X $IPT_TABLE_ELEMENT >/dev/null 2>&1
+done
+
+
+#    iptables -t mangle -D FORWARD -i $WAN -j COUNTERSIN >/dev/null 2>&1
+#    iptables -t mangle -D FORWARD -o $WAN -j COUNTERSOUT >/dev/null 2>&1
+#    iptables -t mangle -F COUNTERSIN >/dev/null 2>&1
+#    iptables -t mangle -F COUNTERSOUT >/dev/null 2>&1
+#    iptables -t mangle -X COUNTERSIN >/dev/null 2>&1
+#    iptables -t mangle -X COUNTERSOUT >/dev/null 2>&1
+
     iptables -t mangle -F OUTPUT
+
     tc qdisc del dev $LAN root 2> /dev/null
     tc qdisc del dev $WAN root 2> /dev/null
 
 fi
 
 if [ "$1" = "start" ]; then
+
+#for OCTETS in 81 {96..103} 254; do
+#echo iptables -t mangle -N COUNTERSIN$OCTETS
+#echo iptables -t mangle -N COUNTERSOUT$OCTETS
+#echo iptables -t mangle -I FORWARD -i $WAN -j COUNTERSIN$OCTETS
+#echo iptables -t mangle -I FORWARD -o $WAN -j COUNTERSOUT$OCTETS
+#done
+#
     iptables -t mangle -N COUNTERSIN
     iptables -t mangle -N COUNTERSOUT
     iptables -t mangle -I FORWARD -i $WAN -j COUNTERSIN
     iptables -t mangle -I FORWARD -o $WAN -j COUNTERSOUT
+    
     iptables -t mangle -A OUTPUT -o $LAN -j CLASSIFY --set-class 1:4
     iptables -t mangle -A OUTPUT -o $WAN -j CLASSIFY --set-class 2:4
 
@@ -184,6 +209,11 @@ cp /dev/null /tmp/shaper.tmp
 
     while read arg1 arg2 arg3 arg4; do
         if [ "$arg2" = "filter" ]; then
+#        echo $arg3 | { IFS='.' read -r octet1 octet2 octet3 octet4;
+#        echo "iptables -t mangle -A COUNTERSOUT$octet3 -s $arg3 -j CLASSIFY --set-class 2:$arg1";
+#        echo "iptables -t mangle -A COUNTERSIN$octet3 -d $arg3 -j CLASSIFY --set-class 1:$arg1"; }
+#        fi
+
                 iptables -t mangle -A COUNTERSOUT -s $arg3 -j CLASSIFY --set-class 2:$arg1
                 iptables -t mangle -A COUNTERSIN -d $arg3 -j CLASSIFY --set-class 1:$arg1
         fi

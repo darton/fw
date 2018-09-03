@@ -193,6 +193,16 @@ source $scriptsdir/fwfunctions
 	shaper_cmd restart
     }
 
+    shaper_stop ()
+    {
+	shaper_cmd stop
+    }
+
+    shaper_start ()
+    {
+	shaper_cmd start
+    }
+
     lmsd ()
     {
     lms_status=$(ssh $sshurl "$dburl"| grep -v reload)
