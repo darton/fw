@@ -88,14 +88,15 @@ Wykonanie fw.sh stop zatrzyma zaporę, wyłączy forwardowanie pakietów, włąc
 # fw.sh restart </br>
 wykona fw.sh start a potem ./fw stop czyli usunie wszystkie reguły iptables oraz ipset i utworzy je na nowo, powoduje to zerwanie wszystkich połączeń i przerę w transmisji na kilka sekund.
 
-
 # fw.sh reload </br> 
 wykona zmiany tylko tych reguł iptables, które się zmieniły: czyli np. usunie lub doda konkretną regułę iptables, lub podmieni tablice ipset. Aby uniknąć przerw w transmisji pakietów odczuwalnych dla wszystkich użytkowników należy korzystać właśnie z opcji reload przy wprowadzaniu zmian.
 
 # fw.sh lmsd
-Ta opcja przydaje się przy wspólpracy z LMS, skrypt może wtedy pracować w sposób automatyczny. Status przeładowania skryptu ustawia operator LMS (http://lms.org.pl). Skrypt sprawdzi czy w LMS został ustawiony przez operatora status przeładowania danego hosta i wykona przeładowanie lub restart w zależności, które pliki i co w nich zostało zmienione. Jeśli pliki nie zostały zmienione a w LMS został ustawiony status przeładowania, skrypt to wykryje, zmieni status przeładowania w LMS na wykonane,  ale nie wykona restartu/przeładowania, zapisze tylko informacje w logach.
+Ten moduł służy do wspólpracy z LMS (http://lms.org.pl). Nasz router/firewall może wtedy pracować w sposób automatyczny.
+Sterowanie fw.sh odbywa się wtedy z poziomu LMS. fw.sh  sprawdzi czy w LMS został ustawiony przez operatora status przeładowania danego hosta i wykona przeładowanie lub restart w zależności, które pliki konfiguracyjne i co w nich zostało zmienione. Jeśli pliki nie zostały zmienione, a w LMS został ustawiony status przeładowania, skrypt to wykryje, zmieni status przeładowania w LMS na wykonane,  ale nie wykona restartu/przeładowania, zapisze tylko informacje w logach.
 
-./fw.sh lmsd jest uruchamiany co minutę w cron.
+Po instalacji ./fw.sh lmsd jest uruchamiany co minutę przez cron.
+uruchamianie fw.sh z modułem lmsd wymaga odpowiedniej konfiguracji LMS, tak by LMS generował pliki konfiguracyjne dla fw.sh w odpowiednim dla niego formacie raz aby możliwe było sterowanie praca fw.sh z poziomu LMS.
 
 # fw.sh shaper_stop|shaper_start|shaper_restart
 ta opcja przydaje się jeśli mamy skonfigurowany LMS w ten sposób, że komputerom przypisane zostały taryfy. 
