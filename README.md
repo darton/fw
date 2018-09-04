@@ -115,7 +115,7 @@ Terminy przeładowania skryptu ./fw.sh z opcją qos:
  W tym trybie wyłącza zaporę, wyłącza interfejsy LAN i WAN, podnosi zaś  interfejs zdefiniowany jako MGMT (management).
 
 # fw.sh maintenance-off
-Przejście do normalnego trybu pracy wymaga wykonania komendy.
+Wykonanie tej komendy powoduje przejście do normalnego trybu pracy.
  
 # Statystyki ruchu w LMS
 
