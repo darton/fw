@@ -156,6 +156,20 @@ dla kilku hostów przypisanych do pary klas
 101 filter 192.168.10.25</br>
 101 filter 192.168.10.26</br>
 
+Klient może mieć kilka taryf (kilka umów na usługi) i przypisane do nich różne komputery. Wtedy dla każdej taryfy trzeba wygenerować odpowiedni zestaw rekordów. Np jeśli klient o id 1 miałby jeszcze dwie dodatkowe umowy/taryfy z przypisanymi do nich po po jednym modemie/komputerze, należy dodać następujące rekordy
+
+102 customer 1</br>
+102 class_up 8kbit 1024kbit</br>
+102 class_down 8kbit 5120kbit</br>
+102 filter 192.168.101.30</br>
+103 customer 1</br>
+103 class_up 8kbit 1024kbit</br>
+103 class_down 8kbit 5120kbit</br>
+103 filter 192.168.101.34</br>
+
+Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instacji LMSD o nazwie TC-NEW
+
+
 100 i 101 to unikalne liczby dla taryfy danego klienta
 
 customer 1 oraz customer 2 to unikalne id klientów</br>
