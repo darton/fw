@@ -138,9 +138,9 @@ GW_TO_LAN_LIMI to limit ruchu wychodzącego do sieci LAN, którego źródłem je
 
 GW_TO_WAN_LIMI to limit ruchu wychodzącego do sieci WAN, którego źródłem jest Gateway na którym pracuje skrypt fw.sh</br>
 
-LAN_DEFAULT_LIMIT to limit dla ruchu wychodzącego do sieci LAN nie sklasyfikowanego, czyli komputerów urządzeń nie ujętych przez Shaper</br>
+LAN_DEFAULT_LIMIT to limit dla ruchu wychodzącego do sieci LAN nie sklasyfikowanego, czyli komputerów urządzeń nie ujętych w pliku konfiguracyjnym dla modułu Shaper</br>
 
-WAN_DEFAULT_LIMIT to limit dla ruchu wychodzącego do sieci WAN nie sklasyfikowanego, czyli komputerów urządzeń nie ujętych przez Shaper</br>
+WAN_DEFAULT_LIMIT to limit dla ruchu wychodzącego do sieci WAN nie sklasyfikowanego, czyli komputerów urządzeń nie ujętych w pliku konfiguracyjnym dla modułu Shaper</br>
 
 
 Następnie dla każdego hosta powinny być określone parametry klas UP/DOWN HTB, przy czym kilka hostów może być przypisanych do jednej pary klasy HTB.
@@ -173,7 +173,6 @@ Klient może mieć kilka taryf (kilka umów na usługi) i przypisane do nich ró
 103 filter 192.168.101.34</br>
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instacji LMSD o nazwie TC-NEW
-
 
 100 i 101 to unikalne liczby dla taryfy danego klienta
 
