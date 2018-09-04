@@ -128,7 +128,7 @@ fi
 
 if [ "$1" = "start" ]; then
 
-for OCTETS in 81 {96..103} 254; do
+for OCTETS in $(grep filter $confdir/$shaper_file |awk '{print $3}'| awk -F\. '{print $3}'|sort -u); do
 iptables -t mangle -N COUNTERSIN$OCTETS
 iptables -t mangle -N COUNTERSOUT$OCTETS
 iptables -t mangle -I FORWARD -i $WAN -j COUNTERSIN$OCTETS

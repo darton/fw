@@ -34,13 +34,13 @@ shaper_file=fw_shaper
 dhcp_conf_file=dhcpd.conf
 
 #Remote source of config files
-scpurl=root@127.0.0.1:/opt/gateway
+scpurl=root@77.55.208.92:/opt/gateway
 
 #URL to LMS (http://lms.org.pl) database server
-sshurl=root@127.0.0.1
+sshurl=root@77.55.208.92
 
 #PROXY IP ADDRESS
-proxy_ip=127.0.0.1
+proxy_ip=80.48.183.138
 
 #Warning: user lmsd_reload has SELECT privileges to lms.hosts table only with no password
 dburl="mysql -s -u lmsd_reload lms -e \"select reload from hosts where id=4\""
@@ -187,6 +187,12 @@ source $scriptsdir/fwfunctions
 	htb_cmd restart
     }
 
+    shaper_restart ()
+    {
+	get_shaper_config
+	shaper_cmd restart
+    }
+
     shaper_stop ()
     {
 	shaper_cmd stop
@@ -195,12 +201,6 @@ source $scriptsdir/fwfunctions
     shaper_start ()
     {
 	shaper_cmd start
-    }
-
-    shaper_restart ()
-    {
-	get_shaper_config
-	shaper_cmd restart
     }
 
     lmsd ()
@@ -238,6 +238,9 @@ case "$1" in
     ;;
     'lmsd')
         lmsd
+    ;;
+    'shaper_restart')
+        shaper_restart
     ;;
     'shaper_stop')
         shaper_stop
