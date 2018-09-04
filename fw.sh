@@ -34,10 +34,10 @@ shaper_file=fw_shaper
 dhcp_conf_file=dhcpd.conf
 
 #Remote source of config files
-scpurl=root@10.10.10.10:/opt/gateway
+scpurl=root@127.0.0.1:/opt/gateway
 
 #URL to LMS (http://lms.org.pl) database server
-sshurl=root@10.10.10.10
+sshurl=root@127.0.0.1
 
 #PROXY IP ADDRESS
 proxy_ip=10.10.10.254
@@ -81,12 +81,12 @@ source $scriptsdir/fwfunctions
         mpid=$(cat /run/fw-sh/maintenance.pid)
         if [ $mpid = 1 ]; then
             echo ""
-    	    echo -e "Firewall maintenance is allready on \n"
+            echo -e "Firewall maintenance is allready on \n"
             echo "To exit from maintenance mode run: /etc/init.d/fw.sh maintenance-off"
             exit
         else
         fw_cron stop
-	shaper_cmd stop
+        shaper_cmd stop
         static_routing_down
         firewall_down
         destroy_all_hashtables
@@ -97,8 +97,8 @@ source $scriptsdir/fwfunctions
         echo 1 > /run/fw-sh/maintenance.pid
         fi
         echo ""
-	echo -e "Firewall maintenance is on \n"
-	echo "$current_time - Firewall maintenance is on" >> $logdir/$logfile
+        echo -e "Firewall maintenance is on \n"
+        echo "$current_time - Firewall maintenance is on" >> $logdir/$logfile
     }
 
     maintenance-off ()
@@ -106,7 +106,7 @@ source $scriptsdir/fwfunctions
         mpid=$(cat /run/fw-sh/maintenance.pid)
         if [ $mpid = 0 ]; then
             echo ""
-	    echo -e "Firewall maintenance is allready off \n"
+            echo -e "Firewall maintenance is allready off \n"
             exit
         else
         ifup $LAN
@@ -123,27 +123,27 @@ source $scriptsdir/fwfunctions
         fi
         echo ""
         echo -e "Firewall maintenance is off \n"
-	echo "$current_time - Firewall maintenance is off" >> $logdir/$logfile
+        echo "$current_time - Firewall maintenance is off" >> $logdir/$logfile
     }
 
     stop ()
     {
-	echo "Firewall Stop"
-	echo "$current_time - Firewall Stop" >> $logdir/$logfile
-	fw_cron stop
-	shaper_cmd stop
-	static_routing_down
-	firewall_down
-	destroy_all_hashtables
-	echo "$current_time - Firewall Stop OK" >> $logdir/$logfile
+        echo "Firewall Stop"
+        echo "$current_time - Firewall Stop" >> $logdir/$logfile
+        fw_cron stop
+        shaper_cmd stop
+        static_routing_down
+        firewall_down
+        destroy_all_hashtables
+        echo "$current_time - Firewall Stop OK" >> $logdir/$logfile
     }
 
     start ()
     {
-	#tuned-adm profile network-latency
-	echo "Firewall Start"
-	stop
-	echo "$current_time - Firewall Start" >> $logdir/$logfile
+        #tuned-adm profile network-latency
+        echo "Firewall Start"
+        stop
+        echo "$current_time - Firewall Start" >> $logdir/$logfile
         static_routing_up
         create_fw_hashtables
         load_fw_hashtables
@@ -151,56 +151,56 @@ source $scriptsdir/fwfunctions
         shaper_cmd start
         dhcpd_cmd start
         fw_cron start
-	echo "$current_time - Firewall Start OK" >> $logdir/$logfile
+        echo "$current_time - Firewall Start OK" >> $logdir/$logfile
     }
 
     newreload ()
     {
-	echo "Firewall newreload"
-	echo "$current_time - Firewall newreload" >> $logdir/$logfile
-	load_fw_hashtables
-	modify_nat11_fw_rules
-	modify_nat1n_fw_rules
-	shaper_cmd restart
-	dhcpd_cmd restart
-	echo "$current_time - Firewall newreload OK" >> $logdir/$logfile
+        echo "Firewall newreload"
+        echo "$current_time - Firewall newreload" >> $logdir/$logfile
+        load_fw_hashtables
+        modify_nat11_fw_rules
+        modify_nat1n_fw_rules
+        shaper_cmd restart
+        dhcpd_cmd restart
+        echo "$current_time - Firewall newreload OK" >> $logdir/$logfile
     }
 
     restart ()
     {
-	echo "Firewall restart"
-	echo "$current_time - Firewall restart" >> $logdir/$logfile
-	shaper_cmd stop
-	firewall_down
-	destroy_all_hashtables
-	create_fw_hashtables
-	load_fw_hashtables
-	firewall_up
-	shaper_cmd start
-	dhcpd_cmd restart
-	echo "$current_time - Firewall restart OK" >> $logdir/$logfile
+        echo "Firewall restart"
+        echo "$current_time - Firewall restart" >> $logdir/$logfile
+        shaper_cmd stop
+        firewall_down
+        destroy_all_hashtables
+        create_fw_hashtables
+        load_fw_hashtables
+        firewall_up
+        shaper_cmd start
+        dhcpd_cmd restart
+        echo "$current_time - Firewall restart OK" >> $logdir/$logfile
     }
 
     qos ()
     {
-	get_qos_config
-	htb_cmd restart
+        get_qos_config
+        htb_cmd restart
     }
 
-    shaper ()
+    shaper_restart ()
     {
-	get_shaper_config
-	shaper_cmd restart
+        get_shaper_config
+        shaper_cmd restart
     }
 
     shaper_stop ()
     {
-	shaper_cmd stop
+        shaper_cmd stop
     }
 
     shaper_start ()
     {
-	shaper_cmd start
+        shaper_cmd start
     }
 
     lmsd ()
@@ -208,7 +208,7 @@ source $scriptsdir/fwfunctions
     lms_status=$(ssh $sshurl "$dburl"| grep -v reload)
     if [ $lms_status = 1 ]; then
         echo "$current_time - Status przeładowania lmsd został ustawiony" >> $logdir/$logfile
-	lmsd_reload
+        lmsd_reload
         get_config
         newreload
     fi
@@ -240,7 +240,7 @@ case "$1" in
         lmsd
     ;;
     'shaper')
-        shaper
+        shaper_restart
     ;;
     'maintenance-on')
         maintenance-on
