@@ -174,13 +174,13 @@ Wykonanie tej komendy powoduje przejście do normalnego trybu pracy.
 
 Ten moduł dostarcza szczegółowe statystyki dla kazdego hosta, poprzez odczyt liczników danych z iptables.
 
-Jeśli chcemy zaimportować te statystki ruchu naszych klientów do LMS, należy na maszynie z LMS uruchamiać cyklicznie np. co 5 minut skrypt zapisujący statystyki do bazy danych LMS
+Jeśli chcemy zaimportować statystki ruchu naszych klientów do LMS, należy na maszynie z LMS uruchamiać cyklicznie np. co 5 minut skrypt zapisujący statystyki do bazy danych LMS
 
 Skrypt powinien zawierac dwa polecenia:
 
-ssh -p 222 root@192.168.100.1 '/opt/gateway/scripts/fw.sh stats' > /var/log/traffic.log</br></br>
+ssh -p 222 root@192.168.100.1 '/opt/gateway/scripts/fw.sh stats' > /var/log/traffic.log</br>
 bash /var/www/html/lms/bin/lms-traffic</br>
 
 gdzie 192.168.100.1 to adres IP naszego rutera na którym pracuje skryp fw.sh.
 
-Polecenie pierwsze uruchomi zdalnie skrypt fw.sh z opcją stats, który odczyta liczniki przesłanych danych dla wszystkich hostów i zapisze je do pliku. Zaś uruchomienie dugiego polecenia uruchomi skrypt, który odczyta plik /var/log/traffic.log i zaimportuje wartości do tabeli stats w bazie danych LMS.
+Polecenie pierwsze uruchomi zdalnie skrypt fw.sh z modułem stats, który odczyta liczniki przesłanych danych dla wszystkich hostów i zapisze je do pliku. Zaś drugie polecenie uruchomi skrypt, który odczyta plik /var/log/traffic.log i zaimportuje wartości do tabeli stats w bazie danych LMS.
