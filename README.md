@@ -109,9 +109,9 @@ Zatrzymuje Shaper
 Uruchamia Shaper
 
 # fw.sh shaper_restart
-Pobiera pliki konfiguracyjny Shapera ze zdalnego serwera (LMS) a nastepnie zatrzymuje i ponownie uruchamia Shaper
+Pobiera plik konfiguracyjny Shapera ze zdalnego serwera (LMS) a nastepnie zatrzymuje i ponownie uruchamia Shaper z nową konfiguracją.
 
-Aby dostosować ustawienia zadań wykonywanych przez fw.sh shaper w cron do własnych potrzeb, należy wyedytowac funcję fw_cron w pliku fwfunction, a jeśli już skrypt pracuje (został uruchomiony produkcyjnie) to także plik /etc/cron.d/fw_sh
+Aby dostosować ustawienia zadań wykonywanych przez moduł shaper w cron do własnych potrzeb, należy wyedytowac funcję fw_cron w pliku fwfunction, a jeśli już skrypt pracuje (został uruchomiony produkcyjnie) to także plik /etc/cron.d/fw_sh
 Domyślne wartości ustawione dla dunckji fw_cron:
 
 Terminy przeładowania skryptu ./fw.sh z opcją shaper_restart dla taryfy nocnej od 22:00 do 10:00:
