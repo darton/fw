@@ -173,7 +173,7 @@ Klient może mieć kilka taryf (kilka umów na usługi) i przypisane do nich ró
 103 class_down 8kbit 5120kbit</br>
 103 filter 192.168.101.34</br>
 
-Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instacji LMSD o nazwie TC-NEW
+Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie TC-NEW
 
 100 i 101 to unikalne liczby dla taryfy danego klienta
 
@@ -181,7 +181,7 @@ customer 1 oraz customer 2 to unikalne id klientów</br>
 class_up oraz class_down mają jako parametry rate oraz ceil, gdzie RATE to jest minimalna gwarantowana przepustowość, a CEIL to maksymalna niegwarantowana przepustowość</br>
 filter jako parametr ma zaś adres ip hosta</br>
 
-Uwaga w pliku konfiguracyjnym dla shapera nie może być pustych linii.
+Uwaga w pliku konfiguracyjnym dla modułu shaper nie może być pustych linii.
 
 # fw.sh maintenance-on
  W tym trybie wyłącza zaporę, wyłącza interfejsy LAN i WAN, podnosi zaś  interfejs zdefiniowany jako MGMT (management).
