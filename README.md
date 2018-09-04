@@ -119,6 +119,51 @@ Terminy przeładowania skryptu ./fw.sh z opcją shaper_restart dla taryfy nocnej
 "00 22 * * * /opt/gateway/scripts/fw.sh shaper_restart"</br>
 "00 10 * * * /opt/gateway/scripts/fw.sh shaper_restart"</br>
 
+Format pliku konfiguracyjnego dla modułu shaper
+
+PLik powinien się zaczynać od parametrów 
+
+ISP_RX_LIMIT=470000kbit
+ISP_TX_LIMIT=470000kbit
+GW_TO_LAN_LIMIT=1000000kbit
+GW_TO_WAN_LIMIT=100000kbit
+LAN_DEFAULT_LIMIT=128kbit
+WAN_DEFAULT_LIMIT=128kbit
+
+gdzie:
+
+ISP_RX_LIMIT oraz ISP_TX_LIMIT to wynikające z kontraktu z operatorem nadrzędnym parametry łącza dostępowego do sieci INternet pomniejszone o ok 5-10% aby uniknąc zapełniania kolejki modemu operatora.
+GW_TO_LAN_LIMI to limit ruchu wychodzącego do sieci LAN, którego źródłem jest Gateway na którym pracuje skrypt fw.sh
+GW_TO_WAN_LIMI to limit ruchu wychodzącego do sieci WAN, którego źródłem jest Gateway na którym pracuje skrypt fw.sh
+LAN_DEFAULT_LIMIT to limit dla ruchu wychodzącego do sieci LAN nie sklasyfikowanego, czyli komputerów urządzeń nie ujętych przez Shaper
+WAN_DEFAULT_LIMIT to limit dla ruchu wychodzącego do sieci WAN nie sklasyfikowanego, czyli komputerów urządzeń nie ujętych przez Shaper
+
+Następnie dla każdego hosta powinny być określone parametry klass UP/DOWN HTB przy czym kilka hostów może być przypisanych do jednej pary klasy HTB
+
+Przykładowa konfiguracja dla jednego hosta przypisane do jednej pary klas UP/DOWN
+
+100 customer 1
+100 class_up 8kbit 1024kbit
+100 class_down 8kbit 5120kbit
+100 filter 192.168.101.24
+
+dla kilku hostów przypisanych do pary klas
+
+101 customer 2
+101 class_up 8kbit 1024kbit
+101 class_down 8kbit 5120kbit
+101 filter 192.168.10.24
+101 filter 192.168.10.25
+101 filter 192.168.10.26
+
+100 i 101 to unikalne liczby dla taryfy danego klienta
+
+customer 1 oraz customer 2 to unikalne id klientów
+class_up oraz class_down mają jako parametry rate oraz ceil, gdzie RATE to jest minimalna gwarantowana przepustowość, a CEIL to maksymalna niegwarantowana przepustowość
+filter jako parametr ma zaś adres ip hosta
+
+Uwaga w pliku konfiguracyjnym dla shapera nie może być pustych linii.
+
 # fw.sh maintenance-on
  W tym trybie wyłącza zaporę, wyłącza interfejsy LAN i WAN, podnosi zaś  interfejs zdefiniowany jako MGMT (management).
 
