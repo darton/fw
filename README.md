@@ -119,9 +119,9 @@ Terminy przeładowania skryptu ./fw.sh z opcją shaper_restart dla taryfy nocnej
 "00 22 * * * /opt/gateway/scripts/fw.sh shaper_restart"</br>
 "00 10 * * * /opt/gateway/scripts/fw.sh shaper_restart"</br>
 
-Format pliku konfiguracyjnego dla modułu shaper
+Format pliku konfiguracyjnego dla modułu Shapera, którego nazwę określa się w zmiennej shaper_file= skyrptu fw.sh:
 
-Plik musi zaczynać się od deklaracji parametrów 
+Plik musi zaczynać się od deklaracji parametrów:
 
 ISP_RX_LIMIT=470000kbit</br>
 ISP_TX_LIMIT=470000kbit</br>
