@@ -13,29 +13,29 @@ function get_config {
 }
 
 function get_qos_config {
-        ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -i qos -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
-        sleep 10
-        cd $confdir
-        mv $confdir/rc.htb $oldconfdir/rc.htb
-        echo "Łącze się z serwerem i pobieram plik qos"
-        /usr/bin/scp $scpurl/rc.htb $confdir/
-        echo "$current_time - get_qos_config OK" >> $logdir/$logfile
+	ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -i qos -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
+	sleep 10
+	cd $confdir
+	mv $confdir/rc.htb $oldconfdir/rc.htb
+	echo "Łącze się z serwerem i pobieram plik qos"
+	/usr/bin/scp $scpurl/rc.htb $confdir/
+	echo "$current_time - get_qos_config OK" >> $logdir/$logfile
 }
 
 function get_shaper_config {
-        echo "LMS generuje konfigurację dla Shapera"
-        ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -i fw_shaper -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
-        echo "Czekam 10 sekund"
-        sleep 10
-        cd $confdir
-        mv $confdir/$shaper_file $oldconfdir/$shaper_file
-        echo "Łącze się z serwerem i pobieram plik konfiguracyjny dla Shaper'a"
-        scp $scpurl/$shaper_file $confdir/
-        echo "$current_time - get_shaper_config OK" >> $logdir/$logfile
+	echo "LMS generuje konfigurację dla Shapera"
+	ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -i fw_shaper -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
+	echo "Czekam 10 sekund"
+	sleep 10
+	cd $confdir
+	mv $confdir/$shaper_file $oldconfdir/$shaper_file
+	echo "Łącze się z serwerem i pobieram plik konfiguracyjny dla Shaper'a"
+	scp $scpurl/$shaper_file $confdir/
+	echo "$current_time - get_shaper_config OK" >> $logdir/$logfile
 }
 
 function lmsd_reload {
-        echo "Wykonuję reload wszystkich instancji lmsd na zdalnej maszynie"
+	echo "Wykonuję reload wszystkich instancji lmsd na zdalnej maszynie"
         ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
         echo "$current_time - Czekam 10s, aż lmsd stworzy nowe pliki konfiguracyjne" >> $logdir/$logfile
         sleep 10
@@ -100,15 +100,15 @@ fi
 if [ "$1" = "stop" ]; then
 
 for IPT_TABLE_ELEMENT in $(iptables -t mangle -L FORWARD |grep COUNTERSOUT |awk '{print $1}'); do
-        iptables -t mangle -D FORWARD -o $WAN -j $IPT_TABLE_ELEMENT >/dev/null 2>&1
-        iptables -t mangle -F $IPT_TABLE_ELEMENT >/dev/null 2>&1
-        iptables -t mangle -X $IPT_TABLE_ELEMENT >/dev/null 2>&1
+	iptables -t mangle -D FORWARD -o $WAN -j $IPT_TABLE_ELEMENT >/dev/null 2>&1
+	iptables -t mangle -F $IPT_TABLE_ELEMENT >/dev/null 2>&1
+	iptables -t mangle -X $IPT_TABLE_ELEMENT >/dev/null 2>&1
 done
 
 for IPT_TABLE_ELEMENT in $(iptables -t mangle -L FORWARD |grep COUNTERSIN |awk '{print $1}'); do
-        iptables -t mangle -D FORWARD -i $WAN -j $IPT_TABLE_ELEMENT >/dev/null 2>&1
-        iptables -t mangle -F $IPT_TABLE_ELEMENT >/dev/null 2>&1
-        iptables -t mangle -X $IPT_TABLE_ELEMENT >/dev/null 2>&1
+	iptables -t mangle -D FORWARD -i $WAN -j $IPT_TABLE_ELEMENT >/dev/null 2>&1
+	iptables -t mangle -F $IPT_TABLE_ELEMENT >/dev/null 2>&1
+	iptables -t mangle -X $IPT_TABLE_ELEMENT >/dev/null 2>&1
 done
 
 
@@ -128,18 +128,18 @@ fi
 
 if [ "$1" = "start" ]; then
 
-#for OCTETS in 81 {96..103} 254; do
-#iptables -t mangle -N COUNTERSIN$OCTETS
-#iptables -t mangle -N COUNTERSOUT$OCTETS
-#iptables -t mangle -I FORWARD -i $WAN -j COUNTERSIN$OCTETS
-#iptables -t mangle -I FORWARD -o $WAN -j COUNTERSOUT$OCTETS
-#done
-#
-    iptables -t mangle -N COUNTERSIN
-    iptables -t mangle -N COUNTERSOUT
-    iptables -t mangle -I FORWARD -i $WAN -j COUNTERSIN
-    iptables -t mangle -I FORWARD -o $WAN -j COUNTERSOUT
+for OCTETS in 81 {96..103} 254; do
+iptables -t mangle -N COUNTERSIN$OCTETS
+iptables -t mangle -N COUNTERSOUT$OCTETS
+iptables -t mangle -I FORWARD -i $WAN -j COUNTERSIN$OCTETS
+iptables -t mangle -I FORWARD -o $WAN -j COUNTERSOUT$OCTETS
+done
 
+#    iptables -t mangle -N COUNTERSIN
+#    iptables -t mangle -N COUNTERSOUT
+#    iptables -t mangle -I FORWARD -i $WAN -j COUNTERSIN
+#    iptables -t mangle -I FORWARD -o $WAN -j COUNTERSOUT
+    
     iptables -t mangle -A OUTPUT -o $LAN -j CLASSIFY --set-class 1:4
     iptables -t mangle -A OUTPUT -o $WAN -j CLASSIFY --set-class 2:4
 
@@ -209,11 +209,11 @@ cp /dev/null /tmp/shaper.tmp
 
     while read arg1 arg2 arg3 arg4; do
         if [ "$arg2" = "filter" ]; then
-#               echo $arg3 | { IFS='.' read -r octet1 octet2 octet3 octet4;
-#               iptables -t mangle -A COUNTERSOUT$octet3 -s $arg3 -j CLASSIFY --set-class 2:$arg1;
-#               iptables -t mangle -A COUNTERSIN$octet3 -d $arg3 -j CLASSIFY --set-class 1:$arg1; }
-                iptables -t mangle -A COUNTERSOUT -s $arg3 -j CLASSIFY --set-class 2:$arg1
-                iptables -t mangle -A COUNTERSIN -d $arg3 -j CLASSIFY --set-class 1:$arg1
+        	echo $arg3 | { IFS='.' read -r octet1 octet2 octet3 octet4;
+        	iptables -t mangle -A COUNTERSOUT$octet3 -s $arg3 -j CLASSIFY --set-class 2:$arg1;
+        	iptables -t mangle -A COUNTERSIN$octet3 -d $arg3 -j CLASSIFY --set-class 1:$arg1; }
+#                iptables -t mangle -A COUNTERSOUT -s $arg3 -j CLASSIFY --set-class 2:$arg1
+#                iptables -t mangle -A COUNTERSIN -d $arg3 -j CLASSIFY --set-class 1:$arg1
         fi
         if [ "$arg2" = "class_up" ]; then
                 tc class add dev $WAN parent 2:1 classid 2:$arg1 htb rate $arg3 ceil $arg4 prio 2
@@ -224,7 +224,7 @@ cp /dev/null /tmp/shaper.tmp
                 tc qdisc add dev $LAN parent 1:$arg1 sfq perturb 10
         fi
         if [ "$arg2" = "customer" ]; then
-                echo customer_$arg3=$arg1 >> /tmp/shaper.tmp
+		echo customer_$arg3=$arg1 >> /tmp/shaper.tmp
         fi
     done < $confdir/$shaper_file
 fi
@@ -327,7 +327,7 @@ while read nat_name ip; do
         elif [ "$status" = "warnedhost" ]; then
             ipset add fw_warned_hosts.tmp $i
         else
-             echo "Plik $nat_name ma nieprawidłowy format, prawidłowy to: grantedhost|deniedhost|warnedhost ip_addres"
+    	     echo "Plik $nat_name ma nieprawidłowy format, prawidłowy to: grantedhost|deniedhost|warnedhost ip_addres"
         fi
     done < $confdir/$nat_name
 done <$confdir/$nat_1n_ip_file
@@ -403,38 +403,38 @@ lista_zmian=$(diff  --unchanged-line-format="" --old-line-format="removed %L" --
 while read arg1 arg2 arg3 arg4
 do
     if ([ "$arg1" = "added" ] && [ "$arg2" = "deniedhost" ]) || ([ "$arg1" = "removed" ] && [ "$arg2" = "grantedhost" ])
-        then
-            current_iptables_nat11_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep NAT)
-            while read ipt_num ipt_target ipt_prot ipt_opt ipt_source ipt_destination ipt_destination2
-                do
-                    if [ "$arg3" = "$ipt_source" ]
-                        then
-                            iptables -t nat -D POSTROUTING $ipt_num
-                    fi
-                done < <(echo -e "$current_iptables_nat11_postrouting_rules")
+	then
+	    current_iptables_nat11_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep NAT)
+	    while read ipt_num ipt_target ipt_prot ipt_opt ipt_source ipt_destination ipt_destination2
+		do
+		    if [ "$arg3" = "$ipt_source" ]
+			then
+			    iptables -t nat -D POSTROUTING $ipt_num
+		    fi
+		done < <(echo -e "$current_iptables_nat11_postrouting_rules")
 
-            current_iptables_nat11_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep NAT)
-            while read ipt_num ipt_target ipt_prot ipt_opt ipt_source ipt_destination ipt_destination2
-                do
-                    if [ "$arg4" = "$ipt_destination" ]
-                        then
-                            iptables -t nat -D PREROUTING $ipt_num
-                    fi
-                done < <(echo -e "$current_iptables_nat11_prerouting_rules")
+	    current_iptables_nat11_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep NAT)
+	    while read ipt_num ipt_target ipt_prot ipt_opt ipt_source ipt_destination ipt_destination2
+		do
+		    if [ "$arg4" = "$ipt_destination" ]
+			then
+			    iptables -t nat -D PREROUTING $ipt_num
+		    fi
+		done < <(echo -e "$current_iptables_nat11_prerouting_rules")
     fi
 
     if ([ "$arg1" = "added" ] && [ "$arg2" = "grantedhost" ])
-        then
-            current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep SNAT|grep $arg4$)
-                    if [ "$current_iptables_postrouting_rules" = "" ]
-                        then
-                            iptables -t nat -A POSTROUTING -o $WAN -s $arg3 -j SNAT --to-source $arg4
-                    fi
-            current_iptables_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep DNAT|grep $arg3$)
-                    if [ "$current_iptables_prerouting_rules" = "" ]
-                        then
-                            iptables -t nat -A PREROUTING -i $WAN -d $arg4 -j DNAT --to-destination $arg3
-                    fi
+	then
+	    current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep SNAT|grep $arg4$)
+		    if [ "$current_iptables_postrouting_rules" = "" ]
+			then
+			    iptables -t nat -A POSTROUTING -o $WAN -s $arg3 -j SNAT --to-source $arg4
+		    fi
+	    current_iptables_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep DNAT|grep $arg3$)
+		    if [ "$current_iptables_prerouting_rules" = "" ]
+			then
+			    iptables -t nat -A PREROUTING -i $WAN -d $arg4 -j DNAT --to-destination $arg3
+		    fi
     fi
 done < <(echo -e "$lista_zmian")
     echo "$current_time - modify_nat11_fw_rules OK" >> $logdir/$logfile
@@ -447,27 +447,27 @@ lista_zmian=$(diff  --unchanged-line-format="" --old-line-format="removed %L" --
 while read arg1 arg2 arg3
 do
     if ([ "$arg1" = "removed" ])
-        then
-            current_iptables_nat1n_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set)
-            while read ipt1 ipt2 ipt3 ipt4 ipt5 ipt6 ipt7 ipt8 ipt9 ipt10
-                do
-                    if [ "to:$arg3" = "$ipt10" ]
-                        then
-                            iptables -t nat -D POSTROUTING $ipt1
-                            ipset destroy $arg2
-                    fi
-                done < <(echo -e "$current_iptables_nat1n_postrouting_rules")
+	then
+	    current_iptables_nat1n_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set)
+	    while read ipt1 ipt2 ipt3 ipt4 ipt5 ipt6 ipt7 ipt8 ipt9 ipt10
+		do
+		    if [ "to:$arg3" = "$ipt10" ]
+			then
+			    iptables -t nat -D POSTROUTING $ipt1
+			    ipset destroy $arg2
+		    fi
+		done < <(echo -e "$current_iptables_nat1n_postrouting_rules")
     fi
-
+    
     if ([ "$arg1" = "added" ])
-        then
-            current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set|grep $arg3$)
-            current_ipset_list=$(ipset -q --list $arg2)
-                    if ([ "$current_iptables_postrouting_rules" = "" ] && [ "$current_ipset_list" = "" ])
-                        then
-                            ipset create "$arg2" hash:ip hashsize 1024
-                            iptables -t nat -I POSTROUTING -o $WAN -m set --match-set $arg2 src -j SNAT --to-source $arg3
-                    fi
+	then
+	    current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set|grep $arg3$)
+	    current_ipset_list=$(ipset -q --list $arg2)
+		    if ([ "$current_iptables_postrouting_rules" = "" ] && [ "$current_ipset_list" = "" ])
+			then
+			    ipset create "$arg2" hash:ip hashsize 1024
+			    iptables -t nat -I POSTROUTING -o $WAN -m set --match-set $arg2 src -j SNAT --to-source $arg3
+		    fi
     fi
 done < <(echo -e "$lista_zmian")
     echo "$current_time - modify_nat1n_fw_rules OK" >> $logdir/$logfile
@@ -477,10 +477,10 @@ function firewall_up {
 #Network Tuning Factors
 
 #Change default ARP table for large networks.
- if [ $(cat /proc/sys/net/ipv4/neigh/default/gc_thresh1) -lt 2048 ]; then
-        sysctl -w net.ipv4.neigh.default.gc_thresh1=2048
-        sysctl -w net.ipv4.neigh.default.gc_thresh2=4096
-        sysctl -w net.ipv4.neigh.default.gc_thresh3=8192
+ if [ $(cat /proc/sys/net/ipv4/neigh/default/gc_thresh1) -lt 2048 ]; then 
+	sysctl -w net.ipv4.neigh.default.gc_thresh1=2048
+	sysctl -w net.ipv4.neigh.default.gc_thresh2=4096
+	sysctl -w net.ipv4.neigh.default.gc_thresh3=8192
  fi
 
 #Defines the default and maximum receive window size.
@@ -517,7 +517,7 @@ fi
     iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
 
 
-#Drops some ports
+#Drops some ports 
 #    iptables -A FORWARD -i $WAN -m set --match-set fw_lan_banned_dst_ports dst -j DROP
 #    iptables -A FORWARD -i $WAN -o $LAN -d 172.16.0.0/16 -m set --match-set fw_lan_banned_dst_ports dst -j DROP
     iptables -A FORWARD -i $WAN -o $LAN -m set --match-set fw_lan_banned_dst_ports dst -j DROP
@@ -613,32 +613,30 @@ SHELL=/bin/bash
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 MAILTO=""
 * * * * * root /opt/gateway/scripts/fw.sh lmsd  > /dev/null 2>&1
-00 22 * * * root /opt/gateway/scripts/fw.sh shaper  > /dev/null 2>&1
-00 10 * * * root /opt/gateway/scripts/fw.sh shaper  > /dev/null 2>&1
+00 22 * * * root /opt/gateway/scripts/fw.sh shaper_restart  > /dev/null 2>&1
+00 10 * * * root /opt/gateway/scripts/fw.sh shaper_restart  > /dev/null 2>&1
 ' > /etc/cron.d/fw_sh
         echo "$current_time - Włączam cron dla fw.sh" >> $logdir/$logfile
     fi
 
     if [ "$1" = "stop" ]; then
-        if [ -f /etc/cron.d/fw_sh ]; then
-            rm /etc/cron.d/fw_sh
-        fi
+	if [ -f /etc/cron.d/fw_sh ]; then
+    	    rm /etc/cron.d/fw_sh
+    	fi
         echo "$current_time - Wyłączam cron dla fw.sh" >> $logdir/$logfile
     fi
 }
 
 function stats {
 
-        iptables -t mangle -nvxL COUNTERSOUT |tail -n +3 | awk '{print $8 " "$2}' |grep -v 0.0.0.0 > /tmp/upload.tmp
-        iptables -t mangle -nvxL COUNTERSIN |tail -n +3 | awk '{print $9 " "$2}' |grep -v 0.0.0.0 > /tmp/download.tmp
-
-#for IPT_TABLE_ELEMENT in $(iptables -t mangle -L FORWARD |grep COUNTERSOUT |awk '{print $1}'); do
-#    iptables -t mangle -nvxL $IPT_TABLE_ELEMENT |tail -n +3 | awk '{print $8 " "$2}' |grep -v 0.0.0.0 >> /tmp/upload.tmp
-#done
-#for IPT_TABLE_ELEMENT in $(iptables -t mangle -L FORWARD |grep COUNTERSIN |awk '{print $1}'); do
-#    iptables -t mangle -nvxL $IPT_TABLE_ELEMENT |tail -n +3 | awk '{print $9 " "$2}' |grep -v 0.0.0.0 >> /tmp/download.tmp
-#done
-
+#        iptables -t mangle -nvxL COUNTERSOUT |tail -n +3 | awk '{print $8 " "$2}' |grep -v 0.0.0.0 > /tmp/upload.tmp
+#        iptables -t mangle -nvxL COUNTERSIN |tail -n +3 | awk '{print $9 " "$2}' |grep -v 0.0.0.0 > /tmp/download.tmp
+for IPT_TABLE_ELEMENT in $(iptables -t mangle -L FORWARD |grep COUNTERSOUT |awk '{print $1}'); do
+    iptables -t mangle -nvxL $IPT_TABLE_ELEMENT |tail -n +3 | awk '{print $8 " "$2}' |grep -v 0.0.0.0 >> /tmp/upload.tmp
+done
+for IPT_TABLE_ELEMENT in $(iptables -t mangle -L FORWARD |grep COUNTERSIN |awk '{print $1}'); do
+    iptables -t mangle -nvxL $IPT_TABLE_ELEMENT |tail -n +3 | awk '{print $9 " "$2}' |grep -v 0.0.0.0 >> /tmp/download.tmp
+done
 
 for IPT_TABLE_ELEMENT in $(iptables -t mangle -L FORWARD |grep COUNTERSIN |awk '{print $1}'); do
         iptables -t mangle -Z $IPT_TABLE_ELEMENT
@@ -677,19 +675,19 @@ function fwstatus {
         echo "IPSET LIST"
         echo "----------"
         ipset list -n
-        echo ""
-        echo "#############################"
-        echo Kernel Network Core Paremeters
-        echo "#############################"
-        sysctl net.ipv4.neigh.default.gc_thresh1
-        sysctl net.ipv4.neigh.default.gc_thresh2
-        sysctl net.ipv4.neigh.default.gc_thresh3
-        sysctl net.core.rmem_default
-        sysctl net.core.rmem_max
-        sysctl net.core.wmem_default
-        sysctl net.core.wmem_max
-        sysctl net.netfilter.nf_conntrack_max
-        sysctl net.netfilter.nf_conntrack_count
-        echo ""
-        echo "$current_time - fwstatus OK" >> $logdir/$logfile
+	echo ""
+	echo "#############################"
+	echo Kernel Network Core Paremeters
+	echo "#############################"
+	sysctl net.ipv4.neigh.default.gc_thresh1
+	sysctl net.ipv4.neigh.default.gc_thresh2
+	sysctl net.ipv4.neigh.default.gc_thresh3
+	sysctl net.core.rmem_default
+	sysctl net.core.rmem_max
+	sysctl net.core.wmem_default
+	sysctl net.core.wmem_max
+	sysctl net.netfilter.nf_conntrack_max
+	sysctl net.netfilter.nf_conntrack_count
+	echo ""
+	echo "$current_time - fwstatus OK" >> $logdir/$logfile
 }
