@@ -143,16 +143,16 @@ LAN_DEFAULT_LIMIT to limit dla ruchu wychodzącego do sieci LAN nie sklasyfikowa
 WAN_DEFAULT_LIMIT to limit dla ruchu wychodzącego do sieci WAN nie sklasyfikowanego, czyli komputerów urządzeń nie ujętych przez Shaper</br>
 
 
-Następnie dla każdego hosta powinny być określone parametry klass UP/DOWN HTB przy czym kilka hostów może być przypisanych do jednej pary klasy HTB
+Następnie dla każdego hosta powinny być określone parametry klas UP/DOWN HTB, przy czym kilka hostów może być przypisanych do jednej pary klasy HTB.
 
-Przykładowa konfiguracja dla jednego hosta przypisane do jednej pary klas UP/DOWN
+Przykładowa konfiguracja dla jednego hosta przypisanego do jednej pary klas UP/DOWN:
 
 100 customer 1</br>
 100 class_up 8kbit 1024kbit</br>
 100 class_down 8kbit 5120kbit</br>
 100 filter 192.168.101.24</br>
 
-dla kilku hostów przypisanych do pary klas
+dla kilku hostów przypisanych do pary klas:
 
 101 customer 2</br>
 101 class_up 8kbit 1024kbit</br>
