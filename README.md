@@ -121,7 +121,7 @@ Terminy przeładowania skryptu ./fw.sh z opcją shaper_restart dla taryfy nocnej
 
 Format pliku konfiguracyjnego dla modułu shaper
 
-PLik powinien się zaczynać od parametrów 
+Plik musi zaczynać się od deklaracji parametrów 
 
 ISP_RX_LIMIT=470000kbit</br>
 ISP_TX_LIMIT=470000kbit</br>
@@ -132,7 +132,7 @@ WAN_DEFAULT_LIMIT=128kbit</br>
 
 gdzie:
 
-ISP_RX_LIMIT oraz ISP_TX_LIMIT to wynikające z kontraktu z operatorem nadrzędnym parametry łącza dostępowego do sieci INternet pomniejszone o ok 5-10% aby uniknąc zapełniania kolejki modemu operatora.
+ISP_RX_LIMIT oraz ISP_TX_LIMIT to wynikające z kontraktu z operatorem nadrzędnym parametry łącza dostępowego do sieci INternet pomniejszone o ok 5-10% aby uniknąc zapełniania kolejki modemu operatora.</br>
 GW_TO_LAN_LIMI to limit ruchu wychodzącego do sieci LAN, którego źródłem jest Gateway na którym pracuje skrypt fw.sh</br>
 GW_TO_WAN_LIMI to limit ruchu wychodzącego do sieci WAN, którego źródłem jest Gateway na którym pracuje skrypt fw.sh</br>
 LAN_DEFAULT_LIMIT to limit dla ruchu wychodzącego do sieci LAN nie sklasyfikowanego, czyli komputerów urządzeń nie ujętych przez Shaper</br>
