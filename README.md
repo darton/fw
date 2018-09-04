@@ -95,19 +95,28 @@ wykona zmiany tylko tych reguł iptables, które się zmieniły: czyli np. usuni
 # fw.sh lmsd
 Ta opcja przydaje się przy wspólpracy z LMS, skrypt może wtedy pracować w sposób automatyczny. Status przeładowania skryptu ustawia operator LMS (http://lms.org.pl). Skrypt sprawdzi czy w LMS został ustawiony przez operatora status przeładowania danego hosta i wykona przeładowanie lub restart w zależności, które pliki i co w nich zostało zmienione. Jeśli pliki nie zostały zmienione a w LMS został ustawiony status przeładowania, skrypt to wykryje, zmieni status przeładowania w LMS na wykonane,  ale nie wykona restartu/przeładowania, zapisze tylko informacje w logach.
 
-# fw.sh shaper
-ta opcja przydaje się jeśli mamy skonfigurowany LMS w ten sposób że komputerom przypisane zostały taryfy. Skrypt obsługuje także taryfe nocną. Aby dostosować ustawienia zadań wykonywanych przez fw.sh shaper w cron do własnych potrzeb, należy wyedytowac funcję fw_cron w pliku fwfunction, a jeśli już skrypt pracuje (został uruchomiony produkcyjnie) to także plik /etc/cron.d/fw_sh
+./fw.sh lmsd jest uruchamiany co minutę w cron.
 
+# fw.sh shaper_stop|shaper_start|shaper_restart
+ta opcja przydaje się jeśli mamy skonfigurowany LMS w ten sposób, że komputerom przypisane zostały taryfy. 
+Skrypt obsługuje także taryfe nocną (opcja shaper_restart). Dzialanie Shapera jest zoptymalizowane dla duzych ilości komputerów i taryf.
+
+# fw.sh shaper_stop
+Zatrzymuje Shaper
+
+# fw.sh shaper_stop
+Uruchamia Shaper
+
+# fw.sh shaper_restart
+Pobiera pliki konfiguracyjny Shapera ze zdalnego serwera (LMS) a nastepnie zatrzymuje i ponownie uruchamia Shaper
+
+Aby dostosować ustawienia zadań wykonywanych przez fw.sh shaper w cron do własnych potrzeb, należy wyedytowac funcję fw_cron w pliku fwfunction, a jeśli już skrypt pracuje (został uruchomiony produkcyjnie) to także plik /etc/cron.d/fw_sh
 Domyślne wartości ustawione dla dunckji fw_cron:
 
-Jak często ma być uruchamiany skrzypt ./fw.sh z opcją lmsd:
+Terminy przeładowania skryptu ./fw.sh z opcją shaper_restart dla taryfy nocnej od 22:00 do 10:00:
 
-"* * * * * /opt/gateway/scripts/fw.sh lmsd"</br>
-
-Terminy przeładowania skryptu ./fw.sh z opcją shaper:
-
-"00 22 * * * /opt/gateway/scripts/fw.sh shaper"</br>
-"00 10 * * * /opt/gateway/scripts/fw.sh shaper"</br>
+"00 22 * * * /opt/gateway/scripts/fw.sh shaper_restart"</br>
+"00 10 * * * /opt/gateway/scripts/fw.sh shaper_restart"</br>
 
 # fw.sh maintenance-on
  W tym trybie wyłącza zaporę, wyłącza interfejsy LAN i WAN, podnosi zaś  interfejs zdefiniowany jako MGMT (management).
