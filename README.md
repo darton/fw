@@ -124,15 +124,17 @@ Terminy przeładowania skryptu ./fw.sh z opcją shaper_restart dla taryfy nocnej
 # fw.sh maintenance-off
 Wykonanie tej komendy powoduje przejście do normalnego trybu pracy.
  
-# Statystyki ruchu w LMS
+# fw.sh stats
 
-Jeśli chcemy mieć statystki ruchu naszych klientów na maszynie z zainstalowanym LMS, należy na maszynie z LMS uruchamiać cyklicznie np. co 5 minut skrypt zapisujący statystyki do bazy danych LMS, wykonujący dwa polecenia: 
+Ten moduł dostarcza szczegółowe statystyki dla kazdego hosta, poprzez odczyt liczników danych z iptables.
+
+Jeśli chcemy zaimportować te statystki ruchu naszych klientów do LMS, należy na maszynie z LMS uruchamiać cyklicznie np. co 5 minut skrypt zapisujący statystyki do bazy danych LMS
+
+Skrypt powinien zawierac dwa polecenia:
 
 ssh -p 222 root@192.168.100.1 '/opt/gateway/scripts/fw.sh stats' > /var/log/traffic.log</br></br>
 bash /var/www/html/lms/bin/lms-traffic</br>
 
 gdzie 192.168.100.1 to adres IP naszego rutera na którym pracuje skryp fw.sh.
 
-Polecenie pierwsze uruchomi zdalnie skrypt fw.sh z opcją stats, który odczyta liczniki przesłanych danych dla wszystkich hostów i zapisze je do pliku. Zaś uruchomienie dugiego polecenia uruchomi skrypt, który odczyta plik /var/log/traffic.log i zapisze wartości do tabeli stats w bazie danych LMS.
-
-
+Polecenie pierwsze uruchomi zdalnie skrypt fw.sh z opcją stats, który odczyta liczniki przesłanych danych dla wszystkich hostów i zapisze je do pliku. Zaś uruchomienie dugiego polecenia uruchomi skrypt, który odczyta plik /var/log/traffic.log i zaimportuje wartości do tabeli stats w bazie danych LMS.
