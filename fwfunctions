@@ -579,7 +579,7 @@ function static_routing_down {
 
 function fw_cron {
     if [ "$1" = "start" ]; then
-    echo '# Run the fw.sh cron jobs
+	echo '# Run the fw.sh cron jobs
 SHELL=/bin/bash
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 MAILTO=""
@@ -589,7 +589,6 @@ MAILTO=""
 ' > /etc/cron.d/fw_sh
         echo "$current_time - Włączam cron dla fw.sh" >> $logdir/$logfile
     fi
-
     if [ "$1" = "stop" ]; then
 	if [ -f /etc/cron.d/fw_sh ]; then
     	    rm /etc/cron.d/fw_sh
