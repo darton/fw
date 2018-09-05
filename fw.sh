@@ -239,9 +239,6 @@ case "$1" in
     'lmsd')
         lmsd
     ;;
-    'shaper_restart')
-        shaper_restart
-    ;;
     'shaper_stop')
         shaper_stop
     ;;
@@ -261,5 +258,4 @@ case "$1" in
         echo -e "\nUsage: fw.sh start|stop|restart|reload|stats|lmsd|shaper_stop|shaper_start|shaper_restart|status|maintenance-on|maintenance-off"
         echo "$current_time - fw.sh running without parameter" >> $logdir/$logfile
     ;;
-
 esac
