@@ -199,7 +199,7 @@ gdzie 192.168.100.1 to adres IP naszego rutera na którym pracuje skryp fw.sh.
 Polecenie pierwsze uruchomi zdalnie skrypt fw.sh z modułem stats, który odczyta liczniki przesłanych danych dla wszystkich hostów i zapisze je do pliku. Zaś drugie polecenie uruchomi skrypt, który odczyta plik /var/log/traffic.log i zaimportuje wartości do tabeli stats w bazie danych LMS.
 
 # fw.sh maintenance-on
- W tym trybie wyłącza zaporę, wyłącza interfejsy LAN i WAN, podnosi zaś  interfejs zdefiniowany jako MGMT (management).
+ W tym trybie wyłącza zaporę, wyłącza zadania uruchamiane w cron, wyłącza serwer DHCP, wyłącza interfejsy LAN i WAN, podnosi zaś  interfejs zdefiniowany jako MGMT (management) i uruchamia na nim klienta DHCP .
 
 # fw.sh maintenance-off
 Wykonanie tej komendy powoduje przejście do normalnego trybu pracy.
