@@ -208,9 +208,6 @@ case "$1" in
     'stop')
         stop
     ;;
-    'stats')
-        stats
-    ;;
     'status')
         fwstatus
     ;;
@@ -243,7 +240,7 @@ case "$1" in
         maintenance-off
     ;;
         *)
-        echo -e "\nUsage: fw.sh start|stop|restart|reload|stats|lmsd|shaper_stop|shaper_start|shaper_restart|shaper_stats|status|maintenance-on|maintenance-off"
+        echo -e "\nUsage: fw.sh start|stop|restart|reload|status|lmsd|shaper_stop|shaper_start|shaper_restart|shaper_stats|maintenance-on|maintenance-off"
         echo "$current_time - fw.sh running without parameter" >> $logdir/$logfile
     ;;
 esac
