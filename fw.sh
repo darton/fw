@@ -187,22 +187,6 @@ source $scriptsdir/fwfunctions
 	htb_cmd restart
     }
 
-    shaper_restart ()
-    {
-	get_shaper_config
-	shaper_cmd restart
-    }
-
-    shaper_stop ()
-    {
-	shaper_cmd stop
-    }
-
-    shaper_start ()
-    {
-	shaper_cmd start
-    }
-
     lmsd ()
     {
     lms_status=$(ssh $sshurl "$dburl"| grep -v reload)
@@ -240,13 +224,17 @@ case "$1" in
         lmsd
     ;;
     'shaper_stop')
-        shaper_stop
+        shaper_cmd stop
     ;;
     'shaper_start')
-        shaper_start
+        shaper_cmd start
     ;;
     'shaper_restart')
-        shaper_restart
+        get_shaper_config
+	shaper_cmd restart
+    ;;
+    'shaper_stats')
+        shaper_cmd stats
     ;;
     'maintenance-on')
         maintenance-on
@@ -255,7 +243,7 @@ case "$1" in
         maintenance-off
     ;;
         *)
-        echo -e "\nUsage: fw.sh start|stop|restart|reload|stats|lmsd|shaper_stop|shaper_start|shaper_restart|status|maintenance-on|maintenance-off"
+        echo -e "\nUsage: fw.sh start|stop|restart|reload|stats|lmsd|shaper_stop|shaper_start|shaper_restart|shaper_stats|status|maintenance-on|maintenance-off"
         echo "$current_time - fw.sh running without parameter" >> $logdir/$logfile
     ;;
 esac

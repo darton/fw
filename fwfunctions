@@ -206,9 +206,9 @@ function shaper_cmd {
 	for IPT_TABLE_ELEMENT in $(iptables -t mangle -nL FORWARD |grep COUNTERSIN |awk '{print $1}'); do
 	    iptables -t mangle -nvxL $IPT_TABLE_ELEMENT |tail -n +3 | awk '{print $9 " "$2}' |grep -v 0.0.0.0 >> /tmp/download.tmp
 	done
-#	iptables -t mangle -Z
-#        join /tmp/upload.tmp /tmp/download.tmp
-#        rm /tmp/upload.tmp /tmp/download.tmp
+	iptables -t mangle -Z
+        join /tmp/upload.tmp /tmp/download.tmp
+        rm /tmp/upload.tmp /tmp/download.tmp
     fi
 }
 
