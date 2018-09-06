@@ -184,7 +184,7 @@ filter jako parametr ma zaś adres ip hosta</br>
 
 # fw.sh shaper_stats
 
-Ta opcja modułu shaper dostarcza szczegółowe statystyki dla kazdego hosta, poprzez odczyt z liczników iptables.
+Ta opcja modułu shaper dostarcza szczegółowe statystyki dla każdego hosta, poprzez odczyt z liczników iptables.
 
 Jeśli chcemy zaimportować statystki ruchu naszych klientów do LMS, należy na maszynie z LMS uruchamiać cyklicznie np. co 5 minut  skrypt zapisujący statystyki do bazy danych LMS. Mmusi to być taki sam czas jaki jest ustawiony w phpui LMS w parametrze stat_freq
 Czyli jeśłi wybierzemy  uruchaminie co 5 minut to stat_freq=300 (sekund)
