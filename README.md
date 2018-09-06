@@ -98,7 +98,8 @@ Sterowanie fw.sh odbywa się wtedy z poziomu LMS. fw.sh  sprawdzi czy w LMS zost
 Po instalacji ./fw.sh lmsd jest uruchamiany co minutę przez cron.
 uruchamianie fw.sh z modułem lmsd wymaga odpowiedniej konfiguracji LMS, tak by LMS generował pliki konfiguracyjne dla fw.sh w odpowiednim dla niego formacie raz aby możliwe było sterowanie praca fw.sh z poziomu LMS.
 
-# fw.sh shaper_stop|shaper_start|shaper_restart
+# fw.sh shaper_stop|shaper_start|shaper_restart|shaper_stats
+
 ta opcja przydaje się jeśli mamy skonfigurowany LMS w ten sposób, że komputerom przypisane zostały taryfy. 
 Skrypt obsługuje także taryfe nocną (opcja shaper_restart). Dzialanie Shapera jest zoptymalizowane dla duzych ilości komputerów i taryf.
 
@@ -181,19 +182,12 @@ customer 1 oraz customer 2 to unikalne id klientów</br>
 class_up oraz class_down mają jako parametry rate oraz ceil, gdzie RATE to jest minimalna gwarantowana przepustowość, a CEIL to maksymalna niegwarantowana przepustowość</br>
 filter jako parametr ma zaś adres ip hosta</br>
 
-Uwaga w pliku konfiguracyjnym dla modułu shaper nie może być pustych linii.
+# fw.sh shaper_stats
 
-# fw.sh maintenance-on
- W tym trybie wyłącza zaporę, wyłącza interfejsy LAN i WAN, podnosi zaś  interfejs zdefiniowany jako MGMT (management).
+Ta opcja modułu shaper dostarcza szczegółowe statystyki dla każdego hosta, poprzez odczyt z liczników iptables.
 
-# fw.sh maintenance-off
-Wykonanie tej komendy powoduje przejście do normalnego trybu pracy.
- 
-# fw.sh stats
-
-Ten moduł dostarcza szczegółowe statystyki dla kazdego hosta, poprzez odczyt liczników danych z iptables.
-
-Jeśli chcemy zaimportować statystki ruchu naszych klientów do LMS, należy na maszynie z LMS uruchamiać cyklicznie np. co 5 minut skrypt zapisujący statystyki do bazy danych LMS
+Jeśli chcemy zaimportować statystki ruchu naszych klientów do LMS, należy na maszynie z LMS uruchamiać cyklicznie np. co 5 minut  skrypt zapisujący statystyki do bazy danych LMS. Mmusi to być taki sam czas jaki jest ustawiony w phpui LMS w parametrze stat_freq
+Czyli jeśłi wybierzemy  uruchaminie co 5 minut to stat_freq=300 (sekund)
 
 Skrypt powinien zawierac dwa polecenia:
 
@@ -203,3 +197,9 @@ bash /var/www/html/lms/bin/lms-traffic</br>
 gdzie 192.168.100.1 to adres IP naszego rutera na którym pracuje skryp fw.sh.
 
 Polecenie pierwsze uruchomi zdalnie skrypt fw.sh z modułem stats, który odczyta liczniki przesłanych danych dla wszystkich hostów i zapisze je do pliku. Zaś drugie polecenie uruchomi skrypt, który odczyta plik /var/log/traffic.log i zaimportuje wartości do tabeli stats w bazie danych LMS.
+
+# fw.sh maintenance-on
+ W tym trybie wyłącza zaporę, wyłącza zadania uruchamiane w cron, wyłącza serwer DHCP, wyłącza interfejsy LAN i WAN, podnosi zaś  interfejs zdefiniowany jako MGMT (management) i uruchamia na nim klienta DHCP .
+
+# fw.sh maintenance-off
+Wykonanie tej komendy powoduje przejście do normalnego trybu pracy.
