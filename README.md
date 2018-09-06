@@ -98,7 +98,7 @@ Sterowanie fw.sh odbywa się wtedy z poziomu LMS. fw.sh  sprawdzi czy w LMS zost
 Po instalacji ./fw.sh lmsd jest uruchamiany co minutę przez cron.
 uruchamianie fw.sh z modułem lmsd wymaga odpowiedniej konfiguracji LMS, tak by LMS generował pliki konfiguracyjne dla fw.sh w odpowiednim dla niego formacie raz aby możliwe było sterowanie praca fw.sh z poziomu LMS.
 
-# fw.sh shaper_stop|shaper_start|shaper_restart:shaper_stats
+# fw.sh shaper_stop|shaper_start|shaper_restart|shaper_stats
 
 ta opcja przydaje się jeśli mamy skonfigurowany LMS w ten sposób, że komputerom przypisane zostały taryfy. 
 Skrypt obsługuje także taryfe nocną (opcja shaper_restart). Dzialanie Shapera jest zoptymalizowane dla duzych ilości komputerów i taryf.
