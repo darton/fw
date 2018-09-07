@@ -24,7 +24,7 @@ function get_config {
 }
 
 function get_qos_config {
-    ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -i qos -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
+    ssh $sshurl "$lmsd -q -i qos -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db"
     sleep 10
     cd $confdir
     mv $confdir/rc.htb $oldconfdir/rc.htb
@@ -35,7 +35,8 @@ function get_qos_config {
 
 function get_shaper_config {
     echo "LMS generuje konfigurację dla Shapera"
-    ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -i fw_shaper -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
+#    ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -i fw_shaper -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
+    ssh $sshurl "$lmsd -q -i $lmsd_shaper_instance -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db"
     echo "Czekam 10 sekund"
     sleep 10
     cd $confdir
@@ -47,7 +48,8 @@ function get_shaper_config {
 
 function lmsd_reload {
     echo "Wykonuję reload wszystkich instancji lmsd na zdalnej maszynie"
-    ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
+#    ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
+    ssh $sshurl "$lmsd -q -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db"
     echo "$current_time - Czekam 10s, aż lmsd stworzy nowe pliki konfiguracyjne" >> $logdir/$logfile
     sleep 10
 }
@@ -515,10 +517,10 @@ function firewall_up {
     iptables -A FORWARD -i $WAN -o $LAN -m set --match-set fw_ip dst -j ACCEPT
 
 #Redirect dla zablokowanych klientów z włączonym ostrzeżeniem w LMS
-    iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -m set --match-set fw_denied_hosts src -p tcp --dport 80 -j DNAT --to $PROXY_IP:3128
+    iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -m set --match-set fw_denied_hosts src -p tcp --dport 80 -j DNAT --to $proxy_ip:3128
 
 #Redirect dla klientów z włączonym ostrzeżeniem w LMS
-#    iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -p tcp --dport 80 -j DNAT --to $PROXY_IP:3128
+#    iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -p tcp --dport 80 -j DNAT --to $proxy_ip:3128
 
 #Blacklisted host/network
     iptables -t raw -A PREROUTING -m set --match-set fw_permanent_blacklist src -j DROP

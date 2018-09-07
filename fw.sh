@@ -13,31 +13,32 @@
 
 PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
 
-source fw.conf
-
-####Makes necessary config directories and files####
-[[ -d /run/fw-sh/ ]] || mkdir /run/fw-sh
-[[ -f /run/fw-sh/maintenance.pid ]] || echo 0 > /run/fw-sh/maintenance.pid
-[[ -d $confdir ]] || mkdir -p $confdir
-[[ -d $oldconfdir ]] || mkdir -p $oldconfdir
-
-for param in $confdir $oldconfdir
-do
-[[ -f $param/$nat_11_file ]] || touch $param/$nat_11_file
-[[ -f $param/$nat_1n_ip_file ]] || touch $param/$nat_1n_ip_file
-[[ -f $param/$public_ip_file ]] || touch $param/$public_ip_file
-[[ -f $param/$routed_nets_file ]] || touch $param/$routed_nets_file
-[[ -f $param/$blacklist_file ]] || touch $param/$blacklist_file
-[[ -f $param/$lan_banned_dst_ports_file ]] || touch $param/$lan_banned_dst_ports_file
-[[ -f $param/$shaper_file ]] || touch $param/$shaper_file
-[[ -f $param/$dhcp_conf_file ]] || touch $param/$dhcp_conf_file
-done
-
-[[ -f $logdir/$logfile ]] || touch $logdir/$logfile
-
 current_time=$(date '+%Y-%m-%d %H:%M:%S')
 
-source $scriptsdir/fwfunctions
+    source fw.conf
+
+####Makes necessary config directories and files####
+    [[ -d /run/fw-sh/ ]] || mkdir /run/fw-sh
+    [[ -f /run/fw-sh/maintenance.pid ]] || echo 0 > /run/fw-sh/maintenance.pid
+    [[ -d $confdir ]] || mkdir -p $confdir
+    [[ -d $oldconfdir ]] || mkdir -p $oldconfdir
+
+    for param in $confdir $oldconfdir
+    do
+	[[ -f $param/$nat_11_file ]] || touch $param/$nat_11_file
+	[[ -f $param/$nat_1n_ip_file ]] || touch $param/$nat_1n_ip_file
+	[[ -f $param/$public_ip_file ]] || touch $param/$public_ip_file
+	[[ -f $param/$routed_nets_file ]] || touch $param/$routed_nets_file
+	[[ -f $param/$blacklist_file ]] || touch $param/$blacklist_file
+	[[ -f $param/$lan_banned_dst_ports_file ]] || touch $param/$lan_banned_dst_ports_file
+	[[ -f $param/$shaper_file ]] || touch $param/$shaper_file
+	[[ -f $param/$dhcp_conf_file ]] || touch $param/$dhcp_conf_file
+    done
+
+    [[ -f $logdir/$logfile ]] || touch $logdir/$logfile
+
+
+    source $scriptsdir/fwfunctions
 
 
     maintenance-on ()
@@ -153,9 +154,10 @@ source $scriptsdir/fwfunctions
 
     lmsd ()
     {
-    DBURL="mysql -s -u $LMS_DBUSER $LMS_DB -e \"select reload from hosts where id=4\""
-    LMSD_STATUS=$(ssh $sshurl "$DBURL"| grep -v reload)
-    if [ $LMSD_STATUS = 1 ]; then
+    dburl="mysql -s -u $lms_dbuser $lms_db -e \"select reload from hosts where id=4\""
+    lmsd_status=$(ssh $sshurl "$dburl"| grep -v reload)
+
+    if [ $lmsd_status = 1 ]; then
         echo "$current_time - Status przeładowania lmsd został ustawiony" >> $logdir/$logfile
 	lmsd_reload
         get_config
@@ -165,7 +167,7 @@ source $scriptsdir/fwfunctions
 
 #####Program główny####
 
-case "$1" in
+    case "$1" in
 
     'start')
         start
@@ -208,4 +210,4 @@ case "$1" in
         echo -e "\nUsage: fw.sh start|stop|restart|reload|status|lmsd|shaper_stop|shaper_start|shaper_restart|shaper_stats|maintenance-on|maintenance-off"
         echo "$current_time - fw.sh running without parameter" >> $logdir/$logfile
     ;;
-esac
+    esac
