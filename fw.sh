@@ -13,43 +13,7 @@
 
 PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
 
-#Paths to config dirs
-installdir=/opt/gateway
-scriptsdir=$installdir/scripts
-confdir=$installdir/conf
-oldconfdir=$installdir/oldconf
-
-#Path to log
-logdir=/var/log
-logfile=fw.log
-
-#Names of config files
-nat_11_file=fw_nat_1-1
-nat_1n_ip_file=fw_nat_1-n
-public_ip_file=fw_public_ip
-routed_nets_file=fw_routed_ip
-blacklist_file=fw_blacklist
-lan_banned_dst_ports_file=fw_lan_banned_dst_ports
-shaper_file=fw_shaper
-dhcp_conf_file=dhcpd.conf
-
-#Remote source of config files
-scpurl=root@127.0.0.1:/opt/gateway
-
-#URL to LMS (http://lms.org.pl) database server
-sshurl=root@127.0.0.1
-
-#PROXY IP ADDRESS
-proxy_ip=127.0.0.1
-
-#Warning: user lmsd_reload has SELECT privileges to lms.hosts table only with no password
-dburl="mysql -s -u lmsd_reload lms -e \"select reload from hosts where id=4\""
-
-#Ethernet interfaces
-#WAN=$(ip r|grep default |awk '{print $5}')
-WAN=enp2s0
-LAN=enp3s0
-MGMT=eno1
+source fw.conf
 
 ####Makes necessary config directories and files####
 [[ -d /run/fw-sh/ ]] || mkdir /run/fw-sh
@@ -189,8 +153,9 @@ source $scriptsdir/fwfunctions
 
     lmsd ()
     {
-    lms_status=$(ssh $sshurl "$dburl"| grep -v reload)
-    if [ $lms_status = 1 ]; then
+    DBURL="mysql -s -u $LMS_DBUSER $LMS_DB -e \"select reload from hosts where id=4\""
+    LMSD_STATUS=$(ssh $sshurl "$DBURL"| grep -v reload)
+    if [ $LMSD_STATUS = 1 ]; then
         echo "$current_time - Status przeładowania lmsd został ustawiony" >> $logdir/$logfile
 	lmsd_reload
         get_config
