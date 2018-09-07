@@ -136,9 +136,9 @@ gdzie:
 
 ISP_RX_LIMIT oraz ISP_TX_LIMIT to wynikające z kontraktu z operatorem nadrzędnym parametry łącza dostępowego do sieci INternet pomniejszone o ok 5-10% aby uniknąc zapełniania kolejki modemu operatora.</br>
 
-GW_TO_LAN_LIMI to limit ruchu wychodzącego do sieci LAN, którego źródłem jest Gateway na którym pracuje skrypt fw.sh</br>
+GW_TO_LAN_LIMIT to limit ruchu wychodzącego do sieci LAN, którego źródłem jest Gateway na którym pracuje skrypt fw.sh</br>
 
-GW_TO_WAN_LIMI to limit ruchu wychodzącego do sieci WAN, którego źródłem jest Gateway na którym pracuje skrypt fw.sh</br>
+GW_TO_WAN_LIMIT to limit ruchu wychodzącego do sieci WAN, którego źródłem jest Gateway na którym pracuje skrypt fw.sh</br>
 
 LAN_DEFAULT_LIMIT to limit dla ruchu wychodzącego do sieci LAN nie sklasyfikowanego, czyli komputerów urządzeń nie ujętych w pliku konfiguracyjnym dla modułu Shaper</br>
 
@@ -176,11 +176,10 @@ Klient może mieć kilka taryf (kilka umów na usługi) i przypisane do nich ró
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie TC-NEW
 
-100 i 101 to unikalne liczby dla taryfy danego klienta
-
-customer 1 oraz customer 2 to unikalne id klientów</br>
-class_up oraz class_down mają jako parametry rate oraz ceil, gdzie RATE to jest minimalna gwarantowana przepustowość, a CEIL to maksymalna niegwarantowana przepustowość</br>
-filter jako parametr ma zaś adres ip hosta</br>
+Gdzie pierwsza kolumna zawiera unikalnę liczbę identyfikującą klienta w połączeniu z daną taryfą, jeśli klient ma kilka taryf dla każdej ta liczba musi byc unikalna.</br>
+Cyfry po słowie customer to unikalne id klientów w LMS</br>
+Wyrazenia class_up oraz class_down mają jako parametry rate oraz ceil, gdzie RATE to jest minimalna gwarantowana przepustowość, a CEIL to maksymalna niegwarantowana przepustowość</br>
+Wyrażenie filter jako parametr ma zaś adres ip hosta, którego dotyczy konfiguracja</br>
 
 # fw.sh shaper_stats
 
