@@ -42,7 +42,7 @@ done
 [[ -f $logdir/$logfile ]] || touch $logdir/$logfile
 
 curl -sS https://raw.githubusercontent.com/darton/fw/master/fw.sh > $scriptsdir/fw.sh
-curl -sS https://raw.githubusercontent.com/darton/fw/master/fw.conf > $scriptsdir/fw.sconf
+curl -sS https://raw.githubusercontent.com/darton/fw/master/fw.conf > $scriptsdir/fw.conf
 curl -sS https://raw.githubusercontent.com/darton/fw/master/fwfunctions > $scriptsdir/fwfunctions
 chmod u+x $scriptsdir/fw.sh
 echo "export PATH=$PATH:$scriptsdir" >> /root/.bash_profile
