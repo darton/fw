@@ -3,7 +3,14 @@ Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) i/lub s
 
 # Instalacja
 
+Jeśli odpowiadają Ci domyślnie ustawione wartości:
+
 #curl -sS https://raw.githubusercontent.com/darton/fw/master/install.sh |bash
+
+Jeśli chcesz wcześniej zmienić konfigurację
+
+#wget https://raw.githubusercontent.com/darton/fw/master/install.sh
+
 
 # Sposób użycia
 
