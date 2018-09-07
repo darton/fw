@@ -13,9 +13,20 @@
 
 PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
 
-current_time=$(date '+%Y-%m-%d %H:%M:%S')
+#Paths to config dirs
+installdir=/opt/gateway
+scriptsdir=$installdir/scripts
+confdir=$installdir/conf
+oldconfdir=$installdir/oldconf
 
-    source fw.conf
+#Path to log
+logdir=/var/log
+logfile=fw.log
+
+#Load fw.sh config file
+source $scriptsdir/fw.conf
+
+current_time=$(date '+%Y-%m-%d %H:%M:%S')
 
 ####Makes necessary config directories and files####
     [[ -d /run/fw-sh/ ]] || mkdir /run/fw-sh
@@ -37,8 +48,8 @@ current_time=$(date '+%Y-%m-%d %H:%M:%S')
 
     [[ -f $logdir/$logfile ]] || touch $logdir/$logfile
 
-
-    source $scriptsdir/fwfunctions
+#Load fwfunction 
+source $scriptsdir/fwfunctions
 
 
     maintenance-on ()
