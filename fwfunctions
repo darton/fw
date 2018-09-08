@@ -25,7 +25,7 @@ function get_config {
 
 function get_qos_config {
     ssh $sshurl "$lmsd -q -i qos -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db"
-    sleep 10
+    sleep 5
     cd $confdir
     mv $confdir/rc.htb $oldconfdir/rc.htb
     echo "Łącze się z serwerem i pobieram plik qos"
@@ -37,8 +37,8 @@ function get_shaper_config {
     echo "LMS generuje konfigurację dla Shapera"
 #    ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -i fw_shaper -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
     ssh $sshurl "$lmsd -q -i $lmsd_shaper_instance -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db"
-    echo "Czekam 10 sekund"
-    sleep 10
+    echo "Czekam kilka sekund"
+    sleep 5
     cd $confdir
     mv $confdir/$shaper_file $oldconfdir/$shaper_file
     echo "Łącze się z serwerem i pobieram plik konfiguracyjny dla Shaper'a"
