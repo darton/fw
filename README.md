@@ -46,6 +46,8 @@ deniedhost 192.168.102.105 </br>
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
 
+![fw_public_ip](https://user-images.githubusercontent.com/1482900/45300606-271aba00-b50f-11e8-9351-2038fb7432f9.png)
+
 fw_nat_1-1	</br>
 Zawiera listę hostów z prywatnymi adresami IP natowanymi 1-1 na adresy publiczne w formacie: "grantedhost|deniedhost|warnedhost prywatny_adres_ip publiczny_adres_ip"
 
