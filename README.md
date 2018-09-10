@@ -35,7 +35,7 @@ Usage: fw.sh start|stop|restart|reload|stats|lmsd|qos|status|maintenance-on|main
 
 Konieczne do uruchomienia skryptu pliki konfiguracyjne (domyślnie puste):
 
-####fw_public_ip </br>
+fw_public_ip </br>
 Zawiera listę hostów z publicznymi adresami IP w formacie: "grantedhost|deniedhost|warnedhost adres_ip"
 Plik fw_public_ip służy do prowadzenia rejestru adresów IP, które mają być rutowane (bez NAT)
 np
