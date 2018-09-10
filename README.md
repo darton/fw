@@ -31,17 +31,23 @@ Zawiera listę hostów z publicznymi adresami IP w formacie: "grantedhost|denied
 fw_nat_1-1	</br>
 Zawiera listę hostów z prywatnymi adresami IP natowanymi 1-1 na adresy publiczne w formacie: "grantedhost|deniedhost|warnedhost prywatny_adres_ip publiczny_adres_ip"
 
+Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile
+
 fw_nat_1-n	</br>
 Zawiera listę w formacie: "nazwa_pliku_z_lista_adresów_IP publiczny_adres_ip", opisującego powiązania plików z prywatnymi adresami IP i odpowiadającymi im publicznymi adresami IP na które będą NAT-owane
+
+Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile
 
 fw_lan_banned_dst_ports </br>
 Zawiera listę portów TCP/IP w formacie: "numer_portu"
 
-rc.htb </br>
-Zawiera gotowy do uruchomienia skrypt shapera z regułami tc dla wszystkich hostów
+Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile
 
 dhcpd.conf </br>
 Zawiera gotowy plik konfiguracyjny dla serwera dhcp
+
+Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie dhcp
+
 
 Np. plik z adresami IP, które mają być natowane na inny adres IP powinien mieć nazwę np. fw_nat_ip1
 a jego zawartość powinna wygladać np tak:
@@ -190,7 +196,7 @@ Cyfry po słowie customer to unikalne id klientów w LMS</br>
 Wyrazenia class_up oraz class_down mają jako parametry rate oraz ceil, gdzie RATE to jest minimalna gwarantowana przepustowość, a CEIL to maksymalna niegwarantowana przepustowość</br>
 Wyrażenie filter jako parametr ma zaś adres ip hosta, którego dotyczy konfiguracja</br>
 
-Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie TC-NEW
+Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji lmsd o nazwie tc-new
 
 ![lms-shaper-config](https://user-images.githubusercontent.com/1482900/45297761-aeaffb00-b506-11e8-82b6-d8ddfb6782aa.png)
 
