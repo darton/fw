@@ -1,9 +1,15 @@
 
-Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) i/lub shaper pobierając swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl) lub dowolny inny program, można też pliki konfiguracyjne stworzyć ręcznie.
+Skrypt fw.sh konfiguruje system linux do pracy jako zapora (firewall) i/lub shaper, pobierając swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl) lub dowolny inny program, można też pliki konfiguracyjne stworzyć ręcznie.
 
-W celu optymalnej wydajności przetwarzania pakietów fw.sh korzysta z ipset. To pozwala na wykorzystanie go w sieciach z tysiącami komputerów. Skrypt posiada mechanizm pozwalający na unikanie, kiedy tylko to możliwe, niepotrzebnego przeładowania reguł iptables, korzystając z mechanizmu podmiany gotowych list ipset, oraz podmiany tylko zmienionych reguł iptables resztę pozostawiając bez zmian. 
+W celu optymalnej wydajności przetwarzania pakietów fw.sh korzysta z iptables oraz ipset. To pozwala na wykorzystanie go w sieciach z tysiącami komputerów. Skrypt posiada mechanizm pozwalający na unikanie, kiedy tylko to możliwe, niepotrzebnego przeładowania reguł iptables, korzystając z mechanizmu podmiany gotowych list ipset, oraz podmiany tylko zmienionych reguł iptables resztę pozostawiając bez zmian. 
 
-Odczytuje także cyklicznie stany liczników pakietów z iptables i ładuje je do pliku, Lms posiada skrypty (np lms-traffic) które pozwalają parsować taki plik i wrzucać z niego dane do tabeli stats swojej bazy danych, co pozwala na generowanie statystyk ruchu dla klientów. 
+Do limitowania pakietów wykorzystany jest moduł tc z pakietu iproute2 oraz odpowiednio przemyślana jego konfiguracja, która pozwala na duża wydajność przy niewielkim obciążeniu dla CPU.
+
+Skrypt odczytuje także cyklicznie stany liczników pakietów z iptables i ładuje je do pliku. Lms posiada skrypty (np lms-traffic) które pozwalają parsować taki plik i wrzucać z niego dane do tabeli stats swojej bazy danych, co pozwala na generowanie statystyk ruchu dla klientów. 
+
+Domyślnie skrypt pobiera swoje pliki konfiguracyjne łącząc się przez ssh ze zdalną maszyną, na której są tworzone. 
+Dla połączenia przez ssh pomiędzy ruterem z fw.sh i serwerem z LMS najlepiej użyć mechaznimu z wykorzystaniem pary kluczy RSA. 
+Jeśli pliki są tworzone lokalnie na tej samej maszynie, na której pracuje skrypt fw.sh najprościej jest podać w konfiguracji adres IP 127.0.0.1. 
 
 ### Instalacja
 
@@ -94,11 +100,7 @@ Sieć/prefiks adres_IP_bramki
 172.16.1.128/30 172.16.1.8 </br>
 172.16.3.128/30 172.16.1.9 </br>
 
-Domyślnie skrypt pobiera swoje pliki konfiguracyjne łącząc się przez ssh ze zdalną maszyną, na której są tworzone. 
-Dla łączenia przez ssh najlepiej użyć pary kluczy RSA. 
-Jeśli pliki są tworzone lokalnie na tej samej maszynie, na ktorej pracuje skrypt najprościej jest podać w konfiguracji adres IP 127.0.0.1. 
-
-Gdy już mamy gotowe pliki konfiguracyjne uruchamiamy zaporę wykonuja skrypt z opcją: </br>
+Gdy już mamy gotowe pliki konfiguracyjne uruchamiamy zaporę poleceniem:</br>
 
 ## fw.sh start </br>
 Polecenie fw.sh start uruchomi zaporę odczytując parametry konfiguracyjne zawarte w plikach konfiguracyjncyh, dokana restartu serwera DHCP oraz reguł shapera.
