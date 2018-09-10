@@ -35,7 +35,7 @@ Usage: fw.sh start|stop|restart|reload|stats|lmsd|qos|status|maintenance-on|main
 
 Konieczne do uruchomienia skryptu pliki konfiguracyjne (domyślnie puste):
 
-fw_public_ip </br>
+####fw_public_ip </br>
 Zawiera listę hostów z publicznymi adresami IP w formacie: "grantedhost|deniedhost|warnedhost adres_ip"
 Plik fw_public_ip służy do prowadzenia rejestru adresów IP, które mają być rutowane (bez NAT)
 np
@@ -87,7 +87,7 @@ W przykładzie opisane są nazwy jakie są skonfigurowane na zrzutrach ekranu
 Takie plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
 Ponizej przykład dla pliku o nazwie fw_nat_ip1
 
-
+![fw_nat_1n_ip1](https://user-images.githubusercontent.com/1482900/45301748-d9ec1780-b511-11e8-9979-d3822a2dd3d7.png)
 
 
 fw_routed_ip  </br>
