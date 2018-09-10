@@ -1,5 +1,5 @@
 
-#Opis
+# Opis
 
 Skrypt fw.sh konfiguruje system linux do pracy jako zapora (firewall) i/lub shaper, pobierając swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl) lub dowolny inny program, można też pliki konfiguracyjne stworzyć ręcznie.
 
