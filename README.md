@@ -244,5 +244,5 @@ Polecenie pierwsze uruchomi zdalnie skrypt fw.sh z modułem stats, który odczyt
 ## fw.sh maintenance-off
 Wykonanie tej komendy powoduje przejście do normalnego trybu pracy.
 
-### Kompletna lista instancji lmsd w programie LMS do współpracy z fw.sh
+## Kompletna lista instancji lmsd użysta w programie LMS do współpracy z fw.sh
 
