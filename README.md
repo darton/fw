@@ -37,6 +37,14 @@ Konieczne do uruchomienia skryptu pliki konfiguracyjne (domyślnie puste):
 
 fw_public_ip </br>
 Zawiera listę hostów z publicznymi adresami IP w formacie: "grantedhost|deniedhost|warnedhost adres_ip"
+Plik fw_public_ip służy do prowadzenia rejestru adresów IP, które mają być rutowane (bez NAT)
+np
+
+grantedhost 192.168.102.101 </br>
+grantedhost 192.168.102.105 </br>
+deniedhost 192.168.102.105 </br>
+
+Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
 
 fw_nat_1-1	</br>
 Zawiera listę hostów z prywatnymi adresami IP natowanymi 1-1 na adresy publiczne w formacie: "grantedhost|deniedhost|warnedhost prywatny_adres_ip publiczny_adres_ip"
@@ -51,6 +59,17 @@ Zawiera listę w formacie: "nazwa_pliku_z_lista_adresów_IP publiczny_adres_ip",
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
 
 ![fw_nat_1n](https://user-images.githubusercontent.com/1482900/45298573-372f9b00-b509-11e8-925d-d544683ffb86.png)
+
+fw_routed_ip  </br>
+Służy to prowadzenia rejestru sieci oraz adresów IP bramek (gateway) na które te sieci mają być rutowane w formacie:
+Sieć/prefiks adres_IP_bramki, przykład: 
+
+172.16.0.128/30 172.16.1.7 </br>
+172.16.1.128/30 172.16.1.8 </br>
+172.16.3.128/30 172.16.1.9 </br>
+
+Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
+
 
 fw_lan_banned_dst_ports </br>
 Zawiera listę portów TCP/IP w formacie: "numer_portu"
@@ -93,19 +112,6 @@ Wtedy wszystkie adresy IP jakie zawiera plik fw_nat_ip1 bedą natowane na adres 
 
 Nazwy plików mogą być dowolne trzeba je tylko zadeklarować w pliku fw.sh oraz fw_nat_1-n.
 W przykładzie opisane są nazwy jakie są skonfigurowane domyślnie.
-
-Plik fw_public_ip służy do prowadzenia rejestru adresów IP które mają beć rutowane (bez NAT)
-w formacie analogicznym jak dla adresów Natowanych czyli
-
-grantedhost 192.168.102.101 </br>
-grantedhost 192.168.102.105 </br>
-
-Plik fw_routed_ip służy to prowadzenia rejestru sieci oraz adresów IP bramek (gateway) na które te sieci mają być rutowane w formacie:
-Sieć/prefiks adres_IP_bramki
-
-172.16.0.128/30 172.16.1.7 </br>
-172.16.1.128/30 172.16.1.8 </br>
-172.16.3.128/30 172.16.1.9 </br>
 
 Gdy już mamy gotowe pliki konfiguracyjne uruchamiamy zaporę poleceniem:</br>
 
