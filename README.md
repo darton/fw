@@ -70,6 +70,7 @@ Sieć/prefiks adres_IP_bramki, przykład:
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
 
+![fw_routed_ip](https://user-images.githubusercontent.com/1482900/45300413-8e843a00-b50e-11e8-958c-c71c275f5abd.png)
 
 fw_lan_banned_dst_ports </br>
 Zawiera listę portów TCP/IP w formacie: "numer_portu"
