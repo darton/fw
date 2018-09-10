@@ -246,3 +246,4 @@ Wykonanie tej komendy powoduje przejście do normalnego trybu pracy.
 
 ## Kompletna lista instancji lmsd użysta w programie LMS do współpracy z fw.sh
 
+![lmsd_lista_instancji](https://user-images.githubusercontent.com/1482900/45300890-d5befa80-b50f-11e8-966c-79eda656aafa.png)
