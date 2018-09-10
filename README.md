@@ -76,7 +76,7 @@ Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem ins
 
 fw_nat_ip1, fw_nat_ip1 ...</br>
 Pliki z adresami IP, które mają być natowane na jeden konkretny adres IP.
-a jego zawartość powinna wygladać np tak:
+Przykładowa zawartość:
 
 grantedhost 192.168.102.96 </br>
 deniedhost 192.168.102.99 </br>
@@ -92,7 +92,7 @@ Ponizej przykład dla pliku o nazwie fw_nat_ip1
 
 fw_routed_ip  </br>
 Służy to prowadzenia rejestru sieci oraz adresów IP bramek (gateway) na które te sieci mają być rutowane w formacie:
-Sieć/prefiks adres_IP_bramki, przykład: 
+Sieć/prefiks adres_IP_bramki, przykładowa zawartość: 
 
 172.16.0.128/30 172.16.1.7 </br>
 172.16.1.128/30 172.16.1.8 </br>
