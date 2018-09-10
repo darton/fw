@@ -187,6 +187,8 @@ Klient może mieć kilka taryf (kilka umów na usługi) i przypisane do nich ró
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie TC-NEW
 
+![lms-shaper-config](https://user-images.githubusercontent.com/1482900/45297761-aeaffb00-b506-11e8-82b6-d8ddfb6782aa.png)
+
 Gdzie pierwsza kolumna zawiera unikalnę liczbę identyfikującą klienta w połączeniu z daną taryfą, jeśli klient ma kilka taryf dla każdej ta liczba musi byc unikalna.</br>
 Cyfry po słowie customer to unikalne id klientów w LMS</br>
 Wyrazenia class_up oraz class_down mają jako parametry rate oraz ceil, gdzie RATE to jest minimalna gwarantowana przepustowość, a CEIL to maksymalna niegwarantowana przepustowość</br>
