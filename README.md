@@ -52,10 +52,11 @@ Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem ins
 
 fw_lan_banned_dst_ports </br>
 Zawiera listę portów TCP/IP w formacie: "numer_portu"
+Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile
+
 
 fw_blacklist </br>
 Zawiera listę adresów IP i sieci
-
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile
 ![fw_blacklist](https://user-images.githubusercontent.com/1482900/45298758-cccb2a80-b509-11e8-8a0d-0dac9852fc53.png)
 
