@@ -1,7 +1,7 @@
 
 Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) i/lub shaper pobierając swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl) lub dowolny inny program, można też pliki konfiguracyjne stworzyć ręcznie.
 
-# Instalacja
+### Instalacja
 
 Jeśli odpowiadają Ci domyślnie ustawione wartości katalogów i nazwy plików konfiguracyjnych:
 
@@ -16,12 +16,12 @@ po wykonaniu zmian:
 bash ./install.sh
 
 
-# Sposób użycia
+### Sposób użycia
 
  /opt/gateway/scripts/fw.sh </br>
 Usage: fw.sh start|stop|restart|reload|stats|lmsd|qos|status|maintenance-on|maintenance-off
 
-# Przygotowanie plików konfiguracyjnych dla skryptu
+### Przygotowanie plików konfiguracyjnych dla skryptu
 
 Konieczne do uruchomienia skryptu pliki konfiguracyjne (domyślnie puste):
 
@@ -90,37 +90,37 @@ Odczytuje także cyklicznie stany liczników pakietów i ładuje je do pliku, Lm
 
 Gdy już mamy gotowe pliki konfiguracyjne uruchamiamy zaporę wykonuja skrypt z opcją: </br>
 
-# fw.sh start </br>
+## fw.sh start </br>
 Polecenie fw.sh start uruchomi zaporę odczytując parametry konfiguracyjne zawarte w plikach konfiguracyjncyh, dokana restartu serwera DHCP oraz reguł shapera.
 
-# fw.sh stop </br>
+## fw.sh stop </br>
 Wykonanie fw.sh stop zatrzyma zaporę, wyłączy forwardowanie pakietów, włączy domyśłne polityki dla iptables (np FORWARD DENY).
 
-# fw.sh restart </br>
+## fw.sh restart </br>
 wykona fw.sh start a potem ./fw stop czyli usunie wszystkie reguły iptables oraz ipset i utworzy je na nowo, powoduje to zerwanie wszystkich połączeń i przerę w transmisji na kilka sekund.
 
-# fw.sh reload </br> 
+## fw.sh reload </br> 
 wykona zmiany tylko tych reguł iptables, które się zmieniły: czyli np. usunie lub doda konkretną regułę iptables, lub podmieni tablice ipset. Aby uniknąć przerw w transmisji pakietów odczuwalnych dla wszystkich użytkowników należy korzystać właśnie z opcji reload przy wprowadzaniu zmian.
 
-# fw.sh lmsd
+## fw.sh lmsd
 Ten moduł służy do wspólpracy z LMS (http://lms.org.pl). Nasz router/firewall może wtedy pracować w sposób automatyczny.
 Sterowanie fw.sh odbywa się wtedy z poziomu LMS. fw.sh  sprawdzi czy w LMS został ustawiony przez operatora status przeładowania danego hosta i wykona przeładowanie lub restart w zależności, które pliki konfiguracyjne i co w nich zostało zmienione. Jeśli pliki nie zostały zmienione, a w LMS został ustawiony status przeładowania, skrypt to wykryje, zmieni status przeładowania w LMS na wykonane,  ale nie wykona restartu/przeładowania, zapisze tylko informacje w logach.
 
 Po instalacji ./fw.sh lmsd jest uruchamiany co minutę przez cron.
 uruchamianie fw.sh z modułem lmsd wymaga odpowiedniej konfiguracji LMS, tak by LMS generował pliki konfiguracyjne dla fw.sh w odpowiednim dla niego formacie raz aby możliwe było sterowanie praca fw.sh z poziomu LMS.
 
-# fw.sh shaper_stop|shaper_start|shaper_restart|shaper_stats
+## fw.sh shaper_stop|shaper_start|shaper_restart|shaper_stats
 
 ta opcja przydaje się jeśli mamy skonfigurowany LMS w ten sposób, że komputerom przypisane zostały taryfy. 
 Skrypt obsługuje także taryfe nocną (opcja shaper_restart). Dzialanie Shapera jest zoptymalizowane dla duzych ilości komputerów i taryf.
 
-# fw.sh shaper_stop
+### fw.sh shaper_stop
 Zatrzymuje Shaper
 
-# fw.sh shaper_stop
+### fw.sh shaper_stop
 Uruchamia Shaper
 
-# fw.sh shaper_restart
+### fw.sh shaper_restart
 Pobiera plik konfiguracyjny Shapera ze zdalnego serwera (LMS) a nastepnie zatrzymuje i ponownie uruchamia Shaper z nową konfiguracją.
 
 Aby dostosować ustawienia zadań wykonywanych przez moduł shaper w cron do własnych potrzeb, należy wyedytowac funcję fw_cron w pliku fwfunction, a jeśli już skrypt pracuje (został uruchomiony produkcyjnie) to także plik /etc/cron.d/fw_sh
@@ -185,16 +185,16 @@ Klient może mieć kilka taryf (kilka umów na usługi) i przypisane do nich ró
 103 class_down 8kbit 5120kbit</br>
 103 filter 192.168.101.34</br>
 
-Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie TC-NEW
-
-![lms-shaper-config](https://user-images.githubusercontent.com/1482900/45297761-aeaffb00-b506-11e8-82b6-d8ddfb6782aa.png)
-
 Gdzie pierwsza kolumna zawiera unikalnę liczbę identyfikującą klienta w połączeniu z daną taryfą, jeśli klient ma kilka taryf dla każdej ta liczba musi byc unikalna.</br>
 Cyfry po słowie customer to unikalne id klientów w LMS</br>
 Wyrazenia class_up oraz class_down mają jako parametry rate oraz ceil, gdzie RATE to jest minimalna gwarantowana przepustowość, a CEIL to maksymalna niegwarantowana przepustowość</br>
 Wyrażenie filter jako parametr ma zaś adres ip hosta, którego dotyczy konfiguracja</br>
 
-# fw.sh shaper_stats
+Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie TC-NEW
+
+![lms-shaper-config](https://user-images.githubusercontent.com/1482900/45297761-aeaffb00-b506-11e8-82b6-d8ddfb6782aa.png)
+
+## fw.sh shaper_stats
 
 Ta opcja modułu shaper dostarcza szczegółowe statystyki dla każdego hosta, poprzez odczyt z liczników iptables.
 
@@ -210,8 +210,8 @@ gdzie 192.168.100.1 to adres IP naszego rutera na którym pracuje skryp fw.sh.
 
 Polecenie pierwsze uruchomi zdalnie skrypt fw.sh z modułem stats, który odczyta liczniki przesłanych danych dla wszystkich hostów i zapisze je do pliku. Zaś drugie polecenie uruchomi skrypt, który odczyta plik /var/log/traffic.log i zaimportuje wartości do tabeli stats w bazie danych LMS.
 
-# fw.sh maintenance-on
+## fw.sh maintenance-on
  W tym trybie wyłącza zaporę, wyłącza zadania uruchamiane w cron, wyłącza serwer DHCP, wyłącza interfejsy LAN i WAN, podnosi zaś  interfejs zdefiniowany jako MGMT (management) i uruchamia na nim klienta DHCP .
 
-# fw.sh maintenance-off
+## fw.sh maintenance-off
 Wykonanie tej komendy powoduje przejście do normalnego trybu pracy.
