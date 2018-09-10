@@ -58,9 +58,37 @@ Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem ins
 fw_nat_1-n	</br>
 Zawiera listę w formacie: "nazwa_pliku_z_lista_adresów_IP publiczny_adres_ip", opisującego powiązania plików z prywatnymi adresami IP i odpowiadającymi im publicznymi adresami IP na które będą NAT-owane
 
+Jeśli mamy wiele adresów ip na, które chemy natować w systemie jeden do wielu, tworzymy osobne pliki dla nich np.: 
+fw_nat_ip1, fw_nat_ip2, fw_nat_ip3, fw_nat_ip4, itd. Do każdego pliku wrzucamy listę adresów IP hostów wraz z ich statusami (denied| granted) Zaś w pliku fw_nat_1-n zapisujemy powiązania pomiędzy tymi plikami a adresami IP, na które ma odbywać się natowanie.
+ 
+Przykładowa  zawrtość pliku fw_nat_1-n:
+ 
+fw_nat_ip1 172.16.0.1 </br>
+fw_nat_ip2 172.16.0.111 </br>
+fw_nat_ip3 172.16.0.222 </br>
+fw_nat_ip4 172.16.0.253 </br>
+
+Wtedy wszystkie adresy IP jakie zawiera plik fw_nat_ip1 bedą natowane na adres 172.16.0.1, zaś wszystkie adresy IP zawarte w pliku fw_nat_ip2 będą natowane na adres IP 172.16.0.111 ... itd.
+
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
 
 ![fw_nat_1n](https://user-images.githubusercontent.com/1482900/45298573-372f9b00-b509-11e8-925d-d544683ffb86.png)
+
+fw_nat_ip1, fw_nat_ip1 ...
+Pliki z adresami IP, które mają być natowane na jeden konkretny adres IP.
+a jego zawartość powinna wygladać np tak:
+
+grantedhost 192.168.102.96 </br>
+deniedhost 192.168.102.99 </br>
+
+Nazwy plików mogą być dowolne, muszą być tylko spójne z tym co zawiera plik fw_nat_1-n.
+W przykładzie opisane są nazwy jakie są skonfigurowane na zrzutrach ekranu
+
+Takie plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
+Ponizej przykład dla pliku o nazwie fw_nat_ip1
+
+
+
 
 fw_routed_ip  </br>
 Służy to prowadzenia rejestru sieci oraz adresów IP bramek (gateway) na które te sieci mają być rutowane w formacie:
@@ -93,28 +121,6 @@ Zawiera gotowy plik konfiguracyjny dla serwera dhcp
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie dhcp.
 ![dhcp](https://user-images.githubusercontent.com/1482900/45298911-377c6600-b50a-11e8-86c9-f626b69772cf.png)
-
-Np. plik z adresami IP, które mają być natowane na inny adres IP powinien mieć nazwę np. fw_nat_ip1
-a jego zawartość powinna wygladać np tak:
-
-grantedhost 192.168.102.96 </br>
-deniedhost 192.168.102.99 </br>
-
-Jeśli mamy wiele adresów ip na które chemy natować  w systemie jeden do wielu np. cztery adresy ip, tworzymy osobne pliki dla nich np.: 
-fw_nat_ip1, fw_nat_ip2, fw_nat_ip3, fw_nat_ip4. Do każdego pliku wrzucamy listę adresów IP hostów wraz z ich statusami (denied| granted)
-W pliku fw_nat_1-n zapisujemy powiązania pomiędzy tymi plikami a adresami IP, na które ma odbywać się natowanie.
- 
-Przykładowa  zawrtość pliku fw_nat_1-n:
- 
-fw_nat_ip1 172.16.0.1 </br>
-fw_nat_ip2 172.16.0.111 </br>
-fw_nat_ip3 172.16.0.222 </br>
-fw_nat_ip4 172.16.0.253 </br>
-
-Wtedy wszystkie adresy IP jakie zawiera plik fw_nat_ip1 bedą natowane na adres 172.16.0.1, zaś wszystkie adresy IP zawarte w pliku fw_nat_ip2 będą natowane na adres IP 172.16.0.111 ... itd.
-
-Nazwy plików mogą być dowolne trzeba je tylko zadeklarować w pliku fw.sh oraz fw_nat_1-n.
-W przykładzie opisane są nazwy jakie są skonfigurowane domyślnie.
 
 Gdy już mamy gotowe pliki konfiguracyjne uruchamiamy zaporę poleceniem:</br>
 
