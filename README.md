@@ -1,4 +1,6 @@
 
+#Opis
+
 Skrypt fw.sh konfiguruje system linux do pracy jako zapora (firewall) i/lub shaper, pobierając swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl) lub dowolny inny program, można też pliki konfiguracyjne stworzyć ręcznie.
 
 W celu optymalnej wydajności przetwarzania pakietów fw.sh korzysta z iptables oraz ipset. To pozwala na wykorzystanie go w sieciach z tysiącami komputerów. Skrypt posiada mechanizm pozwalający na unikanie, kiedy tylko to możliwe, niepotrzebnego przeładowania reguł iptables, korzystając z mechanizmu podmiany gotowych list ipset, oraz podmiany tylko zmienionych reguł iptables resztę pozostawiając bez zmian. 
@@ -11,7 +13,7 @@ Domyślnie skrypt pobiera swoje pliki konfiguracyjne łącząc się przez ssh ze
 Dla połączenia przez ssh pomiędzy ruterem z fw.sh i serwerem z LMS najlepiej użyć mechaznimu z wykorzystaniem pary kluczy RSA. 
 Jeśli pliki są tworzone lokalnie na tej samej maszynie, na której pracuje skrypt fw.sh najprościej jest podać w konfiguracji adres IP 127.0.0.1. 
 
-### Instalacja
+# Instalacja
 
 Jeśli odpowiadają Ci domyślnie ustawione wartości katalogów i nazwy plików konfiguracyjnych:
 
@@ -26,12 +28,12 @@ po wykonaniu zmian:
 bash ./install.sh
 
 
-### Sposób użycia
+# Sposób użycia
 
  /opt/gateway/scripts/fw.sh </br>
 Usage: fw.sh start|stop|restart|reload|stats|lmsd|qos|status|maintenance-on|maintenance-off
 
-### Przygotowanie plików konfiguracyjnych dla skryptu
+## Przygotowanie plików konfiguracyjnych dla skryptu
 
 Konieczne do uruchomienia skryptu pliki konfiguracyjne (domyślnie puste):
 
@@ -48,14 +50,14 @@ Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem ins
 
 ![fw_public_ip](https://user-images.githubusercontent.com/1482900/45300606-271aba00-b50f-11e8-9351-2038fb7432f9.png)
 
-fw_nat_1-1	</br>
+###w_nat_1-1	</br>
 Zawiera listę hostów z prywatnymi adresami IP natowanymi 1-1 na adresy publiczne w formacie: "grantedhost|deniedhost|warnedhost prywatny_adres_ip publiczny_adres_ip"
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
 
 ![fw_nat_11](https://user-images.githubusercontent.com/1482900/45298525-0fd8ce00-b509-11e8-9cd4-772522a12cc6.png)
 
-fw_nat_1-n	</br>
+###fw_nat_1-n	</br>
 Zawiera listę w formacie: "nazwa_pliku_z_lista_adresów_IP publiczny_adres_ip", opisującego powiązania plików z prywatnymi adresami IP i odpowiadającymi im publicznymi adresami IP na które będą NAT-owane
 
 Jeśli mamy wiele adresów ip na, które chemy natować w systemie jeden do wielu, tworzymy osobne pliki dla nich np.: 
@@ -74,7 +76,7 @@ Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem ins
 
 ![fw_nat_1n](https://user-images.githubusercontent.com/1482900/45298573-372f9b00-b509-11e8-925d-d544683ffb86.png)
 
-fw_nat_ip1, fw_nat_ip1 ...</br>
+###fw_nat_ip1, fw_nat_ip1 ...</br>
 Pliki z adresami IP, które mają być natowane na jeden konkretny adres IP.
 Przykładowa zawartość:
 
@@ -90,7 +92,7 @@ Ponizej przykład dla pliku o nazwie fw_nat_ip1
 ![fw_nat_1n_ip1](https://user-images.githubusercontent.com/1482900/45301748-d9ec1780-b511-11e8-9979-d3822a2dd3d7.png)
 
 
-fw_routed_ip  </br>
+###fw_routed_ip  </br>
 Służy to prowadzenia rejestru sieci oraz adresów IP bramek (gateway) na które te sieci mają być rutowane w formacie:
 Sieć/prefiks adres_IP_bramki, przykładowa zawartość: 
 
@@ -102,21 +104,21 @@ Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem ins
 
 ![fw_routed_ip](https://user-images.githubusercontent.com/1482900/45300413-8e843a00-b50e-11e8-958c-c71c275f5abd.png)
 
-fw_lan_banned_dst_ports </br>
+###fw_lan_banned_dst_ports </br>
 Zawiera listę portów TCP/IP w formacie: "numer_portu"
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
 ![fw_filtered_lan_dstp](https://user-images.githubusercontent.com/1482900/45299914-49133d00-b50d-11e8-8180-29506e57497a.png)
 
 
-fw_blacklist </br>
+###fw_blacklist </br>
 Zawiera listę adresów IP i sieci
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
 
 ![fw_blacklist](https://user-images.githubusercontent.com/1482900/45298758-cccb2a80-b509-11e8-8a0d-0dac9852fc53.png)
 
-dhcpd.conf </br>
+###dhcpd.conf </br>
 Zawiera gotowy plik konfiguracyjny dla serwera dhcp
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie dhcp.
@@ -148,13 +150,13 @@ uruchamianie fw.sh z modułem lmsd wymaga odpowiedniej konfiguracji LMS, tak by 
 ta opcja przydaje się jeśli mamy skonfigurowany LMS w ten sposób, że komputerom przypisane zostały taryfy. 
 Skrypt obsługuje także taryfe nocną (opcja shaper_restart). Dzialanie Shapera jest zoptymalizowane dla duzych ilości komputerów i taryf.
 
-### fw.sh shaper_stop
+## fw.sh shaper_stop
 Zatrzymuje Shaper
 
-### fw.sh shaper_stop
+## fw.sh shaper_stop
 Uruchamia Shaper
 
-### fw.sh shaper_restart
+## fw.sh shaper_restart
 Pobiera plik konfiguracyjny Shapera ze zdalnego serwera (LMS) a nastepnie zatrzymuje i ponownie uruchamia Shaper z nową konfiguracją.
 
 Aby dostosować ustawienia zadań wykonywanych przez moduł shaper w cron do własnych potrzeb, należy wyedytowac funcję fw_cron w pliku fwfunction, a jeśli już skrypt pracuje (został uruchomiony produkcyjnie) to także plik /etc/cron.d/fw_sh
