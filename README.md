@@ -53,7 +53,7 @@ dhcpd.conf </br>
 Zawiera gotowy plik konfiguracyjny dla serwera dhcp
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie dhcp
-
+![dhcp](https://user-images.githubusercontent.com/1482900/45298911-377c6600-b50a-11e8-86c9-f626b69772cf.png)
 
 Np. plik z adresami IP, które mają być natowane na inny adres IP powinien mieć nazwę np. fw_nat_ip1
 a jego zawartość powinna wygladać np tak:
