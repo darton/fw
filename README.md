@@ -41,33 +41,35 @@ Zawiera listę hostów z publicznymi adresami IP w formacie: "grantedhost|denied
 fw_nat_1-1	</br>
 Zawiera listę hostów z prywatnymi adresami IP natowanymi 1-1 na adresy publiczne w formacie: "grantedhost|deniedhost|warnedhost prywatny_adres_ip publiczny_adres_ip"
 
-Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile
+Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
 
 ![fw_nat_11](https://user-images.githubusercontent.com/1482900/45298525-0fd8ce00-b509-11e8-9cd4-772522a12cc6.png)
 
 fw_nat_1-n	</br>
 Zawiera listę w formacie: "nazwa_pliku_z_lista_adresów_IP publiczny_adres_ip", opisującego powiązania plików z prywatnymi adresami IP i odpowiadającymi im publicznymi adresami IP na które będą NAT-owane
 
-Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile
+Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
 
 ![fw_nat_1n](https://user-images.githubusercontent.com/1482900/45298573-372f9b00-b509-11e8-925d-d544683ffb86.png)
 
 fw_lan_banned_dst_ports </br>
 Zawiera listę portów TCP/IP w formacie: "numer_portu"
 
-Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile
+Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
 ![fw_filtered_lan_dstp](https://user-images.githubusercontent.com/1482900/45299914-49133d00-b50d-11e8-8180-29506e57497a.png)
 
 
 fw_blacklist </br>
 Zawiera listę adresów IP i sieci
-Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile
+
+Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
+
 ![fw_blacklist](https://user-images.githubusercontent.com/1482900/45298758-cccb2a80-b509-11e8-8a0d-0dac9852fc53.png)
 
 dhcpd.conf </br>
 Zawiera gotowy plik konfiguracyjny dla serwera dhcp
 
-Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie dhcp
+Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie dhcp.
 ![dhcp](https://user-images.githubusercontent.com/1482900/45298911-377c6600-b50a-11e8-86c9-f626b69772cf.png)
 
 Np. plik z adresami IP, które mają być natowane na inny adres IP powinien mieć nazwę np. fw_nat_ip1
@@ -207,7 +209,7 @@ Cyfry po słowie customer to unikalne id klientów w LMS</br>
 Wyrazenia class_up oraz class_down mają jako parametry rate oraz ceil, gdzie RATE to jest minimalna gwarantowana przepustowość, a CEIL to maksymalna niegwarantowana przepustowość</br>
 Wyrażenie filter jako parametr ma zaś adres ip hosta, którego dotyczy konfiguracja</br>
 
-Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji lmsd o nazwie tc-new
+Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji lmsd o nazwie tc-new.
 
 ![lms-shaper-config](https://user-images.githubusercontent.com/1482900/45297761-aeaffb00-b506-11e8-82b6-d8ddfb6782aa.png)
 
