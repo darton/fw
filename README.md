@@ -1,6 +1,10 @@
 
 Skrypt fw.sh konfiguruje system linuxowy do pracy jako zapora (firewall) i/lub shaper pobierając swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl) lub dowolny inny program, można też pliki konfiguracyjne stworzyć ręcznie.
 
+W celu optymalnej wydajności przetwarzania pakietów fw.sh korzysta z ipset. To pozwala na wykorzystanie go w sieciach z tysiącami komputerów. Skrypt posiada mechanizm pozwalający na unikanie, kiedy tylko to możliwe, niepotrzebnego przeładowania reguł iptables, korzystając z mechanizmu podmiany gotowych list ipset, oraz podmiany tylko zmienionych reguł iptables resztę pozostawiając bez zmian. 
+
+Odczytuje także cyklicznie stany liczników pakietów z iptables i ładuje je do pliku, Lms posiada skrypty (np lms-traffic) które pozwalają parsować taki plik i wrzucać z niego dane do tabeli stats swojej bazy danych, co pozwala na generowanie statystyk ruchu dla klientów. 
+
 ### Instalacja
 
 Jeśli odpowiadają Ci domyślnie ustawione wartości katalogów i nazwy plików konfiguracyjnych:
@@ -93,12 +97,6 @@ Sieć/prefiks adres_IP_bramki
 Domyślnie skrypt pobiera swoje pliki konfiguracyjne łącząc się przez ssh ze zdalną maszyną, na której są tworzone. 
 Dla łączenia przez ssh najlepiej użyć pary kluczy RSA. 
 Jeśli pliki są tworzone lokalnie na tej samej maszynie, na ktorej pracuje skrypt najprościej jest podać w konfiguracji adres IP 127.0.0.1. 
-
-W celu optymalnej wydajności przetwarzania pakietów fw.sh korzysta z ipset. To pozwala na wykorzystanie go w sieciach z tysiącami komputerów.
-
-Skrypt posiada mechanizm pozwalający na unikanie, kiedy tylko to możliwe, niepotrzebnego przeładowania reguł iptables, korzystając z mechanizmu podmiany gotowych list ipset, podczas którego transmisja pakietów nie ulega przerwaniu. 
-
-Odczytuje także cyklicznie stany liczników pakietów i ładuje je do pliku, Lms posiada skrypty (np lms-traffic) które pozwalają parsować taki plik i wrzucać z niego dane do tabeli stats swojej bazy danych, co pozwala na generowanie statystyk ruchu dla klientów. 
 
 Gdy już mamy gotowe pliki konfiguracyjne uruchamiamy zaporę wykonuja skrypt z opcją: </br>
 
