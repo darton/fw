@@ -42,16 +42,19 @@ fw_nat_1-1	</br>
 Zawiera listę hostów z prywatnymi adresami IP natowanymi 1-1 na adresy publiczne w formacie: "grantedhost|deniedhost|warnedhost prywatny_adres_ip publiczny_adres_ip"
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile
+
 ![fw_nat_11](https://user-images.githubusercontent.com/1482900/45298525-0fd8ce00-b509-11e8-9cd4-772522a12cc6.png)
 
 fw_nat_1-n	</br>
 Zawiera listę w formacie: "nazwa_pliku_z_lista_adresów_IP publiczny_adres_ip", opisującego powiązania plików z prywatnymi adresami IP i odpowiadającymi im publicznymi adresami IP na które będą NAT-owane
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile
+
 ![fw_nat_1n](https://user-images.githubusercontent.com/1482900/45298573-372f9b00-b509-11e8-925d-d544683ffb86.png)
 
 fw_lan_banned_dst_ports </br>
 Zawiera listę portów TCP/IP w formacie: "numer_portu"
+
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile
 ![fw_filtered_lan_dstp](https://user-images.githubusercontent.com/1482900/45299914-49133d00-b50d-11e8-8180-29506e57497a.png)
 
