@@ -37,7 +37,7 @@ Usage: fw.sh start|stop|restart|reload|stats|lmsd|qos|status|maintenance-on|main
 
 Konieczne do uruchomienia skryptu pliki konfiguracyjne (domyślnie puste):
 
-fw_public_ip </br>
+### fw_public_ip </br>
 Zawiera listę hostów z publicznymi adresami IP w formacie: "grantedhost|deniedhost|warnedhost adres_ip"
 Plik fw_public_ip służy do prowadzenia rejestru adresów IP, które mają być rutowane (bez NAT)
 np
@@ -50,14 +50,14 @@ Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem ins
 
 ![fw_public_ip](https://user-images.githubusercontent.com/1482900/45300606-271aba00-b50f-11e8-9351-2038fb7432f9.png)
 
-###w_nat_1-1	</br>
+### fw_nat_1-1	</br>
 Zawiera listę hostów z prywatnymi adresami IP natowanymi 1-1 na adresy publiczne w formacie: "grantedhost|deniedhost|warnedhost prywatny_adres_ip publiczny_adres_ip"
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
 
 ![fw_nat_11](https://user-images.githubusercontent.com/1482900/45298525-0fd8ce00-b509-11e8-9cd4-772522a12cc6.png)
 
-###fw_nat_1-n	</br>
+### fw_nat_1-n	</br>
 Zawiera listę w formacie: "nazwa_pliku_z_lista_adresów_IP publiczny_adres_ip", opisującego powiązania plików z prywatnymi adresami IP i odpowiadającymi im publicznymi adresami IP na które będą NAT-owane
 
 Jeśli mamy wiele adresów ip na, które chemy natować w systemie jeden do wielu, tworzymy osobne pliki dla nich np.: 
@@ -76,7 +76,7 @@ Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem ins
 
 ![fw_nat_1n](https://user-images.githubusercontent.com/1482900/45298573-372f9b00-b509-11e8-925d-d544683ffb86.png)
 
-###fw_nat_ip1, fw_nat_ip1 ...</br>
+### fw_nat_ip1, fw_nat_ip1 ...</br>
 Pliki z adresami IP, które mają być natowane na jeden konkretny adres IP.
 Przykładowa zawartość:
 
@@ -92,7 +92,7 @@ Ponizej przykład dla pliku o nazwie fw_nat_ip1
 ![fw_nat_1n_ip1](https://user-images.githubusercontent.com/1482900/45301748-d9ec1780-b511-11e8-9979-d3822a2dd3d7.png)
 
 
-###fw_routed_ip  </br>
+### fw_routed_ip  </br>
 Służy to prowadzenia rejestru sieci oraz adresów IP bramek (gateway) na które te sieci mają być rutowane w formacie:
 Sieć/prefiks adres_IP_bramki, przykładowa zawartość: 
 
@@ -104,21 +104,21 @@ Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem ins
 
 ![fw_routed_ip](https://user-images.githubusercontent.com/1482900/45300413-8e843a00-b50e-11e8-958c-c71c275f5abd.png)
 
-###fw_lan_banned_dst_ports </br>
+### fw_lan_banned_dst_ports </br>
 Zawiera listę portów TCP/IP w formacie: "numer_portu"
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
 ![fw_filtered_lan_dstp](https://user-images.githubusercontent.com/1482900/45299914-49133d00-b50d-11e8-8180-29506e57497a.png)
 
 
-###fw_blacklist </br>
+### fw_blacklist </br>
 Zawiera listę adresów IP i sieci
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie hostfile.
 
 ![fw_blacklist](https://user-images.githubusercontent.com/1482900/45298758-cccb2a80-b509-11e8-8a0d-0dac9852fc53.png)
 
-###dhcpd.conf </br>
+### dhcpd.conf </br>
 Zawiera gotowy plik konfiguracyjny dla serwera dhcp
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji LMSD o nazwie dhcp.
