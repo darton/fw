@@ -74,7 +74,7 @@ Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem ins
 
 ![fw_nat_1n](https://user-images.githubusercontent.com/1482900/45298573-372f9b00-b509-11e8-925d-d544683ffb86.png)
 
-fw_nat_ip1, fw_nat_ip1 ...
+fw_nat_ip1, fw_nat_ip1 ...</br>
 Pliki z adresami IP, które mają być natowane na jeden konkretny adres IP.
 a jego zawartość powinna wygladać np tak:
 
