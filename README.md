@@ -58,7 +58,7 @@ Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem ins
 ![fw_nat_11](https://user-images.githubusercontent.com/1482900/45298525-0fd8ce00-b509-11e8-9cd4-772522a12cc6.png)
 
 ### fw_nat_1-n	</br>
-Zawiera listę w formacie: "nazwa_pliku_z_lista_adresów_IP publiczny_adres_ip", opisującego powiązania plików z prywatnymi adresami IP i odpowiadającymi im publicznymi adresami IP na które będą NAT-owane
+Zawiera listę w formacie: "nazwa_pliku_z_lista_adresów_IP publiczny_adres_ip", opisującego powiązania plików z prywatnymi adresami IP i odpowiadającymi im publicznymi adresami IP na które będą NAT-owane. Nazwa n"azwa_pliku_z_lista_adresów_IP" jest także nazwą listy ipset swtorzonej na podstawie adresów ip zamieszczonych w tym pliku.
 
 Jeśli mamy wiele adresów ip na, które chemy natować w systemie jeden do wielu, tworzymy osobne pliki dla nich np.: 
 fw_nat_ip1, fw_nat_ip2, fw_nat_ip3, fw_nat_ip4, itd. Do każdego pliku wrzucamy listę adresów IP hostów wraz z ich statusami (denied| granted) Zaś w pliku fw_nat_1-n zapisujemy powiązania pomiędzy tymi plikami a adresami IP, na które ma odbywać się natowanie.
