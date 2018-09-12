@@ -130,11 +130,11 @@ function shaper_cmd {
     	    if [ "$arg1" = "ISP_TX_LIMIT" ]; then
         	ISP_TX_LIMIT=$arg2
     	    fi
-    	    if [ "$arg1" = "LAN_DEFAULT_LIMIT" ]; then
-        	LAN_DEFAULT_LIMIT=$arg2
+    	    if [ "$arg1" = "LAN_UNCLASSIFIED_LIMIT" ]; then
+        	LAN_UNCLASSIFIED_LIMIT=$arg2
     	    fi
-    	    if [ "$arg1" = "WAN_DEFAULT_LIMIT" ]; then
-        	WAN_DEFAULT_LIMIT=$arg2
+    	    if [ "$arg1" = "WAN_UNCLASSIFIED_LIMIT" ]; then
+        	WAN_UNCLASSIFIED_LIMIT=$arg2
     	    fi
     	    if [ "$arg1" = "GW_TO_LAN_LIMIT" ]; then
         	GW_TO_LAN_LIMIT=$arg2
@@ -146,10 +146,29 @@ function shaper_cmd {
 
     IFS=$delimiter
 
+	if [ -z "$ISP_RX_LIMIT" ]; then
+            ISP_RX_LIMIT=$DEFAULT_ISP_RX_LIMIT
+        fi
+        if [ -z "$ISP_TX_LIMIT" ]; then
+    	    ISP_TX_LIMIT=$DEFAULT_ISP_TX_LIMIT
+        fi
+        if [ -z "$LAN_UNCLASSIFIED_LIMIT" ]; then
+            LAN_UNCLASSIFIED_LIMIT=$DEFAULT_LAN_UNCLASSIFIED_LIMIT
+        fi
+        if [ -z "$WAN_UNCLASSIFIED_LIMIT" ]; then
+            WAN_UNCLASSIFIED_LIMIT=$DEFAULT_WAN_UNCLASSIFIED_LIMIT
+        fi
+        if [ -z "$GW_TO_LAN_LIMIT" ]; then
+            GW_TO_LAN_LIMIT=$DEFAULT_GW_TO_LAN_LIMIT
+        fi
+        if [ -z "$GW_TO_WAN_LIMIT" ]; then
+            GW_TO_WAN_LIMIT=$DEFAULT_GW_TO_WAN_LIMIT
+        fi
+
 	echo ISP_RX_LIMIT=$ISP_RX_LIMIT
 	echo ISP_TX_LIMIT=$ISP_TX_LIMIT
-	echo LAN_DEFAULT_LIMIT=$LAN_DEFAULT_LIMIT
-	echo WAN_DEFAULT_LIMIT=$WAN_DEFAULT_LIMIT
+	echo LAN_UNCLASSIFIED_LIMIT=$LAN_UNCLASSIFIED_LIMIT
+	echo WAN_UNCLASSIFIED_LIMIT=$WAN_UNCLASSIFIED_LIMIT
 	echo GW_TO_LAN_LIMIT=$GW_TO_LAN_LIMIT
 	echo GW_TO_WAN_LIMIT=$GW_TO_WAN_LIMIT
 
@@ -164,7 +183,7 @@ function shaper_cmd {
 	tc class add dev $LAN parent 1:1 classid 1:2 htb rate $ISP_RX_LIMIT ceil $ISP_RX_LIMIT $BURST quantum 1500
 
 #Set default limit for traffic from Internet to LAN
-	tc class add dev $LAN parent 1:1 classid 1:3 htb rate 8kbit ceil $LAN_DEFAULT_LIMIT prio 7 quantum 1500
+	tc class add dev $LAN parent 1:1 classid 1:3 htb rate 8kbit ceil $LAN_UNCLASSIFIED_LIMIT prio 7 quantum 1500
 	tc qdisc add dev $LAN parent 1:3 sfq perturb 10
 
 #To WAN
@@ -173,7 +192,7 @@ function shaper_cmd {
 	tc class add dev $WAN parent 2:0 classid 2:1 htb rate $ISP_TX_LIMIT ceil $ISP_TX_LIMIT $BURST quantum 1500
 
 # Set default limit for traffic from WAN to Internet
-	tc class add dev $WAN parent 2:1 classid 2:3 htb rate 8kbit ceil $WAN_DEFAULT_LIMIT prio 7 quantum 1500
+	tc class add dev $WAN parent 2:1 classid 2:3 htb rate 8kbit ceil $WAN_UNCLASSIFIED_LIMIT prio 7 quantum 1500
 	tc qdisc add dev $WAN parent 2:3 sfq perturb 10
 
 #From GATEWAY
@@ -225,6 +244,35 @@ function shaper_cmd {
 	iptables -t mangle -Z
         join /tmp/upload.tmp /tmp/download.tmp | grep -v  " 0 0"
         rm /tmp/upload.tmp /tmp/download.tmp
+    fi
+
+    if [ "$1" = "status" ]; then
+
+	iptables -t mangle -nvL
+
+	echo
+	echo "$LAN interface"
+	echo "----------------"
+	for TC_OPTIONS in qdisc class filter; do
+    	    if [ ! -z "$LAN" ]; then
+        	echo
+        	echo "$TC_OPTIONS"
+        	echo "------"
+        	tc $TC_OPTIONS show dev $LAN
+    	    fi
+	done
+
+	echo
+	echo "$WAN interface"
+	echo "----------------"
+	for TC_OPTIONS in qdisc class filter; do
+    	    if [ ! -z "$WAN" ]; then
+        	echo
+        	echo "$TC_OPTIONS"
+        	echo "------"
+        	tc $TC_OPTIONS show dev $WAN
+    	    fi
+	done
     fi
 }
 

@@ -211,6 +211,9 @@ source $scriptsdir/fwfunctions
     'shaper_stats')
         shaper_cmd stats
     ;;
+    'shaper_status')
+        shaper_cmd status
+    ;;
     'maintenance-on')
         maintenance-on
     ;;
@@ -218,7 +221,7 @@ source $scriptsdir/fwfunctions
         maintenance-off
     ;;
         *)
-        echo -e "\nUsage: fw.sh start|stop|restart|reload|status|lmsd|shaper_stop|shaper_start|shaper_restart|shaper_stats|maintenance-on|maintenance-off"
+        echo -e "\nUsage: fw.sh start|stop|restart|reload|status|lmsd|shaper_stop|shaper_start|shaper_restart|shaper_stats|shaper_status|maintenance-on|maintenance-off"
         echo "$current_time - fw.sh running without parameter" >> $logdir/$logfile
     ;;
     esac
