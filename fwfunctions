@@ -35,7 +35,6 @@ function get_qos_config {
 
 function get_shaper_config {
     echo "LMS generuje konfigurację dla Shapera"
-#    ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -i fw_shaper -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
     ssh $sshurl "$lmsd -q -i $lmsd_shaper_instance -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db"
     echo "Czekam kilka sekund"
     sleep 5
@@ -48,7 +47,6 @@ function get_shaper_config {
 
 function lmsd_reload {
     echo "Wykonuję reload wszystkich instancji lmsd na zdalnej maszynie"
-#    ssh $sshurl '/usr/local/lmsd/bin/lmsd -q -h 127.0.0.1:3306 -H newgateway -u lmsd_reload -d lms'
     ssh $sshurl "$lmsd -q -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db"
     echo "$current_time - Czekam 10s, aż lmsd stworzy nowe pliki konfiguracyjne" >> $logdir/$logfile
     sleep 10
@@ -177,7 +175,7 @@ function shaper_cmd {
 #To LAN
 # Set global limit for LAN interface
 	tc qdisc add dev $LAN root handle 1:0 htb default 3 r2q 1
-	tc class add dev $LAN parent 1:0 classid 1:1 htb rate 900000kbit ceil 900000kbit $BURST quantum 1500 
+	tc class add dev $LAN parent 1:0 classid 1:1 htb rate 900000kbit ceil 900000kbit $BURST quantum 1500
 
 # Set limit for all traffic from Internet to LAN
 	tc class add dev $LAN parent 1:1 classid 1:2 htb rate $ISP_RX_LIMIT ceil $ISP_RX_LIMIT $BURST quantum 1500
@@ -197,12 +195,12 @@ function shaper_cmd {
 
 #From GATEWAY
 #Set limit for traffic from GATEWAY to LAN
-	tc class add dev $LAN parent 1:1 classid 1:4 htb rate 128kbit ceil $GW_TO_LAN_LIMIT $BURST prio 4 quantum 1500
+	tc class add dev $LAN parent 1:1 classid 1:4 htb rate 128kbit ceil $GW_TO_LAN_LIMIT $BURST prio 2 quantum 1500
 	tc qdisc add dev $LAN parent 1:4 sfq perturb 10
 	iptables -t mangle -A OUTPUT -o $LAN -j CLASSIFY --set-class 1:4
 
 #Set limit for traffic from GATEWAY to WAN
-	tc class add dev $WAN parent 2:1 classid 2:4 htb rate 128kbit ceil $GW_TO_WAN_LIMIT $BURST prio 4 quantum 1500
+	tc class add dev $WAN parent 2:1 classid 2:4 htb rate 128kbit ceil $GW_TO_WAN_LIMIT $BURST prio 2 quantum 1500
 	tc qdisc add dev $WAN parent 2:4 sfq perturb 10
 	iptables -t mangle -A OUTPUT -o $WAN -j CLASSIFY --set-class 2:4
 
@@ -687,7 +685,6 @@ function fwstatus {
     echo "----------"
     ipset list -n
     echo ""
-
     echo "-----------------------------"
     echo Kernel Network Core Paremeters
     echo "-----------------------------"
