@@ -174,7 +174,9 @@ function shaper_cmd {
 	done < <(cat $confdir/$shaper_file|grep -v \#)
 
     IFS=$delimiter
-
+            if [ -z "$LAN_INTERFACE_SPEED_LIMIT" ]; then
+		LAN_INTERFACE_SPEED_LIMIT=$DEFAULT_LAN_INTERFACE_SPEED_LIMIT
+            fi
 	    if [ -z "$ISP_RX_LIMIT" ]; then
         	ISP_RX_LIMIT=$DEFAULT_ISP_RX_LIMIT
     	    fi
@@ -224,6 +226,7 @@ function shaper_cmd {
                 WAN_HOSTS_PRIORITY=$DEFAULT_WAN_HOSTS_PRIORITY
             fi
 
+	echo LAN_INTERFACE_SPEED_LIMIT=$LAN_INTERFACE_SPEED_LIMIT
 	echo ISP_RX_LIMIT=$ISP_RX_LIMIT
 	echo ISP_TX_LIMIT=$ISP_TX_LIMIT
         echo LAN_UNCLASSIFIED_RATE_LIMIT=$LAN_UNCLASSIFIED_RATE_LIMIT
