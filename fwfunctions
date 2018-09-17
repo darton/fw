@@ -62,13 +62,11 @@ function dhcpd_cmd {
 	else
     	    echo "Konfiguracja dhcpd.conf jest identyczna, restart nie jest potrzebny"
 	fi
-    fi
 
-    if [ "$1" = "start" ]; then
+    elif [ "$1" = "start" ]; then
 	systemctl restart dhcpd.service
-    fi
 
-    if [ "$1" = "stop" ]; then
+    elif [ "$1" = "stop" ]; then
 	systemctl stop dhcpd.service
     fi
 }
@@ -84,12 +82,11 @@ function htb_cmd {
         else
             echo "Konfiguracja rc.htb jest identyczna, restart nie jest potrzebny"
         fi
-    fi
-    if [ "$1" = "stop" ]; then
+    elif [ "$1" = "stop" ]; then
     bash $confdir/rc.htb stop
     echo "$current_time - htb_cmd stop OK" >> $logdir/$logfile
-    fi
-    if [ "$1" = "start" ]; then
+
+    elif [ "$1" = "start" ]; then
     echo "Uruchamiam Shaper"
     bash $confdir/rc.htb start
     fi
