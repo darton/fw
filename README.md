@@ -221,8 +221,8 @@ class_down 8kbit 5120kbit</br>
 filter 192.168.101.34</br>
 
 Znak "#" oznacza komentarz i nie jest parsowany przez moduł shaper. Cyfra po słowie customer to unikalne id klienta w LMS.</br>
-Wyrażenia class_up oraz class_down mają jako parametry rate oraz ceil, gdzie RATE to jest minimalna gwarantowana przepustowość, a CEIL to maksymalna niegwarantowana przepustowość</br>
-Wyrażenie filter jako parametr ma zaś adres ip hosta, którego dotyczy konfiguracja</br>
+Wyrażenia class_up oraz class_down mają jako parametry rate oraz ceil, gdzie RATE to jest minimalna gwarantowana prędkość, a CEIL to maksymalna niegwarantowana prędkość.</br>
+Wyrażenie filter jako parametr ma adres ip hosta, którego dotyczy konfiguracja.</br>
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji lmsd o nazwie tc-new.
 
