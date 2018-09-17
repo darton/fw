@@ -1,13 +1,14 @@
 
 # Opis
 
-Skrypt fw.sh konfiguruje system linux do pracy jako zapora (firewall) i/lub shaper, serwer dhcp, pobierając swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl) lub dowolny inny program, można też pliki konfiguracyjne stworzyć ręcznie.
+Skrypt fw.sh jest zoptymalizowany dla duzych sieci (kilka tysięcy komputerów). Konfiguruje system linux do pracy jako zapora (firewall), shaper (ograniczanie pasma per komputer lub per grupa komputerów), serwer dhcp. 
+Pobiera swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl) lub dowolny inny program. Można też pliki konfiguracyjne stworzyć ręcznie ich składnia jest prosta.
 
 W celu optymalnej wydajności przetwarzania pakietów fw.sh korzysta z iptables oraz ipset. To pozwala na wykorzystanie go w sieciach z tysiącami komputerów. Skrypt posiada mechanizm pozwalający na unikanie, kiedy tylko to możliwe, niepotrzebnego przeładowania reguł iptables, korzystając z mechanizmu podmiany gotowych list ipset, oraz podmiany tylko zmienionych reguł iptables resztę pozostawiając bez zmian. 
 
-Do limitowania pakietów wykorzystany jest moduł tc z pakietu iproute2 oraz odpowiednio przemyślana jego konfiguracja, która pozwala na duża wydajność przy niewielkim obciążeniu dla CPU.
+Do limitowania pakietów wykorzystany jest moduł tc wraz z algorytmem kolejkowania HTB z pakietu iproute2 oraz odpowiednio przemyślana konfiguracja, która pozwala na bardzo dużą wydajność przy zminimalizowanym obciążeniu dla CPU.
 
-Skrypt odczytuje także cyklicznie stany liczników pakietów z iptables i ładuje je do pliku. Lms posiada skrypty (np lms-traffic) które pozwalają parsować taki plik i wrzucać z niego dane do tabeli stats swojej bazy danych, co pozwala na generowanie statystyk ruchu dla klientów. 
+fw.sh z modułem stats odczytuje cyklicznie stany liczników pakietów z iptables i ładuje je do pliku. Lms posiada skrypty (np lms-traffic), które pozwalają parsować taki plik i wrzucać z niego dane do tabeli stats bazy danych LMS, co pozwala na generowanie statystyk ruchu dla klientów. 
 
 Domyślnie skrypt pobiera swoje pliki konfiguracyjne łącząc się przez ssh ze zdalną maszyną, na której są tworzone. 
 Dla połączenia przez ssh pomiędzy ruterem z fw.sh i serwerem z LMS najlepiej użyć mechaznimu z wykorzystaniem pary kluczy RSA. 
@@ -18,6 +19,7 @@ Jeśli pliki są tworzone lokalnie na tej samej maszynie, na której pracuje skr
 Jeśli odpowiadają Ci domyślnie ustawione wartości katalogów i nazwy plików konfiguracyjnych:
 
 #curl -sS https://raw.githubusercontent.com/darton/fw/master/install.sh |bash
+
 
 Jeśli przed instalacją chcesz wcześniej zmienić konfigurację:
 
