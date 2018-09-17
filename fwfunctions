@@ -471,16 +471,15 @@ function load_tmp_lan_banned_dst_ports_hashtable {
 }
 
 function load_new_ipset_hashtables {
-    for ipsetname in $(ipset list -n|grep -v .tmp)
-    do
+    for ipsetname in $(ipset list -n|grep -v .tmp); do
         current=$(ipset list $ipsetname |tail -n +8 |sort |sha1sum)
         new=$(ipset list $ipsetname.tmp |tail -n +8 |sort |sha1sum)
 
-     if [ "$current" != "$new" ]; then
-        echo "$current_time - Ładuję nową zawartość do $ipsetname" >> $logdir/$logfile
-        ipset -W $ipsetname $ipsetname.tmp
-     fi
-        ipset -X $ipsetname.tmp
+        if [ "$current" != "$new" ]; then
+    	    echo "$current_time - Ładuję nową zawartość do $ipsetname" >> $logdir/$logfile
+    	    ipset -W $ipsetname $ipsetname.tmp
+        fi
+    	ipset -X $ipsetname.tmp
         echo "$current_time - Kasuję $ipsetname.tmp" >> $logdir/$logfile
     done
     echo "$current_time - load_new_ipset_hashtables OK" >> $logdir/$logfile
@@ -505,15 +504,12 @@ function load_nat_11_fw_rules {
 
 function modify_nat11_fw_rules {
     lista_zmian=$(diff  --unchanged-line-format="" --old-line-format="removed %L" --new-line-format="added %L" $oldconfdir/$nat_11_file $confdir/$nat_11_file)
-    while read arg1 arg2 arg3 arg4
-    do
-	if ([ "$arg1" = "added" ] && [ "$arg2" = "deniedhost" ]) || ([ "$arg1" = "removed" ] && [ "$arg2" = "grantedhost" ])
-	    then
+    while read arg1 arg2 arg3 arg4; do
+	if ([ "$arg1" = "added" ] && [ "$arg2" = "deniedhost" ]) || ([ "$arg1" = "removed" ] && [ "$arg2" = "grantedhost" ]); then
 		current_iptables_nat11_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep NAT)
 		while read ipt_num ipt_target ipt_prot ipt_opt ipt_source ipt_destination ipt_destination2
 		do
-		    if [ "$arg3" = "$ipt_source" ]
-		    then
+		    if [ "$arg3" = "$ipt_source" ]; then
 			iptables -t nat -D POSTROUTING $ipt_num
 		    fi
 		done < <(echo -e "$current_iptables_nat11_postrouting_rules")
@@ -521,23 +517,18 @@ function modify_nat11_fw_rules {
 		current_iptables_nat11_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep NAT)
 		while read ipt_num ipt_target ipt_prot ipt_opt ipt_source ipt_destination ipt_destination2
 		do
-		    if [ "$arg4" = "$ipt_destination" ]
-			then
-			    iptables -t nat -D PREROUTING $ipt_num
+		    if [ "$arg4" = "$ipt_destination" ]; then
+			iptables -t nat -D PREROUTING $ipt_num
 		    fi
 		done < <(echo -e "$current_iptables_nat11_prerouting_rules")
 	fi
-
-	if ([ "$arg1" = "added" ] && [ "$arg2" = "grantedhost" ])
-	then
+	if ([ "$arg1" = "added" ] && [ "$arg2" = "grantedhost" ]); then
 		current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep SNAT|grep $arg4$)
-		if [ "$current_iptables_postrouting_rules" = "" ]
-		then
+		if [ "$current_iptables_postrouting_rules" = "" ]; then
 		    iptables -t nat -A POSTROUTING -o $WAN -s $arg3 -j SNAT --to-source $arg4
 		fi
 		current_iptables_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep DNAT|grep $arg3$)
-		if [ "$current_iptables_prerouting_rules" = "" ]
-		then
+		if [ "$current_iptables_prerouting_rules" = "" ]; then
 		    iptables -t nat -A PREROUTING -i $WAN -d $arg4 -j DNAT --to-destination $arg3
 		fi
 	fi
@@ -547,29 +538,23 @@ function modify_nat11_fw_rules {
 
 function modify_nat1n_fw_rules {
     lista_zmian=$(diff  --unchanged-line-format="" --old-line-format="removed %L" --new-line-format="added %L" $oldconfdir/$nat_1n_ip_file $confdir/$nat_1n_ip_file)
-    while read arg1 arg2 arg3
-    do
-	if ([ "$arg1" = "removed" ])
-	then
+    while read arg1 arg2 arg3; do
+	if ([ "$arg1" = "removed" ]); then
 	    current_iptables_nat1n_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set)
 	    while read ipt1 ipt2 ipt3 ipt4 ipt5 ipt6 ipt7 ipt8 ipt9 ipt10
 	    do
-		    if [ "to:$arg3" = "$ipt10" ]
-			then
-			    iptables -t nat -D POSTROUTING $ipt1
-			    ipset destroy $arg2
+		    if [ "to:$arg3" = "$ipt10" ]; then
+			iptables -t nat -D POSTROUTING $ipt1
+			ipset destroy $arg2
 		    fi
 	    done < <(echo -e "$current_iptables_nat1n_postrouting_rules")
 	fi
-    
-	if ([ "$arg1" = "added" ])
-	then
+	if ([ "$arg1" = "added" ]); then
 	    current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set|grep $arg3$)
 	    current_ipset_list=$(ipset -q --list $arg2)
-		    if ([ "$current_iptables_postrouting_rules" = "" ] && [ "$current_ipset_list" = "" ])
-			then
-			    ipset create "$arg2" hash:ip hashsize 1024
-			    iptables -t nat -I POSTROUTING -o $WAN -m set --match-set $arg2 src -j SNAT --to-source $arg3
+		    if ([ "$current_iptables_postrouting_rules" = "" ] && [ "$current_ipset_list" = "" ]); then
+			ipset create "$arg2" hash:ip hashsize 1024
+			iptables -t nat -I POSTROUTING -o $WAN -m set --match-set $arg2 src -j SNAT --to-source $arg3
 		    fi
 	fi
     done < <(echo -e "$lista_zmian")
