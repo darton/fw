@@ -195,14 +195,14 @@ Następnie dla każdego hosta powinny być określone parametry klas UP/DOWN HTB
 
 Przykładowa konfiguracja dla jednego hosta przypisanego do jednej pary klas UP/DOWN:
 
-customer 1</br>
+#customer 1</br>
 class_up 8kbit 1024kbit</br>
 class_down 8kbit 5120kbit</br>
 filter 192.168.101.24</br>
 
 dla kilku hostów przypisanych do pary klas:
 
-customer 2</br>
+#customer 2</br>
 class_up 8kbit 1024kbit</br>
 class_down 8kbit 5120kbit</br>
 filter 192.168.10.24</br>
@@ -211,16 +211,16 @@ filter 192.168.10.26</br>
 
 Klient może mieć kilka taryf (kilka umów na usługi) i przypisane do nich różne komputery. Wtedy dla każdej taryfy trzeba wygenerować odpowiedni zestaw rekordów. Np jeśli klient o id 1 miałby jeszcze dwie dodatkowe umowy/taryfy z przypisanymi do nich po po jednym modemie/komputerze, należy dodać następujące rekordy
 
-customer 1</br>
+#customer 1</br>
 class_up 8kbit 1024kbit</br>
 class_down 8kbit 5120kbit</br>
 filter 192.168.101.30</br>
-customer 1</br>
+#customer 1</br>
 class_up 8kbit 1024kbit</br>
 class_down 8kbit 5120kbit</br>
 filter 192.168.101.34</br>
 
-Cyfra po słowie customer to unikalne id klienta w LMS.</br>
+Znak "#" oznacza komentarz i nie jest parsowany przez moduł shaper. Cyfra po słowie customer to unikalne id klienta w LMS.</br>
 Wyrażenia class_up oraz class_down mają jako parametry rate oraz ceil, gdzie RATE to jest minimalna gwarantowana przepustowość, a CEIL to maksymalna niegwarantowana przepustowość</br>
 Wyrażenie filter jako parametr ma zaś adres ip hosta, którego dotyczy konfiguracja</br>
 
