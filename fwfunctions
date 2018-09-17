@@ -280,8 +280,9 @@ function shaper_cmd {
 
 	h=99
 	while read arg1 arg2 arg3 arg4; do
-    	    if [ "$arg1" = "class_up" ]; then
+    	    if [ "$arg1" = "customer" ]; then
 		let h=$h+1
+	    elif [ "$arg1" = "class_up" ]; then
                 tc class add dev $WAN parent 2:1 classid 2:$h htb rate $arg2 ceil $arg3 $BURST prio $WAN_HOSTS_PRIORITY quantum 1500
                 tc qdisc add dev $WAN parent 2:$h sfq perturb 10
     	    elif [ "$arg1" = "class_down" ]; then
