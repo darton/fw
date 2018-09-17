@@ -211,10 +211,15 @@ WAN_UNCLASSIFIED_CEIL_LIMIT to limit dla ruchu wychodzącego do sieci WAN nie sk
 W siedmiostopniowej skali od 1 do 7 gdzie 1 oznacza najwyższy prioryter a 7 najniższy okraślane sa także prirytety dla nastepującyh grup.
 
 GW_TO_LAN_PRIORITY - proprytet dla pakietów wysyłanych z GW do sieci LAN.</br>
-GW_TO_WAN_PRIORITY - proprytet dla pakietów wysyłanych z GW do sieci WAN/</br>
+
+GW_TO_WAN_PRIORITY - proprytet dla pakietów wysyłanych z GW do sieci WAN.</br>
+
 LAN_UNCLASSIFIED_PRIORITY - proprytet dla pakietów nie sklasyfikowanych wysyłanych do sieci LAN.</br>
+
 WAN_UNCLASSIFIED_PRIORITY - proprytet dla pakietów nie sklasyfikowanych wysyłanych do sieci WAN.</br>
+
 LAN_HOSTS_PRIORITY - proprytet dla pakietów wysyłanych do sieci LAN, kierowanych do hostów dla, których ruchem zarządza moduł shaper.</br>
+
 WAN_HOSTS_PRIORITY - proprytet dla pakietów wysyłanych do sieci WAN, kierowanych z hostów dla, których ruchem zarządza moduł shaper.</br>
 
 Następnie dla każdego hosta powinny być określone parametry klas UP/DOWN HTB, przy czym kilka hostów może być przypisanych do jednej pary klasy HTB.</br>
