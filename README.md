@@ -191,39 +191,37 @@ LAN_DEFAULT_LIMIT to limit dla ruchu wychodzącego do sieci LAN nie sklasyfikowa
 
 WAN_DEFAULT_LIMIT to limit dla ruchu wychodzącego do sieci WAN nie sklasyfikowanego, czyli komputerów urządzeń nie ujętych w pliku konfiguracyjnym dla modułu Shaper</br>
 
-
 Następnie dla każdego hosta powinny być określone parametry klas UP/DOWN HTB, przy czym kilka hostów może być przypisanych do jednej pary klasy HTB.
 
 Przykładowa konfiguracja dla jednego hosta przypisanego do jednej pary klas UP/DOWN:
 
-100 customer 1</br>
-100 class_up 8kbit 1024kbit</br>
-100 class_down 8kbit 5120kbit</br>
-100 filter 192.168.101.24</br>
+customer 1</br>
+class_up 8kbit 1024kbit</br>
+class_down 8kbit 5120kbit</br>
+filter 192.168.101.24</br>
 
 dla kilku hostów przypisanych do pary klas:
 
-101 customer 2</br>
-101 class_up 8kbit 1024kbit</br>
-101 class_down 8kbit 5120kbit</br>
-101 filter 192.168.10.24</br>
-101 filter 192.168.10.25</br>
-101 filter 192.168.10.26</br>
+customer 2</br>
+class_up 8kbit 1024kbit</br>
+class_down 8kbit 5120kbit</br>
+filter 192.168.10.24</br>
+filter 192.168.10.25</br>
+filter 192.168.10.26</br>
 
 Klient może mieć kilka taryf (kilka umów na usługi) i przypisane do nich różne komputery. Wtedy dla każdej taryfy trzeba wygenerować odpowiedni zestaw rekordów. Np jeśli klient o id 1 miałby jeszcze dwie dodatkowe umowy/taryfy z przypisanymi do nich po po jednym modemie/komputerze, należy dodać następujące rekordy
 
-102 customer 1</br>
-102 class_up 8kbit 1024kbit</br>
-102 class_down 8kbit 5120kbit</br>
-102 filter 192.168.101.30</br>
-103 customer 1</br>
-103 class_up 8kbit 1024kbit</br>
-103 class_down 8kbit 5120kbit</br>
-103 filter 192.168.101.34</br>
+customer 1</br>
+class_up 8kbit 1024kbit</br>
+class_down 8kbit 5120kbit</br>
+filter 192.168.101.30</br>
+customer 1</br>
+class_up 8kbit 1024kbit</br>
+class_down 8kbit 5120kbit</br>
+filter 192.168.101.34</br>
 
-Gdzie pierwsza kolumna zawiera unikalnę liczbę identyfikującą klienta w połączeniu z daną taryfą, jeśli klient ma kilka taryf dla każdej ta liczba musi byc unikalna.</br>
-Cyfry po słowie customer to unikalne id klientów w LMS</br>
-Wyrazenia class_up oraz class_down mają jako parametry rate oraz ceil, gdzie RATE to jest minimalna gwarantowana przepustowość, a CEIL to maksymalna niegwarantowana przepustowość</br>
+Cyfra po słowie customer to unikalne id klienta w LMS.</br>
+Wyrażenia class_up oraz class_down mają jako parametry rate oraz ceil, gdzie RATE to jest minimalna gwarantowana przepustowość, a CEIL to maksymalna niegwarantowana przepustowość</br>
 Wyrażenie filter jako parametr ma zaś adres ip hosta, którego dotyczy konfiguracja</br>
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji lmsd o nazwie tc-new.
