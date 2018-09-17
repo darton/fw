@@ -280,8 +280,9 @@ function shaper_cmd {
 
 	h=99
 	while read arg1 arg2 arg3 arg4; do
-    	    if [ "$arg1" = "class_up" ]; then
+    	    if [ "$arg1" = "customer" ]; then
 		let h=$h+1
+    	    elif [ "$arg1" = "class_up" ]; then
                 tc class add dev $WAN parent 2:1 classid 2:$h htb rate $arg2 ceil $arg3 $BURST prio $WAN_HOSTS_PRIORITY quantum 1500
                 tc qdisc add dev $WAN parent 2:$h sfq perturb 10
     	    elif [ "$arg1" = "class_down" ]; then
@@ -686,17 +687,17 @@ function static_routing_down {
 
 function fw_cron {
     if [ "$1" = "start" ]; then
-	echo '# Run the fw.sh cron jobs
+	echo "# Run the fw.sh cron jobs
 SHELL=/bin/bash
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 MAILTO=""
-* * * * * root /opt/gateway/scripts/fw.sh lmsd  > /dev/null 2>&1
-00 22 * * * root /opt/gateway/scripts/fw.sh shaper_restart  > /dev/null 2>&1
-00 10 * * * root /opt/gateway/scripts/fw.sh shaper_restart  > /dev/null 2>&1
-' > /etc/cron.d/fw_sh
+* * * * * root $scriptsdir/fw.sh lmsd  > /dev/null 2>&1
+00 22 * * * root $scriptsdir/fw.sh shaper_restart  > /dev/null 2>&1
+00 10 * * * root $scriptsdir/fw.sh shaper_restart  > /dev/null 2>&1
+" > /etc/cron.d/fw_sh
         echo "$current_time - Włączam cron dla fw.sh" >> $logdir/$logfile
-    fi
-    if [ "$1" = "stop" ]; then
+
+    elif [ "$1" = "stop" ]; then
 	if [ -f /etc/cron.d/fw_sh ]; then
     	    rm /etc/cron.d/fw_sh
     	fi
