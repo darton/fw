@@ -258,7 +258,7 @@ Wyrażenie filter jako parametr ma adres ip hosta, którego dotyczy konfiguracja
 
 Taki plik może wygenerować odpowiednio skonfigurowany LMS z wykorzystaniem instancji lmsd o nazwie tc-new.
 
-![shaper](https://user-images.githubusercontent.com/1482900/45610951-0ba73600-ba5e-11e8-9490-77bd673acf07.png)
+![shaper](https://user-images.githubusercontent.com/1482900/45617424-942fd180-ba72-11e8-95c6-d29fb1182365.png)
 
 ## fw.sh shaper_stats
 
