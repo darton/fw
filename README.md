@@ -170,26 +170,46 @@ Terminy przeładowania skryptu ./fw.sh z opcją shaper_restart dla taryfy nocnej
 
 Format pliku konfiguracyjnego dla modułu Shapera, którego nazwę określa się w zmiennej shaper_file= skyrptu fw.sh:
 
-Plik musi zaczynać się od deklaracji parametrów:
+Plik musi zaczynać się od deklaracji poniższych parametrów. Jeśli te parametry nie zostaną podane, zostaną użyte domyślne parametry określone w pliku fw.conf.
+
 
 ISP_RX_LIMIT=470000kbit</br>
 ISP_TX_LIMIT=470000kbit</br>
-GW_TO_LAN_LIMIT=1000000kbit</br>
-GW_TO_WAN_LIMIT=100000kbit</br>
-LAN_DEFAULT_LIMIT=128kbit</br>
-WAN_DEFAULT_LIMIT=128kbit</br>
-
-gdzie:
+GW_TO_LAN_RATE_LIMIT=100kbit</br>
+GW_TO_LAN_CEIL_LIMIT=200000kbit</br>
+GW_TO_WAN_RATE_LIMIT=100kbit</br>
+GW_TO_WAN_CEIL_LIMIT=50000kbit</br>
+LAN_UNCLASSIFIED_RATE_LIMIT=16kbit</br>
+LAN_UNCLASSIFIED_CEIL_LIMIT=128kbit</br>
+WAN_UNCLASSIFIED_RATE_LIMIT=16kbit</br>
+WAN_UNCLASSIFIED_CEIL_LIMIT=128kbit</br>
+GW_TO_LAN_PRIORITY=2</br>
+GW_TO_WAN_PRIORITY=2</br>
+LAN_UNCLASSIFIED_PRIORITY=7</br>
+WAN_UNCLASSIFIED_PRIORITY=7</br>
+LAN_HOSTS_PRIORITY=2</br>
+WAN_HOSTS_PRIORITY=2</br>
 
 ISP_RX_LIMIT oraz ISP_TX_LIMIT to wynikające z kontraktu z operatorem nadrzędnym parametry łącza dostępowego do sieci INternet pomniejszone o ok 5-10% aby uniknąc zapełniania kolejki modemu operatora.</br>
 
-GW_TO_LAN_LIMIT to limit ruchu wychodzącego do sieci LAN, którego źródłem jest Gateway na którym pracuje skrypt fw.sh</br>
+GW_TO_LAN_RATE_LIMIT to gwarantowana prędkość dla ruchu wychodzącego do sieci LAN, którego źródłem jest Gateway na którym pracuje skrypt fw.sh</br>
+GW_TO_LAN_CEIL_LIMIT to limit ruchu wychodzącego do sieci LAN, którego źródłem jest Gateway na którym pracuje skrypt fw.sh</br>
+GW_TO_WAN_RATE_LIMIT to gwarantowana prędkośc dla ruchu wychodzącego do sieci WAN, którego źródłem jest Gateway na którym pracuje skrypt fw.sh</br>
+GW_TO_WAN_CEIL_LIMIT to limit ruchu wychodzącego do sieci WAN, którego źródłem jest Gateway na którym pracuje skrypt fw.sh</br>
 
-GW_TO_WAN_LIMIT to limit ruchu wychodzącego do sieci WAN, którego źródłem jest Gateway na którym pracuje skrypt fw.sh</br>
+LAN_UNCLASSIFIED_RATE_LIMIT to gwarantowana prędjość dla ruchu wychodzącego do sieci LAN nie sklasyfikowanego, czyli komputerów urządzeń nie ujętych w pliku konfiguracyjnym dla modułu Shaper</br>
+LAN_UNCLASSIFIED_CEIL_LIMIT to limit dla ruchu wychodzącego do sieci LAN nie sklasyfikowanego, czyli komputerów urządzeń nie ujętych w pliku konfiguracyjnym dla modułu Shaper</br>
+WAN_UNCLASSIFIED_RATE_LIMIT to gwarantowana prędkość dla ruchu wychodzącego do sieci WAN nie sklasyfikowanego, czyli komputerów urządzeń nie ujętych w pliku konfiguracyjnym dla modułu Shaper</br>
+WAN_UNCLASSIFIED_CEIL_LIMIT to limit dla ruchu wychodzącego do sieci WAN nie sklasyfikowanego, czyli komputerów urządzeń nie ujętych w pliku konfiguracyjnym dla modułu Shaper</br>
 
-LAN_DEFAULT_LIMIT to limit dla ruchu wychodzącego do sieci LAN nie sklasyfikowanego, czyli komputerów urządzeń nie ujętych w pliku konfiguracyjnym dla modułu Shaper</br>
+W siedmiostopniowej skali od 1 do 7 gdzie 1 oznacza najwyższy prioryter a 7 najniższy okraślane sa także prirytety dla nastepującyh grup.
 
-WAN_DEFAULT_LIMIT to limit dla ruchu wychodzącego do sieci WAN nie sklasyfikowanego, czyli komputerów urządzeń nie ujętych w pliku konfiguracyjnym dla modułu Shaper</br>
+GW_TO_LAN_PRIORITY - proprytet dla pakietów wysyłanych z GW do sieci LAN
+GW_TO_WAN_PRIORITY - proprytet dla pakietów wysyłanych z GW do sieci WAN
+LAN_UNCLASSIFIED_PRIORITY - proprytet dla pakietów nie sklasyfikowanych wysyłanych do sieci LAN
+WAN_UNCLASSIFIED_PRIORITY - proprytet dla pakietów nie sklasyfikowanych wysyłanych do sieci WAN
+LAN_HOSTS_PRIORITY - proprytet dla pakietów wysyłanych do sieci LAN, kierowanych do hostów dla, których ruchem zarządza moduł shaper
+WAN_HOSTS_PRIORITY - proprytet dla pakietów wysyłanych do sieci WAN, kierowanych z hostów dla, których ruchem zarządza moduł shaper
 
 Następnie dla każdego hosta powinny być określone parametry klas UP/DOWN HTB, przy czym kilka hostów może być przypisanych do jednej pary klasy HTB.
 
