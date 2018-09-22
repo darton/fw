@@ -169,7 +169,7 @@ source $scriptsdir/fwfunctions
     lmsd_status=$(ssh $sshurl "$dburl"| grep -v reload)
 
     if [ $lmsd_status = 1 ]; then
-        echo "$current_time - Status przeładowania lmsd został ustawiony" >> $logdir/$logfile
+        echo "$current_time - Status przeładowania hosta został ustawiony" >> $logdir/$logfile
 	lmsd_reload
         get_config
         newreload
