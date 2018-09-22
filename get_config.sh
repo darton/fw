@@ -5,7 +5,6 @@ confdir=./conf
 
 #Get config method from remote host
 #get_cmd="ssh $sshurl"
-
 #Get config method from localhost
 get_cmd="eval"
 
