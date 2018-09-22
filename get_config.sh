@@ -59,6 +59,8 @@ for item in $nat_1n_nodegroups_id; do
     dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
     nat_1n_nodegroup_name=$($exec_cmd "$dburl")
     nat_1n_nodegroup_ip=$(echo $nat_1n_nodegroup_name | cut -c 9-)
+#    nat_1n_nodegroup_file=$(echo $nat_1n_nodegroup_name | cut -c -8)
+#    echo fw_$nat_1n_nodegroup_file"ip"$item
 
     cp /dev/null $confdir/"$files_prefix"fw_$nat_1n_nodegroup_name
 
