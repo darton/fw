@@ -25,7 +25,7 @@ for host_status in {0..1}; do
     dbquery="SELECT INET_NTOA(ipaddr),INET_NTOA(ipaddr_pub) FROM nodegroupassignments nga JOIN nodes n ON nga.nodeid=n.id AND n.access=$host_status AND nga.nodegroupid=(SELECT id FROM nodegroups WHERE name='$forward_group_name');"
     dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
 
-    $get_cmd "$dburl"| while read ip ip_pub; do echo $status $ip $ip_pub; done >> $confdir/"$files_prefix"$public_ip_file
+    $get_cmd "$dburl"| while read ip ip_pub; do echo $status $ip; done >> $confdir/"$files_prefix"$public_ip_file
 done;
 
 
