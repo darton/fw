@@ -31,9 +31,9 @@ files_prefix=""
 # LMS hosts groups names
 # Group for hosts with public ip address (forward only without NAT).
 #forward_group_name="public_ip"
-dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='forward_nodegroup_name';"
+dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='forwarded_nodegroup_name';"
 dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
-forward_group_name="$($exec_cmd $dburl)"
+forwarded_group_name="$($exec_cmd $dburl)"
 
 
 # Group for hosts which ip address is translated by method NAT 1-1.
@@ -58,7 +58,7 @@ for host_status in {0..1}; do
     elif [ "$host_status" = "0" ]; then
         status="deniedhost"
     fi
-    dbquery="SELECT INET_NTOA(ipaddr),INET_NTOA(ipaddr_pub) FROM nodegroupassignments nga JOIN nodes n ON nga.nodeid=n.id AND n.access=$host_status AND nga.nodegroupid=(SELECT id FROM nodegroups WHERE name='$forward_group_name');"
+    dbquery="SELECT INET_NTOA(ipaddr),INET_NTOA(ipaddr_pub) FROM nodegroupassignments nga JOIN nodes n ON nga.nodeid=n.id AND n.access=$host_status AND nga.nodegroupid=(SELECT id FROM nodegroups WHERE name='$forwarded_group_name');"
     dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
     $exec_cmd "$dburl"| while read ip ip_pub; do echo $status $ip; done >> $confdir/"$files_prefix"$public_ip_file
 done
