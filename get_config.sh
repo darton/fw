@@ -49,10 +49,6 @@ dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='nat_1n_nodegroup
 dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
 nat_1n_groups_rootname=$($exec_cmd $dburl)
 
-#nat_1n_ip_group_name="nat_1-n"
-dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='nat_1n_ip_group_name';"
-dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
-nat_1n_ip_group_name=$($exec_cmd $dburl)
 
 routed_group_name="routed_ip"
 #dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='forward_nodegroup_name';"
