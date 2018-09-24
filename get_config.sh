@@ -11,7 +11,8 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 
-#get config fot fw.sh from LMS (lms.org.pl) data base.
+# Get config for fw.sh script from LMS (lms.org.pl) data base.
+# Currently get config for nat11, nat1n, public_ip module of fw.sh script.
 
 . ./fw.conf
 confdir=./conf
