@@ -44,7 +44,7 @@ nat11_group_name="nat_1-1"
 
 
 # Group for hosts which ip address is translated by method NAT 1-n.
-nat_1n_groups_name="nat_1-n_%"
+nat_1n_groups_rootname="nat_1-n_%"
 #dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='nat_1n_nodegroups_rootname';"
 #dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
 #nat_1n_groups_rootname=$($exec_cmd "$dburl")
