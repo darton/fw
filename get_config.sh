@@ -25,11 +25,15 @@ exec_cmd="eval"
 
 files_prefix=""
 
+# LMS hosts groups names
+# Hosts group forwarded only (hosts with public ip address)
 forward_group_name="public_ip"
+# Hosts group with NAT 1-1
 nat11_group_name="nat_1-1"
+#Hosts group with NAT 1-n
 nat_1n_groups_name="nat_1-n_%"
 
-#IP address list of host belong to LMS group public_ip
+#List of hosts with public ip address
 cp /dev/null $confdir/"$files_prefix"$public_ip_file
 for host_status in {0..1}; do
     if [ "$host_status" = "1" ]; then
@@ -45,7 +49,7 @@ for host_status in {0..1}; do
 done
 
 
-#IP address list of host belong to LMS group nat_1-1
+#List of ip address of hosts which ip address is translated by NAT1-1.
 cp /dev/null $confdir/"$files_prefix"$nat_11_file
 for host_status in {0..1}; do
     if [ "$host_status" = "1" ]; then
@@ -61,7 +65,7 @@ for host_status in {0..1}; do
 done
 
 
-#IP address list of host belong to LMS groups nat_1n_*
+#List of ip address of hosts which ip address is translated by NAT1-n.
 dbquery="SELECT id FROM nodegroups WHERE name like '$nat_1n_groups_name';"
 dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
 nat_1n_nodegroups_id=$($exec_cmd "$dburl")
