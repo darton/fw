@@ -31,14 +31,14 @@ files_prefix=""
 # LMS hosts groups names
 # Group for hosts with public ip address (forward only without NAT).
 forward_group_name="public_ip"
-#dbquery=SELECT value FROM uiconfig WHERE section='fw' AND var='forward_nodegroup_name';
+#dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='forward_nodegroup_name';"
 #dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
 #forward_group_name=$($exec_cmd "$dburl")
 
 
 # Group for hosts which ip address is translated by method NAT 1-1.
 nat11_group_name="nat_1-1"
-#dbquery=SELECT value FROM uiconfig WHERE section='fw' AND var='nat_11_nodegroup_name'
+#dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='nat_11_nodegroup_name';"
 #dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
 #nat_11_group_name=$($exec_cmd "$dburl")
 
@@ -50,12 +50,12 @@ nat_1n_groups_rootname="nat_1-n_%"
 #nat_1n_groups_rootname=$($exec_cmd "$dburl")
 
 nat_1n_ip_group_name="nat_1-n"
-#dbquery=SELECT value FROM uiconfig WHERE section='fw' AND var='nat_1n_ip_group_name';
+#dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='nat_1n_ip_group_name';"
 #dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
 #nat_1n_ip_group_name=$($exec_cmd "$dburl")
 
 routed_group_name="routed_ip"
-#dbquery=SELECT value FROM uiconfig WHERE section='fw' AND var='forward_nodegroup_name';
+#dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='forward_nodegroup_name';"
 #dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
 #routed_group_name=$($exec_cmd "$dburl")
 
