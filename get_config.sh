@@ -90,7 +90,7 @@ done
 
 
 #List of ip address of hosts which ip address is translated by method NAT 1-n.
-dbquery="SELECT id FROM nodegroups WHERE name like '$nat_1n_groups_name';"
+dbquery="SELECT id FROM nodegroups WHERE name like '$nat_1n_groups_rootname';"
 dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
 nat_1n_nodegroups_id=$($exec_cmd "$dburl")
 cp /dev/null $confdir/"$files_prefix"$nat_1n_ip_file
