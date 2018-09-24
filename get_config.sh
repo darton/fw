@@ -50,13 +50,6 @@ dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
 nat_1n_groups_rootname=$($exec_cmd $dburl)
 
 
-routed_group_name="routed_ip"
-#dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='forward_nodegroup_name';"
-#dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
-#routed_group_name=$($exec_cmd "$dburl")
-
-
-
 # List of hosts with public ip address
 cp /dev/null $confdir/"$files_prefix"$public_ip_file
 for host_status in {0..1}; do
