@@ -17,6 +17,10 @@
 . ./fw.conf
 confdir=./conf
 
+logdir=/var/log
+logfile=make_config.log
+current_time=$(date '+%Y-%m-%d %H:%M:%S')
+
 # Exec command methods
 # On remote host
 # exec_cmd="ssh $sshurl"
@@ -26,21 +30,30 @@ exec_cmd="eval"
 files_prefix=""
 
 function db_cmd {
-dburl="mysql -s -u $lms_dbuser $lms_db"
 
-if [ "$1" = "dbquery" ] && [ "$dbquery" != "" ]; then
-    $exec_cmd $dburl -e \"$dbquery\" > /dev/null
-    if [ $? -eq 0 ]; then
-	$exec_cmd $dburl -e \"$dbquery\"
-    else
-	echo "error"
-	exit 
+dburl="mysql -s -u $lms_dbuser $lms_db"
+$exec_cmd $dburl -e \"\" &> /dev/null
+
+if [ $? -eq 0 ]; then
+    if [ "$1" = "dbquery" ] && [ "$dbquery" != "" ]; then
+	$exec_cmd $dburl -e \"$dbquery\" &> /dev/null
+	if [ $? -eq 0 ]; then
+	    $exec_cmd $dburl -e \"$dbquery\"
+	else
+	    echo "$current_time - Invalid query" >> $logdir/$logfile
+	    exit 1
+	fi
     fi
+else
+    echo "$current_time - Invalid connection to database" >> $logdir/$logfile
+    exit 1
 fi
 }
 
-
 function create_config_file {
+
+#DB connection test
+db_cmd
 
 ###Get all variables with values of fw section from LMS uiconfig table.
 ###SELECT var,value FROM uiconfig WHERE section='fw'
@@ -111,13 +124,12 @@ if [ "$1" = "nat1n" ] || [ "$1" = "all" ]; then
     done
 fi
 if [ "$1" = "shaper" ] || [ "$1" = "all" ]; then
-    echo 1
+    echo Shaper OK
 fi
 }
 
 #create_config_file forward
 #create_config_file nat11
 #create_config_file nat1n
-create_config_file shaper
-#create_config_file all
-
+#create_config_file shaper
+create_config_file all
