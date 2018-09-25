@@ -18,7 +18,7 @@ function get_config {
         mv $FILENAME $oldconfdir/$FILENAME
     done
     echo "$current_time - Łącze się z LMS i pobieram pliki konfiguracyjne" >> $logdir/$logfile
-    scp $scpurl/* $confdir/
+    $copy_cmd_url/* $confdir/
     echo "$current_time - get_config OK" >> $logdir/$logfile
 }
 
@@ -28,7 +28,7 @@ function get_qos_config {
     cd $confdir
     mv $confdir/rc.htb $oldconfdir/rc.htb
     echo "Łącze się z serwerem i pobieram plik qos"
-    scp $scpurl/rc.htb $confdir/
+    $copy_cmd_url/rc.htb $confdir/
     echo "$current_time - get_qos_config OK" >> $logdir/$logfile
 }
 
@@ -40,7 +40,7 @@ function get_shaper_config {
     cd $confdir
     mv $confdir/$shaper_file $oldconfdir/$shaper_file
     echo "Łącze się z serwerem i pobieram plik konfiguracyjny dla Shaper'a"
-    scp $scpurl/$shaper_file $confdir/
+    $copy_cmd_url/$shaper_file $confdir/
     echo "$current_time - get_shaper_config OK" >> $logdir/$logfile
 }
 

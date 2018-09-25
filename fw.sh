@@ -166,7 +166,7 @@ source $scriptsdir/fwfunctions
     lmsd ()
     {
     dburl="mysql -s -u $lms_dbuser $lms_db -e \"select reload from hosts where id=4\""
-    lmsd_status=$(ssh $sshurl "$dburl"| grep -v reload)
+    lmsd_status=$($exec_cmd $dburl| grep -v reload)
 
     if [ $lmsd_status = 1 ]; then
         echo "$current_time - Status przeładowania hosta został ustawiony" >> $logdir/$logfile
