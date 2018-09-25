@@ -25,30 +25,36 @@ exec_cmd="eval"
 
 files_prefix=""
 
+function db_cmd {
+dburl="mysql -s -u $lms_dbuser $lms_db"
+
+if [ "$1" = "dbquery" ] && [ "$dbquery" != "" ]; then
+    $exec_cmd $dburl -e \"$dbquery\" > /dev/null
+    if [ $? -eq 0 ]; then
+	$exec_cmd $dburl -e \"$dbquery\"
+    else
+	echo "error"
+	exit 
+    fi
+fi
+}
+
+
 ###Get all variables with values of fw section from LMS uiconfig table.
 ###SELECT var,value FROM uiconfig WHERE section='fw'
 
 # LMS hosts groups names
 # Group for hosts with public ip address (forward only without NAT).
-#forward_group_name="public_ip"
 dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='forwarded_nodegroup_name';"
-dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
-forwarded_group_name="$($exec_cmd $dburl)"
-
+forwarded_group_name=$(db_cmd dbquery)
 
 # Group for hosts which ip address is translated by method NAT 1-1.
-#nat11_group_name="nat_1-1"
 dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='nat_11_nodegroup_name';"
-dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
-nat_11_group_name=$($exec_cmd $dburl)
-
+nat_11_group_name=$(db_cmd dbquery)
 
 # Group for hosts which ip address is translated by method NAT 1-n.
-#nat_1n_groups_rootname="nat_1-n_%"
 dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='nat_1n_nodegroups_rootname';"
-dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
-nat_1n_groups_rootname=$($exec_cmd $dburl)
-
+nat_1n_groups_rootname=$(db_cmd dbquery)
 
 # List of hosts with public ip address
 cp /dev/null $confdir/"$files_prefix"$public_ip_file
@@ -59,8 +65,7 @@ for host_status in {0..1}; do
         status="deniedhost"
     fi
     dbquery="SELECT INET_NTOA(ipaddr),INET_NTOA(ipaddr_pub) FROM nodegroupassignments nga JOIN nodes n ON nga.nodeid=n.id AND n.access=$host_status AND nga.nodegroupid=(SELECT id FROM nodegroups WHERE name='$forwarded_group_name');"
-    dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
-    $exec_cmd $dburl| while read ip ip_pub; do echo $status $ip; done >> $confdir/"$files_prefix"$public_ip_file
+    db_cmd dbquery | while read ip ip_pub; do echo $status $ip; done >> $confdir/"$files_prefix"$public_ip_file
 done
 
 
@@ -73,21 +78,18 @@ for host_status in {0..1}; do
         status="deniedhost"
     fi
     dbquery="SELECT INET_NTOA(ipaddr),INET_NTOA(ipaddr_pub) FROM nodegroupassignments nga JOIN nodes n ON nga.nodeid=n.id AND n.access=$host_status AND nga.nodegroupid=(SELECT id FROM nodegroups WHERE name='$nat_11_group_name');"
-    dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
-    $exec_cmd $dburl| while read ip ip_pub; do echo $status $ip $ip_pub; done >> $confdir/"$files_prefix"$nat_11_file
+    db_cmd dbquery | while read ip ip_pub; do echo $status $ip $ip_pub; done >> $confdir/"$files_prefix"$nat_11_file
 done
 
 
 #List of ip address of hosts which ip address is translated by method NAT 1-n.
 dbquery="SELECT id FROM nodegroups WHERE name like '$nat_1n_groups_rootname%';"
-dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
-nat_1n_nodegroups_id=$($exec_cmd "$dburl")
+nat_1n_nodegroups_id=$(db_cmd dbquery)
 cp /dev/null $confdir/"$files_prefix"$nat_1n_ip_file
 
 for item in $nat_1n_nodegroups_id; do
     dbquery="SELECT name FROM nodegroups WHERE id=$item;"
-    dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
-    nat_1n_nodegroup_name=$($exec_cmd "$dburl")
+    nat_1n_nodegroup_name=$(db_cmd dbquery)
     nat_1n_nodegroup_ip=$(echo $nat_1n_nodegroup_name | cut -c 9-)
 #    nat_1n_nodegroup_file=$(echo $nat_1n_nodegroup_name | cut -c -8)
 #    echo fw_$nat_1n_nodegroup_file"ip"$item
@@ -101,8 +103,6 @@ for item in $nat_1n_nodegroups_id; do
             status="deniedhost"
         fi
         dbquery="SELECT INET_NTOA(n.ipaddr) FROM nodegroupassignments nga JOIN nodes n ON nga.nodeid=n.id AND n.access=$host_status AND nga.nodegroupid=$item;"
-        dburl="mysql -s -u $lms_dbuser $lms_db -e \"$dbquery\""
-#       $exec_cmd "$dburl"| while read ip; do echo $status $ip $nat_1n_nodegroup_ip; done > $confdir/"$files_prefix"fw_$nat_1n_nodegroup_name
-        $exec_cmd $dburl| while read ip; do echo $status $ip; done >> $confdir/"$files_prefix"fw_$nat_1n_nodegroup_name
+        db_cmd dbquery | while read ip; do echo $status $ip; done >> $confdir/"$files_prefix"fw_$nat_1n_nodegroup_name
     done
 done
