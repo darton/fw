@@ -55,25 +55,16 @@ function create_config_file {
 #DB connection test
 db_cmd
 
-###Get all variables with values of fw section from LMS uiconfig table.
-###SELECT var,value FROM uiconfig WHERE section='fw'
 
-# LMS hosts groups names
-# Group for hosts with public ip address (forward only without NAT).
-dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='forwarded_nodegroup_name';"
-forwarded_group_name=$(db_cmd dbquery)
 
-# Group for hosts which ip address is translated by method NAT 1-1.
-dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='nat_11_nodegroup_name';"
-nat_11_group_name=$(db_cmd dbquery)
 
-# Group for hosts which ip address is translated by method NAT 1-n.
-dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='nat_1n_nodegroups_rootname';"
-nat_1n_groups_rootname=$(db_cmd dbquery)
 
 
 if [ "$1" = "forward" ] || [ "$1" = "all" ]; then
-    # List of hosts with public ip address
+# Get LMS group name of hosts with public ip address.
+dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='forwarded_nodegroup_name';"
+forwarded_group_name=$(db_cmd dbquery)
+# Make file with list of hosts with public ip address
     cp /dev/null $confdir/"$files_prefix"$public_ip_file
     for host_status in {0..1}; do
 	if [ "$host_status" = "1" ]; then
@@ -85,8 +76,14 @@ if [ "$1" = "forward" ] || [ "$1" = "all" ]; then
 	db_cmd dbquery | while read ip ip_pub; do echo $status $ip; done >> $confdir/"$files_prefix"$public_ip_file
     done
 fi
+
+
 if [ "$1" = "nat11" ] || [ "$1" = "all" ]; then
-    # List of ip address of hosts which ip address is translated by method NAT 1-1.
+# Get LMS group name of hosts which ip address is translated by method NAT 1-1.
+dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='nat_11_nodegroup_name';"
+nat_11_group_name=$(db_cmd dbquery)
+
+# Make file with list of ip address of hosts which ip address is translated by method NAT 1-1.
     cp /dev/null $confdir/"$files_prefix"$nat_11_file
     for host_status in {0..1}; do
 	if [ "$host_status" = "1" ]; then
@@ -98,8 +95,13 @@ if [ "$1" = "nat11" ] || [ "$1" = "all" ]; then
 	db_cmd dbquery | while read ip ip_pub; do echo $status $ip $ip_pub; done >> $confdir/"$files_prefix"$nat_11_file
     done
 fi
+
+
 if [ "$1" = "nat1n" ] || [ "$1" = "all" ]; then
-    #List of ip address of hosts which ip address is translated by method NAT 1-n.
+# get LMS group name of hosts which ip address is translated by method NAT 1-n.
+dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='nat_1n_nodegroups_rootname';"
+nat_1n_groups_rootname=$(db_cmd dbquery)
+# Make file with list of ip address of hosts which ip address is translated by method NAT 1-n.
     dbquery="SELECT id FROM nodegroups WHERE name like '$nat_1n_groups_rootname%';"
     nat_1n_nodegroups_id=$(db_cmd dbquery)
     cp /dev/null $confdir/"$files_prefix"$nat_1n_ip_file
@@ -123,6 +125,7 @@ if [ "$1" = "nat1n" ] || [ "$1" = "all" ]; then
 	done
     done
 fi
+
 if [ "$1" = "shaper" ] || [ "$1" = "all" ]; then
     echo Shaper OK
 fi
