@@ -55,11 +55,6 @@ function create_config_file {
 #DB connection test
 db_cmd
 
-
-
-
-
-
 if [ "$1" = "forward" ] || [ "$1" = "all" ]; then
 # Get LMS group name of hosts with public ip address.
 dbquery="SELECT value FROM uiconfig WHERE section='fw' AND var='forwarded_nodegroup_name';"
