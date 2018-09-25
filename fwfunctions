@@ -23,7 +23,7 @@ function get_config {
 }
 
 function get_qos_config {
-    ssh $sshurl "$lmsd -q -i qos -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db"
+    $exec_cmd "$lmsd -q -i qos -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db"
     sleep 5
     cd $confdir
     mv $confdir/rc.htb $oldconfdir/rc.htb
@@ -34,7 +34,7 @@ function get_qos_config {
 
 function get_shaper_config {
     echo "LMS generuje konfigurację dla Shapera"
-    ssh $sshurl "$lmsd -q -i $lmsd_shaper_instance -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db"
+    $exec_cmd "$lmsd -q -i $lmsd_shaper_instance -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db"
     echo "Czekam kilka sekund"
     sleep 5
     cd $confdir
@@ -46,7 +46,7 @@ function get_shaper_config {
 
 function lmsd_reload {
     echo "Wykonuję reload wszystkich instancji lmsd na zdalnej maszynie"
-    ssh $sshurl "$lmsd -q -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db"
+    $exec_cmd "$lmsd -q -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db"
     echo "$current_time - Czekam 10s, aż lmsd stworzy nowe pliki konfiguracyjne" >> $logdir/$logfile
     sleep 10
 }
