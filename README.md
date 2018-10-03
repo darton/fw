@@ -12,6 +12,6 @@ fw.sh z modułem stats odczytuje cyklicznie stany liczników pakietów z iptable
 
 Domyślnie skrypt pobiera swoje pliki konfiguracyjne łącząc się przez ssh ze zdalną maszyną, na której są tworzone. 
 Dla połączenia przez ssh pomiędzy ruterem z fw.sh i serwerem z LMS najlepiej użyć mechaznimu z wykorzystaniem pary kluczy RSA. 
-Jeśli pliki są tworzone lokalnie na tej samej maszynie, na której pracuje skrypt fw.sh najprościej jest ustawić exec_cmd="eval" 
+Jeśli pliki są tworzone lokalnie na tej samej maszynie, na której pracuje skrypt fw.sh najprościej jest ustawić lms_ip="127.0.0.1" lub ustawić exec_cmd="eval" oraz copy_cmd_url="cp /opt/gateway"
 
 Dokumentacja do prejektu znajduje się na wiki pod adresem https://github.com/darton/fw/wiki
