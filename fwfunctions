@@ -357,14 +357,26 @@ function create_fw_hashtables {
 #hashtable for blacklisted host/networks
 current_ipset_list=$(ipset -q --list fw_blacklist)
     if ([ "$current_ipset_list" = "" ]); then
-	ipset create fw_time_blacklist hash:ip hashsize 2048 timeout 600
-	ipset create fw_permanent_blacklist hash:ip hashsize 2048
+	ipset create fw_time_blacklist hash:net hashsize 2048 timeout 900
+	ipset create fw_permanent_blacklist hash:net hashsize 2048
     fi
 
-#hashtable for banned dst ports on LAN interface
+#hashtable for permanent banned dst ports on LAN interface
     current_ipset_list=$(ipset -q --list fw_lan_banned_dst_ports)
     if ([ "$current_ipset_list" = "" ]); then
         ipset create fw_lan_banned_dst_ports bitmap:port range 0-65535
+    fi
+
+#hashtable for ddos protected dst ports on LAN interface
+    current_ipset_list=$(ipset -q --list fw_lan_ddos_protected_ports)
+    if ([ "$current_ipset_list" = "" ]); then
+        ipset create fw_lan_ddos_protected_ports bitmap:port range 0-65535
+    fi
+
+#hashtable for ddos source from WAN interface
+    current_ipset_list=$(ipset -q --list fw_wan_ddos_source)
+    if ([ "$current_ipset_list" = "" ]); then
+        ipset create fw_wan_ddos_source hash:ip hashsize 2048 timeout 900
     fi
 
 #hashtable for nat1-n host
@@ -384,11 +396,14 @@ function create_tmp_hashtables {
 #create tmp hashtable for warned host
     ipset create fw_warned_hosts.tmp hash:ip hashsize 2048
 
-#create tmp hashtable for blacklisted hosts/netwokrs
-    ipset create fw_permanent_blacklist.tmp hash:ip hashsize 2048
+#create tmp hashtable for blacklisted hosts/networks
+    ipset create fw_permanent_blacklist.tmp hash:net hashsize 2048
 
 #create tmp hashtable for banned dst ports on LAN interface
     ipset create fw_lan_banned_dst_ports.tmp bitmap:port range 0-65535
+
+#create tmp hashtable for DDoS protected dst ports on LAN interface
+    ipset create fw_lan_ddos_protected_ports.tmp bitmap:port range 0-65535
 
 #create tmp hashtable for nat1-n host
     while read nat_name ip; do
@@ -453,11 +468,11 @@ function load_tmp_nat_11_hashtable {
     echo "$current_time - load_tmp_nat_11_hashtable OK" >> $logdir/$logfile
 }
 
-function load_tmp_fw_blacklist_hashtable {
+function load_tmp_blacklist_hashtable {
     while read network; do
             ipset add fw_permanent_blacklist.tmp $network
     done < $confdir/$blacklist_file
-    echo "$current_time - load_fw_permanent_blacklist_tmp_hashtable OK" >> $logdir/$logfile
+    echo "$current_time - load_permanent_blacklist_tmp_hashtable OK" >> $logdir/$logfile
 }
 
 function load_tmp_lan_banned_dst_ports_hashtable {
@@ -466,6 +481,15 @@ function load_tmp_lan_banned_dst_ports_hashtable {
     done < $confdir/$lan_banned_dst_ports_file
     echo "$current_time - load_tmp_lan_banned_dst_ports_hashtable OK" >> $logdir/$logfile
 }
+
+
+function load_tmp_lan_ddos_protected_ports_hashtable {
+    while read ports; do
+            ipset add fw_lan_ddos_protected_ports.tmp $ports
+    done < $confdir/$lan_ddos_protected_ports_file
+    echo "$current_time - load_tmp_lan_ddos_protected_ports_hashtable OK" >> $logdir/$logfile
+}
+
 
 function load_new_ipset_hashtables {
     for ipsetname in $(ipset list -n|grep -v .tmp); do
@@ -586,10 +610,14 @@ function firewall_up {
 #Enable IP forwardings
     sysctl -w net.ipv4.ip_forward=1
 
-#Set FORWARD default policy
+#Set chains default policy
     iptables -P FORWARD DROP
     iptables -P INPUT ACCEPT
     iptables -P OUTPUT ACCEPT
+
+#
+#FILTER TABLE
+#
 
 #INPUT CHAIN
     iptables -I INPUT -i $WAN -p tcp --match multiport --dport 22,25 -j SET --add-set fw_time_blacklist src
@@ -601,8 +629,22 @@ function firewall_up {
     iptables -A INPUT -i $WAN -p tcp -m state --state NEW -m tcp --dport 222 -j ACCEPT
     iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
 
+#FORWARD CHAIN
 #Drop forward some ports from LAN to WAN
-    iptables -A FORWARD -i $WAN -o $LAN -m set --match-set fw_lan_banned_dst_ports dst -j DROP
+#    iptables -A FORWARD -i $WAN -o $LAN -m set --match-set fw_lan_banned_dst_ports dst -j DROP
+#    iptables -A FORWARD -p tcp -i $WAN -o $LAN -m conntrack --ctstate NEW -m set --match-set fw_lan_banned_dst_ports dst -j DROP
+    iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_banned_dst_ports dst -j DROP
+    iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protected_ports dst -m set --match-set fw_wan_ddos_source src -j DROP
+
+#https://pl.wikibooks.org/wiki/Sieci_w_Linuksie/Netfilter/iptables/dopasowania
+#Drop DDoS on RDP port
+##    iptables -A FORWARD -i $WAN -o $LAN -p tcp --dport 3389 -m recent --name forcerdp --rdest --set
+##    iptables -A FORWARD -i $WAN -o $LAN -p tcp --dport 3389 -m recent --name forcerdp --rdest --update --seconds 120 --hitcount 5 -j DROP
+#iptables -A FORWARD -i $WAN -o $LAN -p tcp --match multiport --dport 22,23,3389 -m state --state NEW -m recent --set --name RMTMGMT
+#iptables -A FORWARD -i $WAN -o $LAN -p tcp --match multiport --dport 22,23,3389 -m state --state NEW -m recent --update --seconds 120 --hitcount 5 --rttl --name RMTMGMT -j SET --add-set fw_time_blacklist src 
+
+iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protected_ports dst -m state --state NEW -m recent --set --name LDDOSPP
+iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protected_ports dst -m state --state NEW -m recent --update --seconds 120 --hitcount 5 --rttl --name LDDOSPP -j SET --add-set fw_wan_ddos_source src
 
 #Enable packet logging
     iptables -A FORWARD -i $LAN -m state --state NEW -p tcp -j ULOG --ulog-nlgroup 1 --ulog-prefix FORWARDED-CONN
@@ -611,15 +653,15 @@ function firewall_up {
     iptables -A FORWARD -i $LAN -o $WAN -m set --match-set fw_ip src -j ACCEPT
     iptables -A FORWARD -i $WAN -o $LAN -m set --match-set fw_ip dst -j ACCEPT
 
+#
+#NAT TABLE
+#
+
 #Redirect dla zablokowanych klientów z włączonym ostrzeżeniem w LMS
     iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -m set --match-set fw_denied_hosts src -p tcp --dport 80 -j DNAT --to $proxy_ip:3128
 
 #Redirect dla klientów z włączonym ostrzeżeniem w LMS
 #    iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -p tcp --dport 80 -j DNAT --to $proxy_ip:3128
-
-#Blacklisted host/network
-    iptables -t raw -A PREROUTING -m set --match-set fw_permanent_blacklist src -j DROP
-    iptables -t raw -A PREROUTING -m set --match-set fw_time_blacklist src -j DROP
 
 #Załadowanie reguł SNAT dla użytkowników NAT 1:n
     load_nat_1n_fw_rules
@@ -627,6 +669,14 @@ function firewall_up {
 #Załadowanie reguł SNAT/DNAT dla użytkowników NAT 1:1
     load_nat_11_fw_rules
     echo "$current_time - firewall_up OK" >> $logdir/$logfile
+
+#
+#RAW TABLE
+#
+
+#Blacklisted host/network
+    iptables -t raw -A PREROUTING -m set --match-set fw_permanent_blacklist src -j DROP
+    iptables -t raw -A PREROUTING -m set --match-set fw_time_blacklist src -j DROP
 }
 
 function firewall_down {
@@ -658,7 +708,8 @@ function load_fw_hashtables {
     load_tmp_nat1n_hashtables
     load_tmp_nat_11_hashtable
     load_tmp_lan_banned_dst_ports_hashtable
-    load_tmp_fw_blacklist_hashtable
+    load_tmp_lan_ddos_protected_ports_hashtable
+    load_tmp_blacklist_hashtable
     load_new_ipset_hashtables
     echo "$current_time - load_fw_hashtables OK" >> $logdir/$logfile
 }
