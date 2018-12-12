@@ -29,7 +29,8 @@ source $scriptsdir/fw.conf
 current_time=$(date '+%Y-%m-%d %H:%M:%S')
 
 if [[ $EUID -ne 0 ]]; then
-  echo "Program must be run as root"
+  echo ""
+  echo "Program must be run as root !"
   exit 1
 fi
 
