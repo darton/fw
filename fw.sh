@@ -28,6 +28,11 @@ source $scriptsdir/fw.conf
 
 current_time=$(date '+%Y-%m-%d %H:%M:%S')
 
+if [[ $EUID -ne 0 ]]; then
+  echo "Program must be run as root"
+  exit 1
+fi
+
 ####Makes necessary config directories and files####
     [[ -d /run/fw-sh/ ]] || mkdir /run/fw-sh
     [[ -f /run/fw-sh/maintenance.pid ]] || echo 0 > /run/fw-sh/maintenance.pid
