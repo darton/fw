@@ -74,7 +74,7 @@ source $scriptsdir/fwfunctions
         destroy_all_hashtables
         dhcpd_cmd stop
         ifup $MGMT
-        ifdown $WAN
+        #ifdown $WAN
         ifdown $LAN
         echo 1 > /run/fw-sh/maintenance.pid
         fi
