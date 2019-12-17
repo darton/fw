@@ -1,7 +1,7 @@
 
 # Opis
 
-fw.sh konfiguruje system linux do pracy jako zapora (firewall), shaper (ograniczanie pasma per komputer lub per grupa komputerów), serwer dhcp. Jest zoptymalizowany dla dużych sieci (od kilkuset do kilku tysięcy komputerów). 
+fw.sh konfiguruje system linux do pracy jako: ruter,  zapora (firewall), shaper (ograniczanie pasma per komputer lub per grupa komputerów), serwer dhcp.Jest zoptymalizowany dla dużych sieci (od kilkuset do kilku tysięcy komputerów). 
 Pobiera swoją konfigurację z plików generowanych przez odpowiednio skonfigurowane instancje LMS (http://lms.org.pl) lub dowolny inny program. Można też pliki konfiguracyjne stworzyć ręcznie, ich składnia jest prosta.
 
 W celu optymalnej wydajności przetwarzania pakietów fw.sh korzysta z iptables oraz ipset. Pozwala to na wykorzystanie go w sieciach z tysiącami komputerów. Skrypt korzysta z algorytmów pozwalających na unikanie, kiedy tylko to możliwe, niepotrzebnego przeładowania reguł iptables, wykorzystując w zamian podmiany gotowych list ipset, oraz podmiany tylko zmienionych reguł iptables. 
