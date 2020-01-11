@@ -23,6 +23,11 @@ oldconfdir=$installdir/oldconf
 logdir=/var/log
 logfile=fw.log
 
+if [ "$DEBUG" == "no" ]; then
+  logdir="/dev"
+  logfile="null"
+fi
+
 #Load fw.sh config file
 source $scriptsdir/fw.conf
 
