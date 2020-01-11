@@ -23,13 +23,13 @@ oldconfdir=$installdir/oldconf
 logdir=/var/log
 logfile=fw.log
 
+#Load fw.sh config file
+source $scriptsdir/fw.conf
+
 if [ "$DEBUG" == "no" ]; then
   logdir="/dev"
   logfile="null"
 fi
-
-#Load fw.sh config file
-source $scriptsdir/fw.conf
 
 current_time=$(date '+%Y-%m-%d %H:%M:%S')
 
