@@ -13,16 +13,6 @@
 
 PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
 
-#Paths to config dirs
-installdir=/opt/gateway
-scriptsdir=$installdir/scripts
-confdir=$installdir/conf
-oldconfdir=$installdir/oldconf
-
-#Path to log
-logdir=/var/log
-logfile=fw.log
-
 #Load fw.sh config file
 source $scriptsdir/fw.conf
 
