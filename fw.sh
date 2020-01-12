@@ -16,11 +16,6 @@ PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
 #Load fw.sh config file
 source $scriptsdir/fw.conf
 
-if [ "$DEBUG" == "no" ]; then
-  logdir="/dev"
-  logfile="null"
-fi
-
 current_time=$(date '+%Y-%m-%d %H:%M:%S')
 
 if [[ $EUID -ne 0 ]]; then
@@ -48,6 +43,11 @@ fi
     done
 
     [[ -f $logdir/$logfile ]] || touch $logdir/$logfile
+
+if [ "$DEBUG" == "no" ]; then
+  logdir="/dev"
+  logfile="null"
+fi
 
 #Load fwfunction 
 source $scriptsdir/fwfunctions
