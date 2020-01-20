@@ -22,16 +22,6 @@ function get_config {
     echo "$current_time - get_config OK" >> $logdir/$logfile
 }
 
-function get_qos_config {
-    $exec_cmd "$lmsd -q -i qos -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db"
-    sleep 5
-    cd $confdir
-    mv $confdir/rc.htb $oldconfdir/rc.htb
-    echo "Łącze się z serwerem i pobieram plik qos"
-    $copy_cmd_url/rc.htb $confdir/
-    echo "$current_time - get_qos_config OK" >> $logdir/$logfile
-}
-
 function get_shaper_config {
     echo "LMS generuje konfigurację dla Shapera"
     $exec_cmd "$lmsd -q -i $lmsd_shaper_instance -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db"
