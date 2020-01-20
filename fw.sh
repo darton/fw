@@ -157,13 +157,7 @@ source $scriptsdir/fwfunctions
 	dhcpd_cmd restart
 	echo "$current_time - Firewall restart OK" >> $logdir/$logfile
     }
-
-    qos ()
-    {
-	get_qos_config
-	htb_cmd restart
-    }
-
+ 
     lmsd ()
     {
     dburl="mysql -s -u $lms_dbuser $lms_db -e \"select reload from hosts where id=4\""
