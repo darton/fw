@@ -16,7 +16,7 @@ Pobiera swoją konfigurację z plików generowanych przez odpowiednio skonfiguro
 
 Można też pliki konfiguracyjne stworzyć ręcznie, np w Excelu, ich składnia jest prosta.
 
-W celu optymalnej wydajności przetwarzania pakietów fw.sh korzysta z iptables oraz ipset. Predystynuje go do wykorzystanie w dużych sieciach. Skrypt fw.sh korzysta z algorytmów pozwalających na unikanie, kiedy tylko to możliwe, niepotrzebnego przeładowania reguł iptables, wykorzystując w zamian podmiany gotowych list ipset, oraz podmiany tylko zmienionych reguł iptables. 
+W celu optymalnej wydajności przetwarzania pakietów fw.sh korzysta z iptables oraz ipset. Skrypt fw.sh korzysta z algorytmów pozwalających na unikanie, kiedy tylko to możliwe, niepotrzebnego przeładowania reguł iptables, wykorzystując w zamian podmiany gotowych list ipset, oraz podmiany tylko zmienionych reguł iptables. 
 
 Do limitowania pakietów wykorzystany jest moduł tc wraz z algorytmem kolejkowania HTB z pakietu iproute2 oraz odpowiednio przemyślana konfiguracja, która pozwala na bardzo dużą wydajność przy zminimalizowanym obciążeniu dla CPU.
 
