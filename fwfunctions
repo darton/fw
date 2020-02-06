@@ -255,7 +255,8 @@ function shaper_cmd {
 
 #To and from CUSTOMERS
 #Set limit for customers host
-	network_list=$(cat $confdir/$shaper_file |grep filter |awk '{print $2}'|awk -F\. '{print $1"."$2"."$3}'|sort -u)
+	#network_list=$(cat $confdir/$shaper_file |grep filter |awk '{print $2}'|awk -F\. '{print $1"."$2"."$3}'|sort -u)
+	network_list=$(awk '/filter / {print $2;}' $confdir/$shaper_file | awk -F\. '{print $1"."$2"."$3}'|sort -u)
 
 	for net in $network_list; do
     	    iptables -t mangle -N COUNTERSIN$net
