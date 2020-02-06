@@ -283,8 +283,8 @@ function shaper_cmd {
 	done < <(cat $confdir/$shaper_file|grep -v \#)
 
     elif [ "$1" = "stats" ]; then
-
-	IPT_TABLE_CC=$(iptables -t mangle -w 2 -nL FORWARD |grep COUNTERSOUT |awk '{print $1}')
+	#IPT_TABLE_CC=$(iptables -t mangle -w 2 -nL FORWARD |grep COUNTERSOUT |awk '{print $1}')
+	IPT_TABLE_CC=$(iptables -t mangle -w 2 -nL FORWARD |awk '/COUNTERSOUT/{print $1}')
 	if [ ! -z "$IPT_TABLE_CC" ]; then
 	    for IPT_TABLE_ELEMENT in $IPT_TABLE_CC; do
 		iptables -t mangle -w 1 -nvxL $IPT_TABLE_ELEMENT |tail -n +3 | awk '{print $8 " "$2}' |grep -v 0.0.0.0 >> /tmp/upload.tmp
