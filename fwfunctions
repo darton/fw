@@ -287,7 +287,7 @@ function shaper_cmd {
 	IPT_TABLE_CC=$(iptables -t mangle -w 2 -nL FORWARD |awk '/COUNTERSOUT/{print $1}')
 	if [ ! -z "$IPT_TABLE_CC" ]; then
 	    for IPT_TABLE_ELEMENT in $IPT_TABLE_CC; do
-		iptables -t mangle -w 1 -nvxL $IPT_TABLE_ELEMENT | awk 'NR> 2 {print $8 " "$2}' |grep -v 0.0.0.0 >> /tmp/upload.tmp
+		iptables -t mangle -w 1 -nvxL $IPT_TABLE_ELEMENT | awk 'NR>2 {print $8 " "$2}' |grep -v 0.0.0.0 >> /tmp/upload.tmp
 	    done
 	    #for IPT_TABLE_ELEMENT in $(iptables -t mangle -nL FORWARD |grep COUNTERSIN |awk '{print $1}'); do
 	    for IPT_TABLE_ELEMENT in $(iptables -t mangle -nL FORWARD |awk '/COUNTERSIN/{print $1}'); do
