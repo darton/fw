@@ -17,7 +17,7 @@ function get_config {
     do
         mv $FILENAME $oldconfdir/$FILENAME
     done
-    echo "$current_time - Łącze się z LMS i pobieram pliki konfiguracyjne" >> $logdir/$logfile
+    echo "$current_time - Connecting to LMS and downloading configuration files" >> $logdir/$logfile
     $copy_cmd_url/* $confdir/
     echo "$current_time - get_config OK" >> $logdir/$logfile
 }
@@ -25,17 +25,17 @@ function get_config {
 function get_shaper_config {
     echo "The LMS generates a configuration for the Shaper"
     $exec_cmd "$lmsd -q -i $lmsd_shaper_instance -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db"
-    echo "I wait a few seconds"
+    echo "Waiting a few seconds"
     sleep 5
     cd $confdir
     mv $confdir/$shaper_file $oldconfdir/$shaper_file
-    echo "I connect to the server and download the configuration file for Shaper"
+    echo "Connecting to the server and download the configuration file for Shaper"
     $copy_cmd_url/$shaper_file $confdir/
     echo "$current_time - get_shaper_config OK" >> $logdir/$logfile
 }
 
 function lmsd_reload {
-    echo "I am reloading all lmsd instances on the remote machine"
+    echo "Reloading all lmsd instances on the remote machine"
     $exec_cmd "$lmsd -q -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db"
     echo "$current_time - Waiting 10s for lmsd to create new configuration files" >> $logdir/$logfile
     sleep 10
