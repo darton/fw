@@ -76,7 +76,7 @@ function htb_cmd {
     echo "$current_time - htb_cmd stop OK" >> $logdir/$logfile
 
     elif [ "$1" = "start" ]; then
-    echo "I run Shaper"
+    echo "Launching a Shaper"
     bash $confdir/rc.htb start
     fi
 }
