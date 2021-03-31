@@ -641,7 +641,7 @@ iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protec
 #Enable packet logging
     iptables -A FORWARD -i $LAN -m state --state NEW -p tcp -j ULOG --ulog-nlgroup 1 --ulog-prefix FORWARDED-CONN
 
-#Zezwolenie na przesył pakietów tylko pomiędzy interfejscami LAN i WAN dla wybranych hostów z listy fw_ip
+#Allow packet transfer only between LAN and WAN interfaces for selected hosts from the fw_ip list
     iptables -A FORWARD -i $LAN -o $WAN -m set --match-set fw_ip src -j ACCEPT
     iptables -A FORWARD -i $WAN -o $LAN -m set --match-set fw_ip dst -j ACCEPT
 
@@ -649,16 +649,16 @@ iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protec
 #NAT TABLE
 #
 
-#Redirect dla zablokowanych klientów z włączonym ostrzeżeniem w LMS
+#Redirect for blocked clients with enabled warning in LMS
     iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -m set --match-set fw_denied_hosts src -p tcp --dport 80 -j DNAT --to $proxy_ip:3128
 
-#Redirect dla klientów z włączonym ostrzeżeniem w LMS
+#Redirect for clients with LMS warning enabled
 #    iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -p tcp --dport 80 -j DNAT --to $proxy_ip:3128
 
-#Załadowanie reguł SNAT dla użytkowników NAT 1:n
+#Load SNAT rules for NAT 1: n users
     load_nat_1n_fw_rules
 
-#Załadowanie reguł SNAT/DNAT dla użytkowników NAT 1:1
+#Load SNAT / DNAT rules for 1: 1 NAT users
     load_nat_11_fw_rules
     echo "$current_time - firewall_up OK" >> $logdir/$logfile
 
