@@ -164,7 +164,7 @@ source $scriptsdir/fwfunctions
     lmsd_status=$($exec_cmd $dburl| grep -v reload)
 
     if [ $lmsd_status = 1 ]; then
-        echo "$current_time - Status przeładowania hosta został ustawiony" >> $logdir/$logfile
+        echo "$current_time - Host reload status has been set" >> $logdir/$logfile
 	lmsd_reload
         get_config
         newreload
