@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 #  (C) Copyright Dariusz Kowalczyk
 #
@@ -13,15 +13,20 @@
 
 PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
 
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+
+FW_CONFIG_TEMP_DIR=$(mktemp -d -p /dev/shm/ FW_CONFIG.XXXX)
+trap 'rm -rf ${FW_CONFIG_TEMP_DIR}' INT TERM EXIT
+
 #Load fw.sh config file
-source $scriptsdir/fw.conf
+source $SCRIPT_DIR/fw.conf
 
 current_time=$(date '+%Y-%m-%d %H:%M:%S')
 
 if [[ $EUID -ne 0 ]]; then
-  echo ""
-  echo "Program must be run as root !"
-  exit 1
+    echo ""
+    echo "Program must be run as root !"
+    exit 1
 fi
 
 ####Makes necessary config directories and files####
@@ -45,8 +50,8 @@ fi
     [[ -f $logdir/$logfile ]] || touch $logdir/$logfile
 
 if [ "$DEBUG" == "no" ]; then
-  logdir="/dev"
-  logfile="null"
+    logdir="/dev"
+    logfile="null"
 fi
 
 #Load fwfunction 
@@ -143,21 +148,6 @@ source $scriptsdir/fwfunctions
 	echo "$current_time - Firewall newreload OK" >> $logdir/$logfile
     }
 
-    restart ()
-    {
-	echo "Firewall restart"
-	echo "$current_time - Firewall restart" >> $logdir/$logfile
-	shaper_cmd stop
-	firewall_down
-	destroy_all_hashtables
-	create_fw_hashtables
-	load_fw_hashtables
-	firewall_up
-	shaper_cmd start
-	dhcpd_cmd restart
-	echo "$current_time - Firewall restart OK" >> $logdir/$logfile
-    }
- 
     lmsd ()
     {
     dburl="mysql -s -u $lms_dbuser $lms_db -e \"select reload from hosts where id=4\""
@@ -165,7 +155,7 @@ source $scriptsdir/fwfunctions
 
     if [ $lmsd_status = 1 ]; then
         echo "$current_time - Host reload status has been set" >> $logdir/$logfile
-	lmsd_reload
+        lmsd_reload
         get_config
         newreload
     fi
@@ -201,7 +191,7 @@ source $scriptsdir/fwfunctions
     ;;
     'shaper_restart')
         get_shaper_config
-	shaper_cmd restart
+        shaper_cmd restart
     ;;
     'shaper_stats')
         shaper_cmd stats
