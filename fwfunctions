@@ -511,11 +511,11 @@ function load_new_ipset_hashtables {
         new=$(ipset list $ipsetname.tmp |tail -n +9 |sort |sha1sum)
 
         if [ "$current" != "$new" ]; then
-    	    echo "$current_time - Loading new content into $ ipsetname" >> $logdir/$logfile
+    	    echo "$current_time - Loading new content into $ipsetname" >> $logdir/$logfile
     	    ipset -W $ipsetname $ipsetname.tmp
         fi
     	ipset -X $ipsetname.tmp
-        echo "$current_time - Deleting $ ipsetname.tmp" >> $logdir/$logfile
+        echo "$current_time - Deleting $ipsetname.tmp" >> $logdir/$logfile
     done
     echo "$current_time - load_new_ipset_hashtables OK" >> $logdir/$logfile
 }
