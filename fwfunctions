@@ -257,33 +257,38 @@ function shaper_cmd {
 
 #To and from CUSTOMERS
 #Set limit for customers host
-#	network_list=$(cat $confdir/$shaper_file |grep filter |awk '{print $2}'|awk -F\. '{print $1"."$2"."$3}'|sort -u)
-	network_list=$(awk '/filter / {split($2, ip, "."); print ip[1]"."ip[2]"."ip[3]}' "$confdir"/"$shaper_file" | sort -u )
+#       network_list=$(cat $confdir/$shaper_file |grep filter |awk '{print $2}'|awk -F\. '{print $1"."$2"."$3}'|sort -u)
+        network_list=`awk '/filter / {split($2, ip, "."); print ip[1]"."ip[2]"."ip[3]}' "$confdir/$shaper_file" | sort -u`
+        for net in $network_list; do
+            iptables -t mangle -N COUNTERSIN$net
+            iptables -t mangle -N COUNTERSOUT$net
+            iptables -t mangle -I FORWARD -i $WAN -d $net.0/24 -j COUNTERSIN$net
+            iptables -t mangle -I FORWARD -o $WAN -s $net.0/24 -j COUNTERSOUT$net
+        done
 
-
-	for net in $network_list; do
-    	    iptables -t mangle -N COUNTERSIN$net
-    	    iptables -t mangle -N COUNTERSOUT$net
-    	    iptables -t mangle -I FORWARD -i $WAN -d $net.0/24 -j COUNTERSIN$net
-    	    iptables -t mangle -I FORWARD -o $WAN -s $net.0/24 -j COUNTERSOUT$net
-	done
-
-	h=99
-	while read arg1 arg2 arg3 arg4; do
-    	    if [ "$arg1" = "customer" ]; then
-		let h=$h+1
-    	    elif [ "$arg1" = "class_up" ]; then
-                tc class add dev $WAN parent 2:1 classid 2:$h htb rate $arg2 ceil $arg3 $BURST prio $WAN_HOSTS_PRIORITY quantum 1500
+        h=99
+        while read arg1 arg2 arg3 arg4; do
+            if [ "$arg1" = "customer" ]; then
+                let h=$h+1
+            elif [ "$arg1" = "class_up" ]; then
+                rate=$(echo ${arg2/kbit/})
+                rate=$((rate * 1000))
+                CUSTOMER_UP_BURST=$(echo "$rate * 0.1" | bc -l)
+                tc class add dev $WAN parent 2:1 classid 2:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_UP_BURST}b prio $WAN_HOSTS_PRIORITY quantum 1500
                 tc qdisc add dev $WAN parent 2:$h sfq perturb 10
-    	    elif [ "$arg1" = "class_down" ]; then
-                tc class add dev $LAN parent 1:2 classid 1:$h htb rate $arg2 ceil $arg3 $BURST prio $LAN_HOSTS_PRIORITY quantum 1500
+            elif [ "$arg1" = "class_down" ]; then
+                rate=$(echo ${arg2/kbit/})
+                rate=$((rate * 1000))
+                CUSTOMER_DOWN_BURST=$(echo "$rate * 0.1" | bc -l)
+                tc class add dev $LAN parent 1:2 classid 1:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_DOWN_BURST}b prio $LAN_HOSTS_PRIORITY quantum 1500
                 tc qdisc add dev $LAN parent 1:$h sfq perturb 10
-    	    elif [ "$arg1" = "filter" ]; then
-        	echo $arg2 | { IFS='.' read -r octet1 octet2 octet3 octet4;
-        	iptables -t mangle -A COUNTERSOUT$octet1.$octet2.$octet3 -s $arg2 -j CLASSIFY --set-class 2:$h;
-        	iptables -t mangle -A COUNTERSIN$octet1.$octet2.$octet3 -d $arg2 -j CLASSIFY --set-class 1:$h; }
-    	    fi
-	done < <(cat $confdir/$shaper_file|grep -v \#)
+            elif [ "$arg1" = "filter" ]; then
+                echo $arg2 | { IFS='.' read -r octet1 octet2 octet3 octet4;
+                iptables -t mangle -A COUNTERSOUT$octet1.$octet2.$octet3 -s $arg2 -j CLASSIFY --set-class 2:$h;
+                iptables -t mangle -A COUNTERSIN$octet1.$octet2.$octet3 -d $arg2 -j CLASSIFY --set-class 1:$h; }
+            fi
+        done < <(cat $confdir/$shaper_file|grep -v \#)
+
 
     elif [ "$1" = "stats" ]; then
 
