@@ -273,13 +273,13 @@ function shaper_cmd {
             elif [ "$arg1" = "class_up" ]; then
                 rate=$(echo ${arg2/kbit/})
                 rate=$((rate * 1000))
-                CUSTOMER_UP_BURST=$(echo "$rate * 0.1" | bc -l)
+                CUSTOMER_UP_BURST=$(echo "$rate * 0.01" | bc -l)
                 tc class add dev $WAN parent 2:1 classid 2:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_UP_BURST}b prio $WAN_HOSTS_PRIORITY quantum 1500
                 tc qdisc add dev $WAN parent 2:$h fq_codel
             elif [ "$arg1" = "class_down" ]; then
                 rate=$(echo ${arg2/kbit/})
                 rate=$((rate * 1000))
-                CUSTOMER_DOWN_BURST=$(echo "$rate * 0.1" | bc -l)
+                CUSTOMER_DOWN_BURST=$(echo "$rate * 0.01" | bc -l)
                 tc class add dev $LAN parent 1:2 classid 1:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_DOWN_BURST}b prio $LAN_HOSTS_PRIORITY quantum 1500
                 tc qdisc add dev $LAN parent 1:$h fq_codel
             elif [ "$arg1" = "filter" ]; then
