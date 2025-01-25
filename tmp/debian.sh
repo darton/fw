@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source /etc/environment #This file should contain the values of the LAN and WAN variables
+
 sudo apt update -y
 sudo apt upgrade -y
 sudo apt install ulogd2 iptables ipset isc-dhcp-server -y
