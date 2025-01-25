@@ -175,6 +175,7 @@ source $scriptsdir/fwfunctions
         fwstatus
     ;;
     'restart')
+        stop
         start
     ;;
     'reload')
