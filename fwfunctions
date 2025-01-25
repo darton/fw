@@ -745,7 +745,7 @@ function load_fw_hashtables {
 function static_routing_up {
     if [ -s $confdir/$routed_nets_file ]; then
 	while read net gw interface; do
-    	    ip route add $net via $gw dev $interface
+    	    ip route add $net via $gw dev $LAN
 	done < $confdir/$routed_nets_file
 	echo "$current_time - Adding static routing entries" >> $logdir/$logfile
     else
@@ -755,7 +755,7 @@ function static_routing_up {
 
 function static_routing_down {
     while read net gw interface; do
-        ip route del $net via $gw dev $interface
+        ip route del $net via $gw dev $LAN
     done < $confdir/$routed_nets_file
     echo "$current_time - Removing static routing entries" >> $logdir/$logfile
 }
