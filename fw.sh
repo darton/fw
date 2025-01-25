@@ -124,7 +124,7 @@ source $scriptsdir/fwfunctions
     {
 	#tuned-adm profile network-latency
 	echo "Firewall Start"
-	stop
+	stop  > /dev/null 2>&1
 	echo "$current_time - Firewall Start" >> $logdir/$logfile
         static_routing_up
         create_fw_hashtables
