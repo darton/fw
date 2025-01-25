@@ -11,6 +11,8 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 
+
+
 function get_config {
     echo "$current_time - Connecting to LMS and downloading configuration files" >> $logdir/$logfile
     $copy_cmd_url/* ${FW_CONFIG_TEMP_DIR} || { echo "$current_time - Can not download config files" >> $logdir/$logfile; exit 1; }
@@ -43,22 +45,38 @@ function lmsd_reload {
     sleep 10
 }
 
+function dhcp_server_cmd {
+    if [[ -f /etc/os-release ]]; then
+        . /etc/os-release
+        distro_id=$(echo $ID)
+    fi
+    local arg="$1"
+    if [[ "$distro_id" == "debian" || "$distro_id" == "ubuntu" ]]; then
+        systemctl "$arg" isc-dhcp-server
+    elif [[ "$distro_id" == "fedora" || "$distro_id" == "centos" || "$distro_id" == "rhel" ]]; then
+        systemctl "$arg" dhcpd
+    elif [[ "$distro_id" == "arch" ]]; then
+        systemctl "$arg" dhcpd4
+    else
+        echo "Unknown Linux distro: $distro_id"
+    fi
+}
+
 function dhcpd_cmd {
-    if [ "$1" = "restart" ]; then
-	dhcpd_conf_current=$(cat $confdir/dhcpd.conf |sha1sum)
-	dhcpd_conf_new=$(cat $oldconfdir/dhcpd.conf |sha1sum)
-	if [ "$dhcpd_conf_current" != "$dhcpd_conf_new" ]; then
-    	    echo "$current_time - The dhcpd.conf file has a new configuration, restarting the DHCP server" >> $logdir/$logfile
-    	    systemctl restart dhcpd.service
-	else
-    	    echo "Configuration of dhcpd.conf is identical, reboot is not needed"
-	fi
-
-    elif [ "$1" = "start" ]; then
-	systemctl restart dhcpd.service
-
-    elif [ "$1" = "stop" ]; then
-	systemctl stop dhcpd.service
+    local arg="$1"
+    if [ "$arg" = "restart" ]; then
+        dhcpd_conf_current=$(cat $confdir/dhcpd.conf |sha1sum)
+        dhcpd_conf_new=$(cat $oldconfdir/dhcpd.conf |sha1sum)
+        if [ "$dhcpd_conf_current" != "$dhcpd_conf_new" ]; then
+            echo "$current_time - The dhcpd.conf file has a new configuration, restarting the DHCP server" >> $logdir/$logfile
+            dhcp_server_cmd restart
+        else
+            echo "Configuration of dhcpd.conf is identical, restart is not needed"
+        fi
+    elif [ "$arg" = "start" ]; then
+        dhcp_server_cmd start && echo "$current_time - The dhcpd server successfully started OK" >> $logdir/$logfile
+    elif [ "$arg" = "stop" ]; then
+        dhcp_server_cmd stop && echo "$current_time - The dhcpd server successfully stopped OK" >> $logdir/$logfile
     fi
 }
 
@@ -85,36 +103,36 @@ function htb_cmd {
 
 function shaper_cmd {
     if [ "$1" = "restart" ]; then
-	shaper_current=$(cat $confdir/$shaper_file |sha1sum)
-	shaper_new=$(cat $oldconfdir/$shaper_file |sha1sum)
-	if [ "$shaper_current" != "$shaper_new" ]; then
-    	    echo "$current_time - Shaper has a new configuration, restarting Shaper" >> $logdir/$logfile
-	    sleep 5
-    	    shaper_cmd stop
-    	    shaper_cmd start
-	else
-    	    echo "The Shaper configuration is identical, a restart is not needed"
-	fi
-	
+        shaper_current=$(cat $confdir/$shaper_file |sha1sum)
+        shaper_new=$(cat $oldconfdir/$shaper_file |sha1sum)
+        if [ "$shaper_current" != "$shaper_new" ]; then
+            echo "$current_time - Shaper has a new configuration, restarting Shaper" >> $logdir/$logfile
+            sleep 5
+            shaper_cmd stop
+            shaper_cmd start
+        else
+            echo "The Shaper configuration is identical, a restart is not needed"
+        fi
+
     elif [ "$1" = "stop" ]; then
-	tc qdisc del dev $LAN root 2> /dev/null
-	tc qdisc del dev $WAN root 2> /dev/null
-	iptables -t mangle -F
-	iptables -t mangle -X
-	
+        tc qdisc del dev $LAN root 2> /dev/null
+        tc qdisc del dev $WAN root 2> /dev/null
+        iptables -t mangle -F
+        iptables -t mangle -X
+
     elif [ "$1" = "start" ]; then
-	
-	shaper_cmd stop
 
-	delimiter=$IFS
-	while IFS='=' read arg1 arg2; do
+        shaper_cmd stop
 
-	    if [ "$arg1" = "LAN_INTERFACE_SPEED_LIMIT" ]; then
-		LAN_INTERFACE_SPEED_LIMIT=$arg2
-    	    elif [ "$arg1" = "ISP_RX_LIMIT" ]; then
-        	ISP_RX_LIMIT=$arg2
-    	    elif [ "$arg1" = "ISP_TX_LIMIT" ]; then
-        	ISP_TX_LIMIT=$arg2
+        delimiter=$IFS
+        while IFS='=' read arg1 arg2; do
+
+            if [ "$arg1" = "LAN_INTERFACE_SPEED_LIMIT" ]; then
+                LAN_INTERFACE_SPEED_LIMIT=$arg2
+            elif [ "$arg1" = "ISP_RX_LIMIT" ]; then
+                ISP_RX_LIMIT=$arg2
+            elif [ "$arg1" = "ISP_TX_LIMIT" ]; then
+                ISP_TX_LIMIT=$arg2
             elif [ "$arg1" = "LAN_UNCLASSIFIED_RATE_LIMIT" ]; then
                 LAN_UNCLASSIFIED_RATE_LIMIT=$arg2
             elif [ "$arg1" = "LAN_UNCLASSIFIED_CEIL_LIMIT" ]; then
@@ -145,19 +163,19 @@ function shaper_cmd {
                 WAN_HOSTS_PRIORITY=$arg2
             fi
 
-	done < <(cat $confdir/$shaper_file|grep -v \#)
-	IFS=$delimiter
+        done < <(cat $confdir/$shaper_file|grep -v \#)
+        IFS=$delimiter
 
 
             if [ -z "$LAN_INTERFACE_SPEED_LIMIT" ]; then
-		LAN_INTERFACE_SPEED_LIMIT=$DEFAULT_LAN_INTERFACE_SPEED_LIMIT
+                LAN_INTERFACE_SPEED_LIMIT=$DEFAULT_LAN_INTERFACE_SPEED_LIMIT
             fi
-	    if [ -z "$ISP_RX_LIMIT" ]; then
-        	ISP_RX_LIMIT=$DEFAULT_ISP_RX_LIMIT
-    	    fi
-    	    if [ -z "$ISP_TX_LIMIT" ]; then
-    		ISP_TX_LIMIT=$DEFAULT_ISP_TX_LIMIT
-    	    fi
+            if [ -z "$ISP_RX_LIMIT" ]; then
+                ISP_RX_LIMIT=$DEFAULT_ISP_RX_LIMIT
+            fi
+            if [ -z "$ISP_TX_LIMIT" ]; then
+                ISP_TX_LIMIT=$DEFAULT_ISP_TX_LIMIT
+            fi
             if [ -z "$LAN_UNCLASSIFIED_RATE_LIMIT" ]; then
                 LAN_UNCLASSIFIED_RATE_LIMIT=$DEFAULT_LAN_UNCLASSIFIED_RATE_LIMIT
             fi
@@ -202,13 +220,13 @@ function shaper_cmd {
             fi
             if [ -z "$BURST" ]; then
                 BURST=""
-    	    else
-    		BURST="burst $BURST"
+            else
+                BURST="burst $BURST"
             fi
 
-	echo LAN_INTERFACE_SPEED_LIMIT=$LAN_INTERFACE_SPEED_LIMIT
-	echo ISP_RX_LIMIT=$ISP_RX_LIMIT
-	echo ISP_TX_LIMIT=$ISP_TX_LIMIT
+        echo LAN_INTERFACE_SPEED_LIMIT=$LAN_INTERFACE_SPEED_LIMIT
+        echo ISP_RX_LIMIT=$ISP_RX_LIMIT
+        echo ISP_TX_LIMIT=$ISP_TX_LIMIT
         echo LAN_UNCLASSIFIED_RATE_LIMIT=$LAN_UNCLASSIFIED_RATE_LIMIT
         echo LAN_UNCLASSIFIED_CEIL_LIMIT=$LAN_UNCLASSIFIED_CEIL_LIMIT
         echo WAN_UNCLASSIFIED_RATE_LIMIT=$WAN_UNCLASSIFIED_RATE_LIMIT
@@ -226,34 +244,34 @@ function shaper_cmd {
 
 #To LAN
 # Set global limit for LAN interface
-	tc qdisc add dev $LAN root handle 1:0 htb default 3 r2q 1
-	tc class add dev $LAN parent 1:0 classid 1:1 htb rate $LAN_INTERFACE_SPEED_LIMIT ceil $LAN_INTERFACE_SPEED_LIMIT $BURST quantum 1500
+        tc qdisc add dev $LAN root handle 1:0 htb default 3 r2q 1
+        tc class add dev $LAN parent 1:0 classid 1:1 htb rate $LAN_INTERFACE_SPEED_LIMIT ceil $LAN_INTERFACE_SPEED_LIMIT $BURST quantum 1500
 
 # Set limit for all traffic from Internet to LAN
-	tc class add dev $LAN parent 1:1 classid 1:2 htb rate $ISP_RX_LIMIT ceil $ISP_RX_LIMIT $BURST quantum 1500
+        tc class add dev $LAN parent 1:1 classid 1:2 htb rate $ISP_RX_LIMIT ceil $ISP_RX_LIMIT $BURST quantum 1500
 
 #Set default limit for traffic from Internet to LAN
-	tc class add dev $LAN parent 1:1 classid 1:3 htb rate $LAN_UNCLASSIFIED_RATE_LIMIT ceil $LAN_UNCLASSIFIED_CEIL_LIMIT prio $LAN_UNCLASSIFIED_PRIORITY quantum 1500
-	tc qdisc add dev $LAN parent 1:3 fq_codel
+        tc class add dev $LAN parent 1:1 classid 1:3 htb rate $LAN_UNCLASSIFIED_RATE_LIMIT ceil $LAN_UNCLASSIFIED_CEIL_LIMIT prio $LAN_UNCLASSIFIED_PRIORITY quantum 1500
+        tc qdisc add dev $LAN parent 1:3 fq_codel
 
 #Set limit for traffic from GATEWAY to LAN
-	tc class add dev $LAN parent 1:1 classid 1:4 htb rate $GW_TO_LAN_RATE_LIMIT ceil $GW_TO_LAN_CEIL_LIMIT $BURST prio $GW_TO_LAN_PRIORITY quantum 1500
-	tc qdisc add dev $LAN parent 1:4 fq_codel
-	iptables -t mangle -A OUTPUT -o $LAN -j CLASSIFY --set-class 1:4
+        tc class add dev $LAN parent 1:1 classid 1:4 htb rate $GW_TO_LAN_RATE_LIMIT ceil $GW_TO_LAN_CEIL_LIMIT $BURST prio $GW_TO_LAN_PRIORITY quantum 1500
+        tc qdisc add dev $LAN parent 1:4 fq_codel
+        iptables -t mangle -A OUTPUT -o $LAN -j CLASSIFY --set-class 1:4
 
 #To WAN
 # Set limit for all traffic from WAN to Internet
-	tc qdisc add dev $WAN root handle 2:0 htb default 3 r2q 1
-	tc class add dev $WAN parent 2:0 classid 2:1 htb rate $ISP_TX_LIMIT ceil $ISP_TX_LIMIT $BURST quantum 1500
+        tc qdisc add dev $WAN root handle 2:0 htb default 3 r2q 1
+        tc class add dev $WAN parent 2:0 classid 2:1 htb rate $ISP_TX_LIMIT ceil $ISP_TX_LIMIT $BURST quantum 1500
 
 # Set default limit for traffic from WAN to Internet
-	tc class add dev $WAN parent 2:1 classid 2:3 htb rate $WAN_UNCLASSIFIED_RATE_LIMIT ceil $WAN_UNCLASSIFIED_CEIL_LIMIT prio $WAN_UNCLASSIFIED_PRIORITY quantum 1500
-	tc qdisc add dev $WAN parent 2:3 fq_codel
+        tc class add dev $WAN parent 2:1 classid 2:3 htb rate $WAN_UNCLASSIFIED_RATE_LIMIT ceil $WAN_UNCLASSIFIED_CEIL_LIMIT prio $WAN_UNCLASSIFIED_PRIORITY quantum 1500
+        tc qdisc add dev $WAN parent 2:3 fq_codel
 
 #Set limit for traffic from GATEWAY to WAN
-	tc class add dev $WAN parent 2:1 classid 2:4 htb rate $GW_TO_WAN_RATE_LIMIT ceil $GW_TO_WAN_CEIL_LIMIT $BURST prio $GW_TO_WAN_PRIORITY quantum 1500
-	tc qdisc add dev $WAN parent 2:4 fq_codel
-	iptables -t mangle -A OUTPUT -o $WAN -j CLASSIFY --set-class 2:4
+        tc class add dev $WAN parent 2:1 classid 2:4 htb rate $GW_TO_WAN_RATE_LIMIT ceil $GW_TO_WAN_CEIL_LIMIT $BURST prio $GW_TO_WAN_PRIORITY quantum 1500
+        tc qdisc add dev $WAN parent 2:4 fq_codel
+        iptables -t mangle -A OUTPUT -o $WAN -j CLASSIFY --set-class 2:4
 
 #To and from CUSTOMERS
 #Set limit for customers host
@@ -292,48 +310,48 @@ function shaper_cmd {
 
     elif [ "$1" = "stats" ]; then
 
-	#IPT_TABLE_CC=$(iptables -t mangle -w 2 -nL FORWARD |grep COUNTERSOUT |awk '{print $1}')
+        #IPT_TABLE_CC=$(iptables -t mangle -w 2 -nL FORWARD |grep COUNTERSOUT |awk '{print $1}')
         IPT_TABLE_CC=$(iptables -t mangle -w 2 -nL FORWARD |awk '/COUNTERSOUT/{print $1}')
-	if [ ! -z "$IPT_TABLE_CC" ]; then
-	    for IPT_TABLE_ELEMENT in $IPT_TABLE_CC; do
-		#iptables -t mangle -w 1 -nvxL $IPT_TABLE_ELEMENT |tail -n +3 | awk '{print $8 " "$2}' |grep -v 0.0.0.0 >> /tmp/upload.tmp
-		iptables -t mangle -w 1 -nvxL $IPT_TABLE_ELEMENT |awk 'NR>2 {if ($8 != "0.0.0.0") print $8 " "$2}' >> /tmp/upload.tmp
-	    done
-	    for IPT_TABLE_ELEMENT in $(iptables -t mangle -nL FORWARD |grep COUNTERSIN |awk '{print $1}'); do
-		#iptables -t mangle -w 1 -nvxL $IPT_TABLE_ELEMENT |tail -n +3 | awk '{print $9 " "$2}' |grep -v 0.0.0.0 >> /tmp/download.tmp
-		iptables -t mangle -w 1 -nvxL $IPT_TABLE_ELEMENT | awk 'NR>2 {if ($8 != "0.0.0.0") print $9 " "$2}'  >> /tmp/download.tmp
-	    done
-	    iptables -t mangle -Z
-    	    join /tmp/upload.tmp /tmp/download.tmp | grep -v  " 0 0"
-    	    rm /tmp/upload.tmp /tmp/download.tmp
-	fi
+        if [ ! -z "$IPT_TABLE_CC" ]; then
+            for IPT_TABLE_ELEMENT in $IPT_TABLE_CC; do
+                #iptables -t mangle -w 1 -nvxL $IPT_TABLE_ELEMENT |tail -n +3 | awk '{print $8 " "$2}' |grep -v 0.0.0.0 >> /tmp/upload.tmp
+                iptables -t mangle -w 1 -nvxL $IPT_TABLE_ELEMENT |awk 'NR>2 {if ($8 != "0.0.0.0") print $8 " "$2}' >> /tmp/upload.tmp
+            done
+            for IPT_TABLE_ELEMENT in $(iptables -t mangle -nL FORWARD |grep COUNTERSIN |awk '{print $1}'); do
+                #iptables -t mangle -w 1 -nvxL $IPT_TABLE_ELEMENT |tail -n +3 | awk '{print $9 " "$2}' |grep -v 0.0.0.0 >> /tmp/download.tmp
+                iptables -t mangle -w 1 -nvxL $IPT_TABLE_ELEMENT | awk 'NR>2 {if ($8 != "0.0.0.0") print $9 " "$2}'  >> /tmp/download.tmp
+            done
+            iptables -t mangle -Z
+            join /tmp/upload.tmp /tmp/download.tmp | grep -v  " 0 0"
+            rm /tmp/upload.tmp /tmp/download.tmp
+        fi
 
     elif [ "$1" = "status" ]; then
 
-	iptables -t mangle -w 2 -nvL
-	echo
-	echo "$LAN interface"
-	echo "----------------"
-	for TC_OPTIONS in qdisc class filter; do
-    	    if [ ! -z "$LAN" ]; then
-        	echo
-        	echo "$TC_OPTIONS"
-        	echo "------"
-        	tc $TC_OPTIONS show dev $LAN
-    	    fi
-	done
+        iptables -t mangle -w 2 -nvL
+        echo
+        echo "$LAN interface"
+        echo "----------------"
+        for TC_OPTIONS in qdisc class filter; do
+            if [ ! -z "$LAN" ]; then
+                echo
+                echo "$TC_OPTIONS"
+                echo "------"
+                tc $TC_OPTIONS show dev $LAN
+            fi
+        done
 
-	echo
-	echo "$WAN interface"
-	echo "----------------"
-	for TC_OPTIONS in qdisc class filter; do
-    	    if [ ! -z "$WAN" ]; then
-        	echo
-        	echo "$TC_OPTIONS"
-        	echo "------"
-        	tc $TC_OPTIONS show dev $WAN
-    	    fi
-	done
+        echo
+        echo "$WAN interface"
+        echo "----------------"
+        for TC_OPTIONS in qdisc class filter; do
+            if [ ! -z "$WAN" ]; then
+                echo
+                echo "$TC_OPTIONS"
+                echo "------"
+                tc $TC_OPTIONS show dev $WAN
+            fi
+        done
     fi
 }
 
@@ -359,8 +377,8 @@ function create_fw_hashtables {
 #hashtable for blacklisted host/networks
 current_ipset_list=$(ipset -q --list fw_blacklist)
     if ([ "$current_ipset_list" = "" ]); then
-	ipset create fw_time_blacklist hash:net hashsize 2048 timeout 900
-	ipset create fw_permanent_blacklist hash:net hashsize 2048
+        ipset create fw_time_blacklist hash:net hashsize 2048 timeout 900
+        ipset create fw_permanent_blacklist hash:net hashsize 2048
     fi
 
 #hashtable for permanent banned dst ports on LAN interface
@@ -441,7 +459,7 @@ function load_tmp_fw_ip_hashtable {
         elif [ "$status" = "warnedhost" ]; then
             ipset add fw_warned_hosts.tmp $i
         else
-            echo "The file $ public_ip_file has an invalid format, the correct one is: grantedhost|deniedhost|warnedhost ip_addres" >> $logdir/$logfile
+            echo "The file $public_ip_file has an invalid format, the correct one is: grantedhost|deniedhost|warnedhost ip_addres" >> $logdir/$logfile
         fi
     done < $confdir/$public_ip_file
     echo "$current_time - load_tmp_fw_ip_hashtable OK" >> $logdir/$logfile
@@ -449,18 +467,18 @@ function load_tmp_fw_ip_hashtable {
 
 function load_tmp_nat1n_hashtables {
     while read nat_name ip; do
-	while read status i; do
-    	    if [ "$status" = "grantedhost" ]; then
-        	ipset add $nat_name.tmp $i
-        	ipset add fw_ip.tmp $i
-    	    elif [ "$status" = "deniedhost" ]; then
-        	ipset add fw_denied_hosts.tmp $i
-    	    elif [ "$status" = "warnedhost" ]; then
-        	ipset add fw_warned_hosts.tmp $i
-    	    else
-    	     echo "The file $ nat_name is not in the correct format, the correct format is: grantedhost | deniedhost | warnedhost ip_address" >> $logdir/$logfile
-    	    fi
-	done < $confdir/$nat_name
+        while read status i; do
+            if [ "$status" = "grantedhost" ]; then
+                ipset add $nat_name.tmp $i
+                ipset add fw_ip.tmp $i
+            elif [ "$status" = "deniedhost" ]; then
+                ipset add fw_denied_hosts.tmp $i
+            elif [ "$status" = "warnedhost" ]; then
+                ipset add fw_warned_hosts.tmp $i
+            else
+             echo "The file $nat_name is not in the correct format, the correct format is: grantedhost | deniedhost | warnedhost ip_address" >> $logdir/$logfile
+            fi
+        done < $confdir/$nat_name
     done <$confdir/$nat_1n_ip_file
     echo "$current_time - load_tmp_nat1n_hashtables OK" >> $logdir/$logfile
 }
@@ -516,10 +534,10 @@ function load_new_ipset_hashtables {
         new=$(ipset list $ipsetname.tmp |tail -n +9 |sort |sha1sum)
 
         if [ "$current" != "$new" ]; then
-    	    echo "$current_time - Loading new content into $ipsetname" >> $logdir/$logfile
-    	    ipset -W $ipsetname $ipsetname.tmp
+            echo "$current_time - Loading new content into $ipsetname" >> $logdir/$logfile
+            ipset -W $ipsetname $ipsetname.tmp
         fi
-    	ipset -X $ipsetname.tmp
+        ipset -X $ipsetname.tmp
         echo "$current_time - Deleting $ipsetname.tmp" >> $logdir/$logfile
     done
     echo "$current_time - load_new_ipset_hashtables OK" >> $logdir/$logfile
@@ -545,33 +563,33 @@ function load_nat_11_fw_rules {
 function modify_nat11_fw_rules {
     lista_zmian=$(diff  --unchanged-line-format="" --old-line-format="removed %L" --new-line-format="added %L" $oldconfdir/$nat_11_file $confdir/$nat_11_file)
     while read arg1 arg2 arg3 arg4; do
-	if ([ "$arg1" = "added" ] && [ "$arg2" = "deniedhost" ]) || ([ "$arg1" = "removed" ] && [ "$arg2" = "grantedhost" ]); then
-		current_iptables_nat11_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep NAT)
-		while read ipt_num ipt_target ipt_prot ipt_opt ipt_source ipt_destination ipt_destination2
-		do
-		    if [ "$arg3" = "$ipt_source" ]; then
-			iptables -t nat -D POSTROUTING $ipt_num
-		    fi
-		done < <(echo -e "$current_iptables_nat11_postrouting_rules")
+        if ([ "$arg1" = "added" ] && [ "$arg2" = "deniedhost" ]) || ([ "$arg1" = "removed" ] && [ "$arg2" = "grantedhost" ]); then
+                current_iptables_nat11_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep NAT)
+                while read ipt_num ipt_target ipt_prot ipt_opt ipt_source ipt_destination ipt_destination2
+                do
+                    if [ "$arg3" = "$ipt_source" ]; then
+                        iptables -t nat -D POSTROUTING $ipt_num
+                    fi
+                done < <(echo -e "$current_iptables_nat11_postrouting_rules")
 
-		current_iptables_nat11_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep NAT)
-		while read ipt_num ipt_target ipt_prot ipt_opt ipt_source ipt_destination ipt_destination2
-		do
-		    if [ "$arg4" = "$ipt_destination" ]; then
-			iptables -t nat -D PREROUTING $ipt_num
-		    fi
-		done < <(echo -e "$current_iptables_nat11_prerouting_rules")
-	fi
-	if ([ "$arg1" = "added" ] && [ "$arg2" = "grantedhost" ]); then
-		current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep SNAT|grep $arg4$)
-		if [ "$current_iptables_postrouting_rules" = "" ]; then
-		    iptables -t nat -A POSTROUTING -o $WAN -s $arg3 -j SNAT --to-source $arg4
-		fi
-		current_iptables_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep DNAT|grep $arg3$)
-		if [ "$current_iptables_prerouting_rules" = "" ]; then
-		    iptables -t nat -A PREROUTING -i $WAN -d $arg4 -j DNAT --to-destination $arg3
-		fi
-	fi
+                current_iptables_nat11_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep NAT)
+                while read ipt_num ipt_target ipt_prot ipt_opt ipt_source ipt_destination ipt_destination2
+                do
+                    if [ "$arg4" = "$ipt_destination" ]; then
+                        iptables -t nat -D PREROUTING $ipt_num
+                    fi
+                done < <(echo -e "$current_iptables_nat11_prerouting_rules")
+        fi
+        if ([ "$arg1" = "added" ] && [ "$arg2" = "grantedhost" ]); then
+                current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep SNAT|grep $arg4$)
+                if [ "$current_iptables_postrouting_rules" = "" ]; then
+                    iptables -t nat -A POSTROUTING -o $WAN -s $arg3 -j SNAT --to-source $arg4
+                fi
+                current_iptables_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep DNAT|grep $arg3$)
+                if [ "$current_iptables_prerouting_rules" = "" ]; then
+                    iptables -t nat -A PREROUTING -i $WAN -d $arg4 -j DNAT --to-destination $arg3
+                fi
+        fi
     done < <(echo -e "$lista_zmian")
     echo "$current_time - modify_nat11_fw_rules OK" >> $logdir/$logfile
 }
@@ -579,24 +597,24 @@ function modify_nat11_fw_rules {
 function modify_nat1n_fw_rules {
     lista_zmian=$(diff  --unchanged-line-format="" --old-line-format="removed %L" --new-line-format="added %L" $oldconfdir/$nat_1n_ip_file $confdir/$nat_1n_ip_file)
     while read arg1 arg2 arg3; do
-	if ([ "$arg1" = "removed" ]); then
-	    current_iptables_nat1n_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set)
-	    while read ipt1 ipt2 ipt3 ipt4 ipt5 ipt6 ipt7 ipt8 ipt9 ipt10
-	    do
-		    if [ "to:$arg3" = "$ipt10" ]; then
-			iptables -t nat -D POSTROUTING $ipt1
-			ipset destroy $arg2
-		    fi
-	    done < <(echo -e "$current_iptables_nat1n_postrouting_rules")
-	fi
-	if ([ "$arg1" = "added" ]); then
-	    current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set|grep $arg3$)
-	    current_ipset_list=$(ipset -q --list $arg2)
-		    if ([ "$current_iptables_postrouting_rules" = "" ] && [ "$current_ipset_list" = "" ]); then
-			ipset create "$arg2" hash:ip hashsize 1024
-			iptables -t nat -I POSTROUTING -o $WAN -m set --match-set $arg2 src -j SNAT --to-source $arg3
-		    fi
-	fi
+        if ([ "$arg1" = "removed" ]); then
+            current_iptables_nat1n_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set)
+            while read ipt1 ipt2 ipt3 ipt4 ipt5 ipt6 ipt7 ipt8 ipt9 ipt10
+            do
+                    if [ "to:$arg3" = "$ipt10" ]; then
+                        iptables -t nat -D POSTROUTING $ipt1
+                        ipset destroy $arg2
+                    fi
+            done < <(echo -e "$current_iptables_nat1n_postrouting_rules")
+        fi
+        if ([ "$arg1" = "added" ]); then
+            current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set|grep $arg3$)
+            current_ipset_list=$(ipset -q --list $arg2)
+                    if ([ "$current_iptables_postrouting_rules" = "" ] && [ "$current_ipset_list" = "" ]); then
+                        ipset create "$arg2" hash:ip hashsize 1024
+                        iptables -t nat -I POSTROUTING -o $WAN -m set --match-set $arg2 src -j SNAT --to-source $arg3
+                    fi
+        fi
     done < <(echo -e "$lista_zmian")
     echo "$current_time - modify_nat1n_fw_rules OK" >> $logdir/$logfile
 }
@@ -605,22 +623,22 @@ function firewall_up {
 #Network Tuning Factors
 
 #Change default ARP table for large networks.
-    if [ $(cat /proc/sys/net/ipv4/neigh/default/gc_thresh1) -lt 2048 ]; then 
-	sysctl -w net.ipv4.neigh.default.gc_thresh1=2048
-	sysctl -w net.ipv4.neigh.default.gc_thresh2=4096
-	sysctl -w net.ipv4.neigh.default.gc_thresh3=8192
+    if [ $(cat /proc/sys/net/ipv4/neigh/default/gc_thresh1) -lt 2048 ]; then
+        sysctl -w net.ipv4.neigh.default.gc_thresh1=2048
+        sysctl -w net.ipv4.neigh.default.gc_thresh2=4096
+        sysctl -w net.ipv4.neigh.default.gc_thresh3=8192
     fi
 
 #Defines the default and maximum receive window size.
     if [ $(cat /proc/sys/net/core/rmem_default) -lt 1048576 ]; then
-	sysctl -w net.core.rmem_default=1048576
-	sysctl -w net.core.rmem_max=2097152
+        sysctl -w net.core.rmem_default=1048576
+        sysctl -w net.core.rmem_max=2097152
     fi
 
 #Defines the default and maximum send window size.
     if [ $(cat /proc/sys/net/core/wmem_default) -lt 1048576 ]; then
-	sysctl -w net.core.wmem_default=1048576
-	sysctl -w net.core.wmem_max=2097152
+        sysctl -w net.core.wmem_default=1048576
+        sysctl -w net.core.wmem_max=2097152
     fi
 
 #Increasing nf_conntrack table size
@@ -667,13 +685,14 @@ function firewall_up {
 ##    iptables -A FORWARD -i $WAN -o $LAN -p tcp --dport 3389 -m recent --name forcerdp --rdest --set
 ##    iptables -A FORWARD -i $WAN -o $LAN -p tcp --dport 3389 -m recent --name forcerdp --rdest --update --seconds 120 --hitcount 5 -j DROP
 #iptables -A FORWARD -i $WAN -o $LAN -p tcp --match multiport --dport 22,23,3389 -m state --state NEW -m recent --set --name RMTMGMT
-#iptables -A FORWARD -i $WAN -o $LAN -p tcp --match multiport --dport 22,23,3389 -m state --state NEW -m recent --update --seconds 120 --hitcount 5 --rttl --name RMTMGMT -j SET --add-set fw_time_blacklist src 
+#iptables -A FORWARD -i $WAN -o $LAN -p tcp --match multiport --dport 22,23,3389 -m state --state NEW -m recent --update --seconds 120 --hitcount 5 --rttl --name RMTMGMT -j SET --add-set fw_time_blacklist src
 
 iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protected_ports dst -m state --state NEW -m recent --set --name LDDOSPP
 iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protected_ports dst -m state --state NEW -m recent --update --seconds 120 --hitcount 5 --rttl --name LDDOSPP -j SET --add-set fw_wan_ddos_source src
 
 #Enable packet logging
-    iptables -A FORWARD -i $LAN -m state --state NEW -p tcp -j ULOG --ulog-nlgroup 1 --ulog-prefix FORWARDED-CONN
+lsmod | grep -q ipt_LOG && iptables -A FORWARD -i $LAN -m state --state NEW -p tcp -j ULOG --ulog-nlgroup 1 --ulog-prefix FORWARDED-CONN
+lsmod | grep -q xt_NFLOG && iptables -A FORWARD -i $LAN -m state --state NEW -p tcp -j NFLOG --nflog-group 1 --nflog-prefix "FORWARDED-CONN"
 
 #Allow packet transfer only between LAN and WAN interfaces for selected hosts from the fw_ip list
     iptables -A FORWARD -i $LAN -o $WAN -m set --match-set fw_ip src -j ACCEPT
@@ -717,7 +736,7 @@ function firewall_down {
         iptables -P FORWARD DROP
         iptables -P INPUT ACCEPT
         iptables -P OUTPUT ACCEPT
-	echo "$current_time - firewall_down OK" >> $logdir/$logfile
+        echo "$current_time - firewall_down OK" >> $logdir/$logfile
 }
 
 function destroy_all_hashtables {
@@ -744,12 +763,12 @@ function load_fw_hashtables {
 
 function static_routing_up {
     if [ -s $confdir/$routed_nets_file ]; then
-	while read net gw interface; do
-    	    ip route add $net via $gw dev $LAN
-	done < $confdir/$routed_nets_file
-	echo "$current_time - Adding static routing entries" >> $logdir/$logfile
+        while read net gw interface; do
+            ip route add $net via $gw dev $LAN
+        done < $confdir/$routed_nets_file
+        echo "$current_time - Adding static routing entries" >> $logdir/$logfile
     else
-	echo "$current_time - Static routing enries not exist" >> $logdir/$logfile
+        echo "$current_time - Static routing enries not exist" >> $logdir/$logfile
     fi
 }
 
@@ -762,7 +781,7 @@ function static_routing_down {
 
 function fw_cron {
     if [ "$1" = "start" ]; then
-	echo "# Run the fw.sh cron jobs
+        echo "# Run the fw.sh cron jobs
 SHELL=/bin/bash
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 MAILTO=""
@@ -773,9 +792,9 @@ MAILTO=""
         echo "$current_time - Enabling cron for fw.sh" >> $logdir/$logfile
 
     elif [ "$1" = "stop" ]; then
-	if [ -f /etc/cron.d/fw_sh ]; then
-    	    rm /etc/cron.d/fw_sh
-    	fi
+        if [ -f /etc/cron.d/fw_sh ]; then
+            rm /etc/cron.d/fw_sh
+        fi
         echo "$current_time - Disabling cron for fw.sh" >> $logdir/$logfile
     fi
 }
