@@ -37,14 +37,14 @@ fi
 
     for param in $confdir $oldconfdir
     do
-	[[ -f $param/$nat_11_file ]] || touch $param/$nat_11_file
-	[[ -f $param/$nat_1n_ip_file ]] || touch $param/$nat_1n_ip_file
-	[[ -f $param/$public_ip_file ]] || touch $param/$public_ip_file
-	[[ -f $param/$routed_nets_file ]] || touch $param/$routed_nets_file
-	[[ -f $param/$blacklist_file ]] || touch $param/$blacklist_file
-	[[ -f $param/$lan_banned_dst_ports_file ]] || touch $param/$lan_banned_dst_ports_file
-	[[ -f $param/$shaper_file ]] || touch $param/$shaper_file
-	[[ -f $param/$dhcp_conf_file ]] || touch $param/$dhcp_conf_file
+        [[ -f $param/$nat_11_file ]] || touch $param/$nat_11_file
+        [[ -f $param/$nat_1n_ip_file ]] || touch $param/$nat_1n_ip_file
+        [[ -f $param/$public_ip_file ]] || touch $param/$public_ip_file
+        [[ -f $param/$routed_nets_file ]] || touch $param/$routed_nets_file
+        [[ -f $param/$blacklist_file ]] || touch $param/$blacklist_file
+        [[ -f $param/$lan_banned_dst_ports_file ]] || touch $param/$lan_banned_dst_ports_file
+        [[ -f $param/$shaper_file ]] || touch $param/$shaper_file
+        [[ -f $param/$dhcp_conf_file ]] || touch $param/$dhcp_conf_file
     done
 
     [[ -f $logdir/$logfile ]] || touch $logdir/$logfile
@@ -54,78 +54,29 @@ if [ "$DEBUG" == "no" ]; then
     logfile="null"
 fi
 
-#Load fwfunction 
+#Load fwfunction
 source $scriptsdir/fwfunctions
 
 
-    maintenance-on ()
+    stop ()
     {
-        mpid=$(cat /run/fw-sh/maintenance.pid)
-        if [ $mpid = 1 ]; then
-            echo ""
-    	    echo -e "Firewall maintenance is allready on \n"
-            echo "To exit from maintenance mode run: /etc/init.d/fw.sh maintenance-off"
-            exit
-        else
+        echo "Firewall Stop"
+        echo "$current_time - Firewall Stop" >> $logdir/$logfile
         fw_cron stop
-	shaper_cmd stop
+        dhcpd_cmd stop
+        shaper_cmd stop
         static_routing_down
         firewall_down
         destroy_all_hashtables
-        dhcpd_cmd stop
-        ifup $MGMT
-        #ifdown $WAN
-        ifdown $LAN
-        echo 1 > /run/fw-sh/maintenance.pid
-        fi
-        echo ""
-	echo -e "Firewall maintenance is on \n"
-	echo "$current_time - Firewall maintenance is on" >> $logdir/$logfile
-    }
-
-    maintenance-off ()
-    {
-        mpid=$(cat /run/fw-sh/maintenance.pid)
-        if [ $mpid = 0 ]; then
-            echo ""
-	    echo -e "Firewall maintenance is allready off \n"
-            exit
-        else
-        ifup $LAN
-        ifup $WAN
-        static_routing_up
-        create_fw_hashtables
-        load_fw_hashtables
-        firewall_up
-        shaper_cmd start
-        dhcpd_cmd start
-        fw_cron start
-        echo 0 > /run/fw-sh/maintenance.pid
-        ifdown $MGMT
-        fi
-        echo ""
-        echo -e "Firewall maintenance is off \n"
-	echo "$current_time - Firewall maintenance is off" >> $logdir/$logfile
-    }
-
-    stop ()
-    {
-	echo "Firewall Stop"
-	echo "$current_time - Firewall Stop" >> $logdir/$logfile
-	fw_cron stop
-	shaper_cmd stop
-	static_routing_down
-	firewall_down
-	destroy_all_hashtables
-	echo "$current_time - Firewall Stop OK" >> $logdir/$logfile
+        echo "$current_time - Firewall Stop OK" >> $logdir/$logfile
     }
 
     start ()
     {
-	#tuned-adm profile network-latency
-	echo "Firewall Start"
-	stop  > /dev/null 2>&1
-	echo "$current_time - Firewall Start" >> $logdir/$logfile
+        #tuned-adm profile network-latency
+        echo "Firewall Start"
+        stop > /dev/null 2>&1
+        echo "$current_time - Firewall Start" >> $logdir/$logfile
         static_routing_up
         create_fw_hashtables
         load_fw_hashtables
@@ -133,19 +84,19 @@ source $scriptsdir/fwfunctions
         shaper_cmd start
         dhcpd_cmd start
         fw_cron start
-	echo "$current_time - Firewall Start OK" >> $logdir/$logfile
+        echo "$current_time - Firewall Start OK" >> $logdir/$logfile
     }
 
     newreload ()
     {
-	echo "Firewall newreload"
-	echo "$current_time - Firewall newreload" >> $logdir/$logfile
-	load_fw_hashtables
-	modify_nat11_fw_rules
-	modify_nat1n_fw_rules
-	shaper_cmd restart
-	dhcpd_cmd restart
-	echo "$current_time - Firewall newreload OK" >> $logdir/$logfile
+        echo "Firewall newreload"
+        echo "$current_time - Firewall newreload" >> $logdir/$logfile
+        load_fw_hashtables
+        modify_nat11_fw_rules
+        modify_nat1n_fw_rules
+        shaper_cmd restart
+        dhcpd_cmd restart
+        echo "$current_time - Firewall newreload OK" >> $logdir/$logfile
     }
 
     lmsd ()
@@ -160,6 +111,46 @@ source $scriptsdir/fwfunctions
         newreload
     fi
     }
+
+    maintenance-on ()
+    {
+        mpid=$(cat /run/fw-sh/maintenance.pid)
+        if [ $mpid = 1 ]; then
+            echo ""
+            echo -e "Firewall maintenance is allready on \n"
+            echo "To exit from maintenance mode run: /etc/init.d/fw.sh maintenance-off"
+            exit
+        else
+            ip link set dev $MGMT up && echo 1 > /run/fw-sh/maintenance.pid || exit 1
+            stop
+            ip link set dev $LAN down
+            ip link set dev $WAN down
+        fi
+        echo ""
+        echo -e "Firewall maintenance is on \n"
+        echo "$current_time - Firewall maintenance is on" >> $logdir/$logfile
+    }
+
+    maintenance-off ()
+    {
+        mpid=$(cat /run/fw-sh/maintenance.pid)
+        if [ $mpid = 0 ]; then
+            echo ""
+            echo -e "Firewall maintenance is allready off \n"
+            exit
+        else
+            ip link set dev $WAN up || exit 1
+            ip link set dev $LAN up || exit 1
+            sleep 5
+            start
+            ip link set dev $MGMT down && echo 0 > /run/fw-sh/maintenance.pid
+        fi
+        echo ""
+        echo -e "Firewall maintenance is off \n"
+        echo "$current_time - Firewall maintenance is off" >> $logdir/$logfile
+    }
+
+
 
 #####Program główny####
 
