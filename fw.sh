@@ -118,7 +118,7 @@ source $scriptsdir/fwfunctions
         if [ $mpid = 1 ]; then
             echo ""
             echo -e "Firewall maintenance is allready on \n"
-            echo "To exit from maintenance mode run: /etc/init.d/fw.sh maintenance-off"
+            echo "To exit from maintenance mode run: fw.sh maintenance-off"
             exit
         else
             ip link set dev $MGMT up && echo 1 > /run/fw-sh/maintenance.pid || exit 1
