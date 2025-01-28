@@ -356,57 +356,57 @@ function shaper_cmd {
 }
 
 function create_fw_hashtables {
-#hashtable for granted host
+    #hashtable for granted host
     current_ipset_list=$(ipset -q --list fw_ip)
     if ([ "$current_ipset_list" = "" ]); then
         ipset create fw_ip hash:ip hashsize 2048
     fi
 
-#hashtable for denied host
+    #hashtable for denied host
     current_ipset_list=$(ipset -q --list fw_denied_hosts)
     if ([ "$current_ipset_list" = "" ]); then
         ipset create fw_denied_hosts hash:ip hashsize 1024
     fi
 
-#hashtable for warned host
+    #hashtable for warned host
     current_ipset_list=$(ipset -q --list fw_warned_hosts)
     if ([ "$current_ipset_list" = "" ]); then
         ipset create fw_warned_hosts hash:ip hashsize 2048
     fi
 
-#hashtable for blacklisted host/networks
-current_ipset_list=$(ipset -q --list fw_blacklist)
-    if ([ "$current_ipset_list" = "" ]); then
-        ipset create fw_time_blacklist hash:net hashsize 2048 timeout 900
-        ipset create fw_permanent_blacklist hash:net hashsize 2048
-    fi
+    #hashtable for blacklisted host/networks
+    current_ipset_list=$(ipset -q --list fw_blacklist)
+        if ([ "$current_ipset_list" = "" ]); then
+            ipset create fw_time_blacklist hash:net hashsize 2048 timeout 900
+            ipset create fw_permanent_blacklist hash:net hashsize 2048
+        fi
 
-#hashtable for permanent banned dst ports on LAN interface
+    #hashtable for permanent banned dst ports on LAN interface
     current_ipset_list=$(ipset -q --list fw_lan_banned_dst_ports)
     if ([ "$current_ipset_list" = "" ]); then
         ipset create fw_lan_banned_dst_ports bitmap:port range 0-65535
     fi
 
-#hashtable for permanent banned dst ports on WAN interface
+    #hashtable for permanent banned dst ports on WAN interface
     current_ipset_list=$(ipset -q --list fw_wan_banned_dst_ports)
     if ([ "$current_ipset_list" = "" ]); then
         ipset create fw_wan_banned_dst_ports bitmap:port range 0-65535
     fi
 
 
-#hashtable for ddos protected dst ports on LAN interface
+    #hashtable for ddos protected dst ports on LAN interface
     current_ipset_list=$(ipset -q --list fw_lan_ddos_protected_ports)
     if ([ "$current_ipset_list" = "" ]); then
         ipset create fw_lan_ddos_protected_ports bitmap:port range 0-65535
     fi
 
-#hashtable for ddos source from WAN interface
+    #hashtable for ddos source from WAN interface
     current_ipset_list=$(ipset -q --list fw_wan_ddos_source)
     if ([ "$current_ipset_list" = "" ]); then
         ipset create fw_wan_ddos_source hash:ip hashsize 2048 timeout 900
     fi
 
-#hashtable for nat1-n host
+    #hashtable for nat1-n host
     while read nat_name ip; do
         ipset create "$nat_name" hash:ip hashsize 1024
     done <$confdir/$nat_1n_ip_file
