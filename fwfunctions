@@ -11,7 +11,22 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 
-
+function Log {
+    [[ -f "$LOG_FILE_PATH" ]] || touch $LOG_FILE_PATH
+    local message="${@:2}"
+    local flag="$1"
+    local logdate=$(date +"%F %T.%3N%:z")
+    MESSAGE_FORMAT="${logdate} ${flag~}: ${message}"
+    MESSAGE_FORMAT_SIMPLE="${message}"
+    if [[ "$DEBUG" == "true" || "$DEBUG" == "yes" ]]; then
+        echo "${MESSAGE_FORMAT_SIMPLE}"
+        echo "${MESSAGE_FORMAT}" >> "$LOG_FILE_PATH"
+    else
+        if [[ "flag" == "error"  || "flag" == "info" ]]; then
+            echo "${MESSAGE_FORMAT_SIMPLE}"
+        fi
+    fi
+}
 
 function get_config {
     echo "$current_time - Connecting to LMS and downloading configuration files" >> $logdir/$logfile
@@ -77,27 +92,6 @@ function dhcpd_cmd {
         dhcp_server_cmd start && echo "$current_time - The dhcpd server successfully started OK" >> $logdir/$logfile
     elif [ "$arg" = "stop" ]; then
         dhcp_server_cmd stop && echo "$current_time - The dhcpd server successfully stopped OK" >> $logdir/$logfile
-    fi
-}
-
-function htb_cmd {
-    if [ "$1" = "restart" ]; then
-    rc_htb_current=$(cat $confdir/rc.htb |sha1sum)
-    rc_htb_new=$(cat $oldconfdir/rc.htb |sha1sum)
-        if [ "$rc_htb_current" != "$rc_htb_new" ]; then
-            echo "$current_time - The rc.htb file has a new configuration, restarting Shaper" >> $logdir/$logfile
-            bash $confdir/rc.htb stop
-            bash $confdir/rc.htb start
-        else
-            echo "The rc.htb configuration is identical, a restart is not needed"
-        fi
-    elif [ "$1" = "stop" ]; then
-    bash $confdir/rc.htb stop
-    echo "$current_time - htb_cmd stop OK" >> $logdir/$logfile
-
-    elif [ "$1" = "start" ]; then
-    echo "Launching a Shaper"
-    bash $confdir/rc.htb start
     fi
 }
 
