@@ -15,9 +15,6 @@ PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 
-FW_CONFIG_TEMP_DIR=$(mktemp -d -p /dev/shm/ FW_CONFIG.XXXX)
-trap 'rm -rf ${FW_CONFIG_TEMP_DIR}' INT TERM EXIT
-
 #Load fw.sh config file
 source $SCRIPT_DIR/fw.conf
 
