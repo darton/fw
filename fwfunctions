@@ -356,7 +356,6 @@ function shaper_cmd {
 }
 
 function create_fw_hashtables {
-
     #hashtable for granted host
     current_ipset_list=$(ipset -q --list fw_ip)
     if ([ "$current_ipset_list" = "" ]); then
