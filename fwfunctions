@@ -763,14 +763,14 @@ function load_fw_hashtables {
 }
 
 function static_routing_up {
-    if [ -s $confdir/$routed_nets_file ]; then
-        while read net gw interface; do
-            ip route add $net via $gw dev $LAN
-        done < $confdir/$routed_nets_file
-        echo "$current_time - Adding static routing entries" >> $logdir/$logfile
-    else
-        echo "$current_time - Static routing enries not exist" >> $logdir/$logfile
-    fi
+     if [ -s $confdir/$routed_nets_file ]; then
+         while read net gw interface; do
+             ip route add $net via $gw dev $LAN
+         done < $confdir/$routed_nets_file
+         echo "$current_time - Adding static routing entries" >> $logdir/$logfile
+     else
+         echo "$current_time - Static routing enries not exist" >> $logdir/$logfile
+     fi
 }
 
 function static_routing_down {
