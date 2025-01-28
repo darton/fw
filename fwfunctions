@@ -356,6 +356,7 @@ function shaper_cmd {
 }
 
 function create_fw_hashtables {
+
     #hashtable for granted host
     current_ipset_list=$(ipset -q --list fw_ip)
     if ([ "$current_ipset_list" = "" ]); then
@@ -376,10 +377,10 @@ function create_fw_hashtables {
 
     #hashtable for blacklisted host/networks
     current_ipset_list=$(ipset -q --list fw_blacklist)
-        if ([ "$current_ipset_list" = "" ]); then
-            ipset create fw_time_blacklist hash:net hashsize 2048 timeout 900
-            ipset create fw_permanent_blacklist hash:net hashsize 2048
-        fi
+    if ([ "$current_ipset_list" = "" ]); then
+        ipset create fw_time_blacklist hash:net hashsize 2048 timeout 900
+        ipset create fw_permanent_blacklist hash:net hashsize 2048
+    fi
 
     #hashtable for permanent banned dst ports on LAN interface
     current_ipset_list=$(ipset -q --list fw_lan_banned_dst_ports)
