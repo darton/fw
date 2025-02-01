@@ -15,16 +15,29 @@ PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
 
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 
-#Load fw.sh config file
-source $SCRIPT_DIR/fw.conf
-
 current_time=$(date '+%Y-%m-%d %H:%M:%S')
+
 
 if [[ $EUID -ne 0 ]]; then
     echo ""
     echo "Program must be run as root !"
     exit 1
 fi
+
+
+#Load fw.sh config file
+source $SCRIPT_DIR/fw.conf
+
+
+if [ "$DEBUG" == "no" ]; then
+    logdir="/dev"
+    logfile="null"
+fi
+
+
+#Load fwfunction
+source $scriptsdir/fwfunctions
+
 
 ####Makes necessary config directories and files####
     [[ -d /run/fw-sh/ ]] || mkdir /run/fw-sh
@@ -45,14 +58,6 @@ fi
     done
 
     [[ -f $logdir/$logfile ]] || touch $logdir/$logfile
-
-if [ "$DEBUG" == "no" ]; then
-    logdir="/dev"
-    logfile="null"
-fi
-
-#Load fwfunction
-source $scriptsdir/fwfunctions
 
 
 stop (){
