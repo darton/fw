@@ -236,41 +236,46 @@ function shaper_cmd {
         echo LAN_HOSTS_PRIORITY=$LAN_HOSTS_PRIORITY
         echo WAN_HOSTS_PRIORITY=$WAN_HOSTS_PRIORITY
 
-#To LAN
-# Set global limit for LAN interface
-        tc qdisc add dev $LAN root handle 1:0 htb default 3 r2q 1
-        tc class add dev $LAN parent 1:0 classid 1:1 htb rate $LAN_INTERFACE_SPEED_LIMIT ceil $LAN_INTERFACE_SPEED_LIMIT $BURST quantum 1500
 
-# Set limit for all traffic from Internet to LAN
-        tc class add dev $LAN parent 1:1 classid 1:2 htb rate $ISP_RX_LIMIT ceil $ISP_RX_LIMIT $BURST quantum 1500
-
-#Set default limit for traffic from Internet to LAN
-        tc class add dev $LAN parent 1:1 classid 1:3 htb rate $LAN_UNCLASSIFIED_RATE_LIMIT ceil $LAN_UNCLASSIFIED_CEIL_LIMIT prio $LAN_UNCLASSIFIED_PRIORITY quantum 1500
-        tc qdisc add dev $LAN parent 1:3 fq_codel
-
-#Set limit for traffic from GATEWAY to LAN
-        tc class add dev $LAN parent 1:1 classid 1:4 htb rate $GW_TO_LAN_RATE_LIMIT ceil $GW_TO_LAN_CEIL_LIMIT $BURST prio $GW_TO_LAN_PRIORITY quantum 1500
-        tc qdisc add dev $LAN parent 1:4 fq_codel
-        iptables -t mangle -A OUTPUT -o $LAN -j CLASSIFY --set-class 1:4
-
-#To WAN
-# Set limit for all traffic from WAN to Internet
+        #To WAN
+        # Set limit for all traffic from WAN to Internet
         tc qdisc add dev $WAN root handle 2:0 htb default 3 r2q 1
         tc class add dev $WAN parent 2:0 classid 2:1 htb rate $ISP_TX_LIMIT ceil $ISP_TX_LIMIT $BURST quantum 1500
 
-# Set default limit for traffic from WAN to Internet
+        # Set default limit for traffic from WAN to Internet
         tc class add dev $WAN parent 2:1 classid 2:3 htb rate $WAN_UNCLASSIFIED_RATE_LIMIT ceil $WAN_UNCLASSIFIED_CEIL_LIMIT prio $WAN_UNCLASSIFIED_PRIORITY quantum 1500
         tc qdisc add dev $WAN parent 2:3 fq_codel
 
-#Set limit for traffic from GATEWAY to WAN
+        #Set limit for traffic from GATEWAY to WAN
         tc class add dev $WAN parent 2:1 classid 2:4 htb rate $GW_TO_WAN_RATE_LIMIT ceil $GW_TO_WAN_CEIL_LIMIT $BURST prio $GW_TO_WAN_PRIORITY quantum 1500
         tc qdisc add dev $WAN parent 2:4 fq_codel
         iptables -t mangle -A OUTPUT -o $WAN -j CLASSIFY --set-class 2:4
 
-#To and from CUSTOMERS
-#Set limit for customers host
-#       network_list=$(cat $confdir/$shaper_file |grep filter |awk '{print $2}'|awk -F\. '{print $1"."$2"."$3}'|sort -u)
+
+        #To LAN
+        # Set global limit for LAN interface
+        tc qdisc add dev $LAN root handle 1:0 htb default 3 r2q 1
+        tc class add dev $LAN parent 1:0 classid 1:1 htb rate $LAN_INTERFACE_SPEED_LIMIT ceil $LAN_INTERFACE_SPEED_LIMIT $BURST quantum 1500
+
+        # Set limit for all traffic from Internet to LAN
+        tc class add dev $LAN parent 1:1 classid 1:2 htb rate $ISP_RX_LIMIT ceil $ISP_RX_LIMIT $BURST quantum 1500
+
+        #Set default limit for traffic from Internet to LAN
+        tc class add dev $LAN parent 1:1 classid 1:3 htb rate $LAN_UNCLASSIFIED_RATE_LIMIT ceil $LAN_UNCLASSIFIED_CEIL_LIMIT prio $LAN_UNCLASSIFIED_PRIORITY quantum 1500
+        tc qdisc add dev $LAN parent 1:3 fq_codel
+
+        #Set limit for traffic from GATEWAY to LAN
+        tc class add dev $LAN parent 1:1 classid 1:4 htb rate $GW_TO_LAN_RATE_LIMIT ceil $GW_TO_LAN_CEIL_LIMIT $BURST prio $GW_TO_LAN_PRIORITY quantum 1500
+        tc qdisc add dev $LAN parent 1:4 fq_codel
+        iptables -t mangle -A OUTPUT -o $LAN -j CLASSIFY --set-class 1:4
+
+
+        #To and from CUSTOMERS
+        #Set limit for customers host
+
+        #network_list=$(cat $confdir/$shaper_file |grep filter |awk '{print $2}'|awk -F\. '{print $1"."$2"."$3}'|sort -u)
         network_list=`awk '/filter / {split($2, ip, "."); print ip[1]"."ip[2]"."ip[3]}' "$confdir/$shaper_file" | sort -u`
+
         for net in $network_list; do
             iptables -t mangle -N COUNTERSIN$net
             iptables -t mangle -N COUNTERSOUT$net
@@ -300,7 +305,6 @@ function shaper_cmd {
                 iptables -t mangle -A COUNTERSIN$octet1.$octet2.$octet3 -d $arg2 -j CLASSIFY --set-class 1:$h; }
             fi
         done < <(cat $confdir/$shaper_file|grep -v \#)
-
 
     elif [ "$1" = "stats" ]; then
 
@@ -387,7 +391,6 @@ function create_fw_hashtables {
         ipset create fw_wan_banned_dst_ports bitmap:port range 0-65535
     fi
 
-
     #hashtable for ddos protected dst ports on LAN interface
     current_ipset_list=$(ipset -q --list fw_lan_ddos_protected_ports)
     if ([ "$current_ipset_list" = "" ]); then
@@ -408,28 +411,28 @@ function create_fw_hashtables {
 }
 
 function create_tmp_hashtables {
-#create tmp hashtable for granted host
+    #create tmp hashtable for granted host
     ipset create fw_ip.tmp hash:ip hashsize 2048
 
-#create tmp hashtable for denied host
+    #create tmp hashtable for denied host
     ipset create fw_denied_hosts.tmp hash:ip hashsize 1024
 
-#create tmp hashtable for warned host
+    #create tmp hashtable for warned host
     ipset create fw_warned_hosts.tmp hash:ip hashsize 2048
 
-#create tmp hashtable for blacklisted hosts/networks
+    #create tmp hashtable for blacklisted hosts/networks
     ipset create fw_permanent_blacklist.tmp hash:net hashsize 2048
 
-#create tmp hashtable for banned dst ports on LAN interface
+    #create tmp hashtable for banned dst ports on LAN interface
     ipset create fw_lan_banned_dst_ports.tmp bitmap:port range 0-65535
 
-#create tmp hashtable for banned dst ports on WAN interface
+    #create tmp hashtable for banned dst ports on WAN interface
     ipset create fw_wan_banned_dst_ports.tmp bitmap:port range 0-65535
 
-#create tmp hashtable for DDoS protected dst ports on LAN interface
+    #create tmp hashtable for DDoS protected dst ports on LAN interface
     ipset create fw_lan_ddos_protected_ports.tmp bitmap:port range 0-65535
 
-#create tmp hashtable for nat1-n host
+    #create tmp hashtable for nat1-n host
     while read nat_name ip; do
         ipset create "$nat_name".tmp hash:ip hashsize 1024
     done <$confdir/$nat_1n_ip_file
@@ -470,7 +473,7 @@ function load_tmp_nat1n_hashtables {
             elif [ "$status" = "warnedhost" ]; then
                 ipset add fw_warned_hosts.tmp $i
             else
-             echo "The file $nat_name is not in the correct format, the correct format is: grantedhost | deniedhost | warnedhost ip_address" >> $logdir/$logfile
+                echo "The file $nat_name is not in the correct format, the correct format is: grantedhost | deniedhost | warnedhost ip_address" >> $logdir/$logfile
             fi
         done < $confdir/$nat_name
     done <$confdir/$nat_1n_ip_file
@@ -595,62 +598,62 @@ function modify_nat1n_fw_rules {
             current_iptables_nat1n_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set)
             while read ipt1 ipt2 ipt3 ipt4 ipt5 ipt6 ipt7 ipt8 ipt9 ipt10
             do
-                    if [ "to:$arg3" = "$ipt10" ]; then
-                        iptables -t nat -D POSTROUTING $ipt1
-                        ipset destroy $arg2
-                    fi
+                if [ "to:$arg3" = "$ipt10" ]; then
+                    iptables -t nat -D POSTROUTING $ipt1
+                    ipset destroy $arg2
+                fi
             done < <(echo -e "$current_iptables_nat1n_postrouting_rules")
         fi
         if ([ "$arg1" = "added" ]); then
             current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set|grep $arg3$)
             current_ipset_list=$(ipset -q --list $arg2)
-                    if ([ "$current_iptables_postrouting_rules" = "" ] && [ "$current_ipset_list" = "" ]); then
-                        ipset create "$arg2" hash:ip hashsize 1024
-                        iptables -t nat -I POSTROUTING -o $WAN -m set --match-set $arg2 src -j SNAT --to-source $arg3
-                    fi
+            if ([ "$current_iptables_postrouting_rules" = "" ] && [ "$current_ipset_list" = "" ]); then
+                ipset create "$arg2" hash:ip hashsize 1024
+                iptables -t nat -I POSTROUTING -o $WAN -m set --match-set $arg2 src -j SNAT --to-source $arg3
+            fi
         fi
     done < <(echo -e "$lista_zmian")
     echo "$current_time - modify_nat1n_fw_rules OK" >> $logdir/$logfile
 }
 
 function firewall_up {
-#Network Tuning Factors
+    #Network Tuning Factors
 
-#Change default ARP table for large networks.
+    #Change default ARP table for large networks.
     if [ $(cat /proc/sys/net/ipv4/neigh/default/gc_thresh1) -lt 2048 ]; then
         sysctl -w net.ipv4.neigh.default.gc_thresh1=2048
         sysctl -w net.ipv4.neigh.default.gc_thresh2=4096
         sysctl -w net.ipv4.neigh.default.gc_thresh3=8192
     fi
 
-#Defines the default and maximum receive window size.
+    #Defines the default and maximum receive window size.
     if [ $(cat /proc/sys/net/core/rmem_default) -lt 1048576 ]; then
         sysctl -w net.core.rmem_default=1048576
         sysctl -w net.core.rmem_max=2097152
     fi
 
-#Defines the default and maximum send window size.
+    #Defines the default and maximum send window size.
     if [ $(cat /proc/sys/net/core/wmem_default) -lt 1048576 ]; then
         sysctl -w net.core.wmem_default=1048576
         sysctl -w net.core.wmem_max=2097152
     fi
 
-#Increasing nf_conntrack table size
+    #Increasing nf_conntrack table size
     sysctl -w net.netfilter.nf_conntrack_max=524288
 
-#Enable IP forwardings
+    #Enable IP forwardings
     sysctl -w net.ipv4.ip_forward=1
 
-#Set chains default policy
+    #Set chains default policy
     iptables -P FORWARD DROP
     iptables -P INPUT ACCEPT
     iptables -P OUTPUT ACCEPT
 
-#
-#FILTER TABLE
-#
+    #
+    #FILTER TABLE
+    #
 
-#INPUT CHAIN
+    #INPUT CHAIN
     iptables -I INPUT -i $WAN -p tcp --match multiport --dport 22,25 -j SET --add-set fw_time_blacklist src
     iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
     iptables -A INPUT -p icmp -j ACCEPT
@@ -665,56 +668,55 @@ function firewall_up {
     iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
 
 
-#FORWARD CHAIN
-#Drop forward some ports from WAN to LAN
+    #FORWARD CHAIN
+    #Drop forward some ports from WAN to LAN
     iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_banned_dst_ports dst -j DROP
-#Drop ddos attack from fw_wan_ddos_source to fw_lan_ddos_protected_ports
+    #Drop ddos attack from fw_wan_ddos_source to fw_lan_ddos_protected_ports
     iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protected_ports dst -m set --match-set fw_wan_ddos_source src -j DROP
-#Drop forward some ports from WAN to LAN
+    #Drop forward some ports from WAN to LAN
     iptables -A FORWARD -i $LAN -o $WAN -p tcp -m set --match-set fw_wan_banned_dst_ports dst -j DROP
 
 
-#https://pl.wikibooks.org/wiki/Sieci_w_Linuksie/Netfilter/iptables/dopasowania
-#Drop DDoS on RDP port
-##    iptables -A FORWARD -i $WAN -o $LAN -p tcp --dport 3389 -m recent --name forcerdp --rdest --set
-##    iptables -A FORWARD -i $WAN -o $LAN -p tcp --dport 3389 -m recent --name forcerdp --rdest --update --seconds 120 --hitcount 5 -j DROP
-#iptables -A FORWARD -i $WAN -o $LAN -p tcp --match multiport --dport 22,23,3389 -m state --state NEW -m recent --set --name RMTMGMT
-#iptables -A FORWARD -i $WAN -o $LAN -p tcp --match multiport --dport 22,23,3389 -m state --state NEW -m recent --update --seconds 120 --hitcount 5 --rttl --name RMTMGMT -j SET --add-set fw_time_blacklist src
+    #https://pl.wikibooks.org/wiki/Sieci_w_Linuksie/Netfilter/iptables/dopasowania
+    #Drop DDoS on RDP port
+    ##    iptables -A FORWARD -i $WAN -o $LAN -p tcp --dport 3389 -m recent --name forcerdp --rdest --set
+    ##    iptables -A FORWARD -i $WAN -o $LAN -p tcp --dport 3389 -m recent --name forcerdp --rdest --update --seconds 120 --hitcount 5 -j DROP
+    #iptables -A FORWARD -i $WAN -o $LAN -p tcp --match multiport --dport 22,23,3389 -m state --state NEW -m recent --set --name RMTMGMT
+    #iptables -A FORWARD -i $WAN -o $LAN -p tcp --match multiport --dport 22,23,3389 -m state --state NEW -m recent --update --seconds 120 --hitcount 5 --rttl --name RMTMGMT -j SET --add-set fw_time_blacklist src
 
-iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protected_ports dst -m state --state NEW -m recent --set --name LDDOSPP
-iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protected_ports dst -m state --state NEW -m recent --update --seconds 120 --hitcount 5 --rttl --name LDDOSPP -j SET --add-set fw_wan_ddos_source src
+    iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protected_ports dst -m state --state NEW -m recent --set --name LDDOSPP
+    iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protected_ports dst -m state --state NEW -m recent --update --seconds 120 --hitcount 5 --rttl --name LDDOSPP -j SET --add-set fw_wan_ddos_source src
 
-#Enable packet logging
-lsmod | grep -q ipt_LOG && iptables -A FORWARD -i $LAN -m state --state NEW -p tcp -j ULOG --ulog-nlgroup 1 --ulog-prefix FORWARDED-CONN
-lsmod | grep -q xt_NFLOG && iptables -A FORWARD -i $LAN -m state --state NEW -p tcp -j NFLOG --nflog-group 1 --nflog-prefix "FORWARDED-CONN"
+    #Enable packet logging
+    lsmod | grep -q ipt_LOG && iptables -A FORWARD -i $LAN -m state --state NEW -p tcp -j ULOG --ulog-nlgroup 1 --ulog-prefix FORWARDED-CONN
+    lsmod | grep -q xt_NFLOG && iptables -A FORWARD -i $LAN -m state --state NEW -p tcp -j NFLOG --nflog-group 1 --nflog-prefix "FORWARDED-CONN"
 
-#Allow packet transfer only between LAN and WAN interfaces for selected hosts from the fw_ip list
+    #Allow packet transfer only between LAN and WAN interfaces for selected hosts from the fw_ip list
     iptables -A FORWARD -i $LAN -o $WAN -m set --match-set fw_ip src -j ACCEPT
     iptables -A FORWARD -i $WAN -o $LAN -m set --match-set fw_ip dst -j ACCEPT
     iptables -A FORWARD -i $LAN -o $LAN -m set --match-set fw_ip src -j ACCEPT
 
-#
-#NAT TABLE
-#
+    #
+    #NAT TABLE
+    #
 
-#Redirect for blocked clients with enabled warning in LMS
+    #Redirect for blocked clients with enabled warning in LMS
     iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -m set --match-set fw_denied_hosts src -p tcp --dport 80 -j DNAT --to $proxy_ip:3128
 
-#Redirect for clients with LMS warning enabled
-#    iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -p tcp --dport 80 -j DNAT --to $proxy_ip:3128
+    #Redirect for clients with LMS warning enabled
+    #iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -p tcp --dport 80 -j DNAT --to $proxy_ip:3128
 
-#Load SNAT rules for NAT 1:n users
+    #Load SNAT rules for NAT 1:n users
     load_nat_1n_fw_rules
 
-#Load SNAT / DNAT rules for 1:1 NAT users
+    #Load SNAT / DNAT rules for 1:1 NAT users
     load_nat_11_fw_rules
     echo "$current_time - firewall_up OK" >> $logdir/$logfile
 
-#
-#RAW TABLE
-#
-
-#Blacklisted host/network
+    #
+    #RAW TABLE
+    #
+    #Blacklisted host/network
     iptables -t raw -A PREROUTING -m set --match-set fw_permanent_blacklist src -j DROP
     iptables -t raw -A PREROUTING -m set --match-set fw_time_blacklist src -j DROP
 }
@@ -811,11 +813,11 @@ function fwstatus {
     echo "IPSET"
     echo "-----"
     echo ""
-#    for ipsetname in $(ipset list -n)
-#    do
-#        ipset list $ipsetname
-#        echo ""
-#    done
+    #for ipsetname in $(ipset list -n)
+    #do
+    #    ipset list $ipsetname
+    #    echo ""
+    #done
 
     echo "----------"
     echo "IPSET LIST"
