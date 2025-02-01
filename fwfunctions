@@ -825,7 +825,7 @@ function fwstatus {
     ipset list -n
     echo ""
     echo "------------------------------"
-    echo Kernel Network Core Paremeters
+    echo "Kernel Network Core Paremeters"
     echo "------------------------------"
     sysctl net.ipv4.neigh.default.gc_thresh1
     sysctl net.ipv4.neigh.default.gc_thresh2
