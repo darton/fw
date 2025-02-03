@@ -701,9 +701,9 @@ function firewall_up {
     iptables -A FORWARD -i $LAN -o $WAN -p tcp -m set --match-set fw_wan_banned_dst_ports dst -j DROP
     
     #https://pl.wikibooks.org/wiki/Sieci_w_Linuksie/Netfilter/iptables/dopasowania
-    #Drop DDoS on RDP port
-    ##    iptables -A FORWARD -i $WAN -o $LAN -p tcp --dport 3389 -m recent --name forcerdp --rdest --set
-    ##    iptables -A FORWARD -i $WAN -o $LAN -p tcp --dport 3389 -m recent --name forcerdp --rdest --update --seconds 120 --hitcount 5 -j DROP
+    #Saves IP addresses from which traffic to forbidden ports is made in the fw_time_blackli ipset list
+    #iptables -A FORWARD -i $WAN -o $LAN -p tcp --dport 3389 -m recent --name forcerdp --rdest --set
+    #iptables -A FORWARD -i $WAN -o $LAN -p tcp --dport 3389 -m recent --name forcerdp --rdest --update --seconds 120 --hitcount 5 -j DROP
     #iptables -A FORWARD -i $WAN -o $LAN -p tcp --match multiport --dport 22,23,3389 -m state --state NEW -m recent --set --name RMTMGMT
     #iptables -A FORWARD -i $WAN -o $LAN -p tcp --match multiport --dport 22,23,3389 -m state --state NEW -m recent --update --seconds 120 --hitcount 5 --rttl --name RMTMGMT -j SET --add-set fw_time_blacklist src
     iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protected_ports dst -m state --state NEW -m recent --set --name LDDOSPP
