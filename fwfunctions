@@ -240,33 +240,33 @@ function shaper_cmd {
         #To WAN
         # Set limit for all traffic from WAN to Internet
         tc qdisc add dev $WAN root handle 2:0 htb default 3 r2q 1
-        tc class add dev $WAN parent 2:0 classid 2:1 htb rate $ISP_TX_LIMIT ceil $ISP_TX_LIMIT $BURST quantum 1500
+        tc class add dev $WAN parent 2:0 classid 2:1 htb rate $ISP_TX_LIMIT ceil $ISP_TX_LIMIT burst 2000000 quantum 1514
 
         # Set default limit for traffic from WAN to Internet
-        tc class add dev $WAN parent 2:1 classid 2:3 htb rate $WAN_UNCLASSIFIED_RATE_LIMIT ceil $WAN_UNCLASSIFIED_CEIL_LIMIT prio $WAN_UNCLASSIFIED_PRIORITY quantum 1500
-        tc qdisc add dev $WAN parent 2:3 fq_codel
+        tc class add dev $WAN parent 2:1 classid 2:3 htb rate $WAN_UNCLASSIFIED_RATE_LIMIT ceil $WAN_UNCLASSIFIED_CEIL_LIMIT prio $WAN_UNCLASSIFIED_PRIORITY quantum 1514
+        tc qdisc add dev $WAN parent 2:3 fq_codel memory_limit 1Mb
 
         #Set limit for traffic from GATEWAY to WAN
-        tc class add dev $WAN parent 2:1 classid 2:4 htb rate $GW_TO_WAN_RATE_LIMIT ceil $GW_TO_WAN_CEIL_LIMIT $BURST prio $GW_TO_WAN_PRIORITY quantum 1500
-        tc qdisc add dev $WAN parent 2:4 fq_codel
+        tc class add dev $WAN parent 2:1 classid 2:4 htb rate $GW_TO_WAN_RATE_LIMIT ceil $GW_TO_WAN_CEIL_LIMIT $BURST prio $GW_TO_WAN_PRIORITY quantum 1514
+        tc qdisc add dev $WAN parent 2:4 fq_codel memory_limit 32Mb
         iptables -t mangle -A OUTPUT -o $WAN -j CLASSIFY --set-class 2:4
 
 
         #To LAN
         # Set global limit for LAN interface
         tc qdisc add dev $LAN root handle 1:0 htb default 3 r2q 1
-        tc class add dev $LAN parent 1:0 classid 1:1 htb rate $LAN_INTERFACE_SPEED_LIMIT ceil $LAN_INTERFACE_SPEED_LIMIT $BURST quantum 1500
+        tc class add dev $LAN parent 1:0 classid 1:1 htb rate $LAN_INTERFACE_SPEED_LIMIT ceil $LAN_INTERFACE_SPEED_LIMIT burst 1250000 quantum 1514
 
         # Set limit for all traffic from Internet to LAN
-        tc class add dev $LAN parent 1:1 classid 1:2 htb rate $ISP_RX_LIMIT ceil $ISP_RX_LIMIT $BURST quantum 1500
+        tc class add dev $LAN parent 1:1 classid 1:2 htb rate 950000kbit ceil 950000kbit burst 1187500 quantum 1514
 
         #Set default limit for traffic from Internet to LAN
-        tc class add dev $LAN parent 1:1 classid 1:3 htb rate $LAN_UNCLASSIFIED_RATE_LIMIT ceil $LAN_UNCLASSIFIED_CEIL_LIMIT prio $LAN_UNCLASSIFIED_PRIORITY quantum 1500
-        tc qdisc add dev $LAN parent 1:3 fq_codel
+        tc class add dev $LAN parent 1:1 classid 1:3 htb rate $LAN_UNCLASSIFIED_RATE_LIMIT ceil $LAN_UNCLASSIFIED_CEIL_LIMIT prio $LAN_UNCLASSIFIED_PRIORITY quantum 1514
+        tc qdisc add dev $LAN parent 1:3 fq_codel memory_limit 1Mb
 
         #Set limit for traffic from GATEWAY to LAN
-        tc class add dev $LAN parent 1:1 classid 1:4 htb rate $GW_TO_LAN_RATE_LIMIT ceil $GW_TO_LAN_CEIL_LIMIT $BURST prio $GW_TO_LAN_PRIORITY quantum 1500
-        tc qdisc add dev $LAN parent 1:4 fq_codel
+        tc class add dev $LAN parent 1:1 classid 1:4 htb rate $GW_TO_LAN_RATE_LIMIT ceil $GW_TO_LAN_CEIL_LIMIT $BURST prio $GW_TO_LAN_PRIORITY quantum 1514
+        tc qdisc add dev $LAN parent 1:4 fq_codel memory_limit 32Mb
         iptables -t mangle -A OUTPUT -o $LAN -j CLASSIFY --set-class 1:4
 
 
@@ -290,15 +290,15 @@ function shaper_cmd {
             elif [ "$arg1" = "class_up" ]; then
                 rate=$(echo ${arg2/kbit/})
                 rate=$((rate * 1000))
-                CUSTOMER_UP_BURST=$(echo "$rate * 0.01" | bc -l)
-                tc class add dev $WAN parent 2:1 classid 2:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_UP_BURST}b prio $WAN_HOSTS_PRIORITY quantum 1500
-                tc qdisc add dev $WAN parent 2:$h fq_codel
+                CUSTOMER_UP_BURST=$(echo "$rate * 0.0125" | bc -l)
+                tc class add dev $WAN parent 2:1 classid 2:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_UP_BURST}b prio $WAN_HOSTS_PRIORITY quantum 1514
+                tc qdisc add dev $WAN parent 2:$h fq_codel memory_limit 4Mb
             elif [ "$arg1" = "class_down" ]; then
                 rate=$(echo ${arg2/kbit/})
                 rate=$((rate * 1000))
-                CUSTOMER_DOWN_BURST=$(echo "$rate * 0.01" | bc -l)
-                tc class add dev $LAN parent 1:2 classid 1:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_DOWN_BURST}b prio $LAN_HOSTS_PRIORITY quantum 1500
-                tc qdisc add dev $LAN parent 1:$h fq_codel
+                CUSTOMER_DOWN_BURST=$(echo "$rate * 0.0125 " | bc -l)
+                tc class add dev $LAN parent 1:2 classid 1:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_DOWN_BURST}b prio $LAN_HOSTS_PRIORITY quantum 1514
+                tc qdisc add dev $LAN parent 1:$h fq_codel memory_limit 4Mb
             elif [ "$arg1" = "filter" ]; then
                 echo $arg2 | { IFS='.' read -r octet1 octet2 octet3 octet4;
                 iptables -t mangle -A COUNTERSOUT$octet1.$octet2.$octet3 -s $arg2 -j CLASSIFY --set-class 2:$h;
