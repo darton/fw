@@ -726,10 +726,11 @@ function firewall_up {
 
     # Redirect for blocked clients with enabled warning in LMS
     #iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -m set --match-set fw_denied_hosts src -p tcp --dport 80 -j DNAT --to $proxy_ip:3128
-    iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -m set --match-set fw_denied_hosts src -p tcp --dport 80 -j REDIRECT --to-port 3128
+    #iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -m set --match-set fw_denied_hosts src -p tcp --dport 80 -j REDIRECT --to-port 3128
 
     # Redirect for clients with LMS warning enabled
     #iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -p tcp --dport 80 -j DNAT --to $proxy_ip:3128
+    #iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -p tcp --dport 80 -j REDIRECT --to-port 3128
 
     # Load SNAT rules for NAT 1:n users
     load_nat_1n_fw_rules
