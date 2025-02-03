@@ -661,7 +661,7 @@ function firewall_up {
     iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
     
     # Honeypot
-    iptables -I INPUT -i $WAN -p tcp --match multiport --dport 22,80,443 -j SET --add-set fw_time_blacklist src
+    iptables -I INPUT -i $WAN -p tcp --match multiport --dport 22,80,443,3306 -j SET --add-set fw_time_blacklist src
     
     # Global INPUT allow ICMP
     iptables -A INPUT -p icmp -j ACCEPT
@@ -678,7 +678,10 @@ function firewall_up {
     # For DNS server
     iptables -A INPUT -i $LAN -p udp --dport 53 -j ACCEPT
     iptables -A INPUT -i $LAN -p tcp --dport 53 -j ACCEPT
-    
+
+    # For squid server
+    #iptables -A INPUT -i $LAN -m set --match-set fw_warned_hosts src -m set --match-set fw_denied_hosts src -p tcp --dport 3128 -j ACCEPT
+
     # Global INPUT Reject
     iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
 
