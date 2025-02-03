@@ -682,7 +682,10 @@ function firewall_up {
     # Global INPUT Reject
     iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
 
-    # FORWARD CHAIN
+
+    ## FORWARD CHAIN
+
+    #
     iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
     
     # Allow packet transfer only between LAN and WAN interfaces for selected hosts from the fw_ip list
