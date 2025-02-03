@@ -291,19 +291,19 @@ function shaper_cmd {
                 rate=$(echo ${arg2/kbit/})
                 rate=$((rate * 1000))
                 CUSTOMER_UP_BURST=$(echo "$rate * 0.0125" | bc -l)
-                #ceil=$(echo ${arg3/kbit/})
-                #ceil=$((ceil * 1000))
-                #CUSTOMER_UP_CBURST=$(echo "$ceil * 0.0125" | bc -l)
-                tc class add dev $WAN parent 2:1 classid 2:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_UP_BURST}b prio $WAN_HOSTS_PRIORITY quantum 1514
+                ceil=$(echo ${arg3/kbit/})
+                ceil=$((ceil * 1000))
+                CUSTOMER_UP_CBURST=$(echo "$ceil * 0.0125" | bc -l)
+                tc class add dev $WAN parent 2:1 classid 2:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_UP_BURST}b cburst ${CUSTOMER_UP_CBURST}b prio $WAN_HOSTS_PRIORITY quantum 1514
                 tc qdisc add dev $WAN parent 2:$h fq_codel memory_limit 4Mb
             elif [ "$arg1" = "class_down" ]; then
                 rate=$(echo ${arg2/kbit/})
                 rate=$((rate * 1000))
                 CUSTOMER_DOWN_BURST=$(echo "$rate * 0.0125 " | bc -l)
-                #ceil=$(echo ${arg3/kbit/})
-                #ceil=$((ceil * 1000))
-                #CUSTOMER_DOWN_CBURST=$(echo "$ceil * 0.0125" | bc -l)
-                tc class add dev $LAN parent 1:2 classid 1:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_DOWN_BURST}b prio $LAN_HOSTS_PRIORITY quantum 1514
+                ceil=$(echo ${arg3/kbit/})
+                ceil=$((ceil * 1000))
+                CUSTOMER_DOWN_CBURST=$(echo "$ceil * 0.0125" | bc -l)
+                tc class add dev $LAN parent 1:2 classid 1:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_DOWN_BURST}b cburst ${CUSTOMER_DOWN_CBURST}b prio $LAN_HOSTS_PRIORITY quantum 1514
                 tc qdisc add dev $LAN parent 1:$h fq_codel memory_limit 4Mb
             elif [ "$arg1" = "filter" ]; then
                 echo $arg2 | { IFS='.' read -r octet1 octet2 octet3 octet4;
