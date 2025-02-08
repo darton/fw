@@ -30,7 +30,7 @@ check_ping() {
 }
 
 # Get the list of interfaces
-INTERFACES=($(ip -o link show | awk -F': ' '/ lo:/{print $2}'))
+INTERFACES=($(ip -o link show | awk -F': ' '!/ lo:/{print $2}'))
 
 # Create an array of interfaces with metrics
 declare -A INTERFACE_METRICS
