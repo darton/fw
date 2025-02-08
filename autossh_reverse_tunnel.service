@@ -1,0 +1,18 @@
+[Unit]
+Description=Reverse SSH Tunnel Service
+After=network-online.target
+
+[Service]
+ExecStart=autossh -M 0 -N -R 2221:localhost:22 remoteuser@10.10.10.10 -i /home/localuser/.ssh/id_rsa -o "BindAddress=192.168.207.238" -o ExitOnForwardFailure=yes 
+#ExecStart=autossh -M 0 -N -R 2221:localhost:22 remoteuser@10.10.10.10 -i /home/localuser/.ssh/id_rsa -o "BindAddress=192.168.144.7" -o ExitOnForwardFailure=yes 
+User=root
+Restart=on-failure
+RestartSec=60s
+#StartLimitBurst=5
+#StartLimitInterval=10min
+SuccessExitStatus=0 143
+RestartPreventExitStatus=
+RestartForceExitStatus=255
+
+[Install]
+WantedBy=multi-user.target
