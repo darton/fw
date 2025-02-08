@@ -51,9 +51,9 @@ do
 done
 [[ -f $logdir/$logfile ]] || touch $logdir/$logfile
 
-curl -sS https://raw.githubusercontent.com/darton/fw/master/fw.sh > $scriptsdir/fw.sh
-curl -sS https://raw.githubusercontent.com/darton/fw/master/fw.conf > $scriptsdir/fw.conf
-curl -sS https://raw.githubusercontent.com/darton/fw/master/fwfunctions > $scriptsdir/fwfunctions
+cp ./fw.sh $scriptsdir/fw.sh
+cp ./fw.conf $scriptsdir/fw.conf
+cp ./fwfunctions $scriptsdir/fwfunctions
 chmod u+x $scriptsdir/fw.sh
 echo "export PATH=$PATH:$scriptsdir" >> /root/.bash_profile
 source /root/.bash_profile
