@@ -3,9 +3,9 @@
 
 setup_connection(){
   nmcli con mod "$connection_name" ipv4.route-table "$connection_route_table"
-  sudo nmcli con mod "$connection_name" ipv4.routing-rules "priority $connection_routing_rules_priority from $interface_ip table $connection_route_table"
-  sudo nmcli con mod "$connection_name" ipv4.route-metric "$connection_route_metric"
-  sudo nmcli con up "$connection_name"
+  nmcli con mod "$connection_name" ipv4.routing-rules "priority $connection_routing_rules_priority from $interface_ip table $connection_route_table"
+  nmcli con mod "$connection_name" ipv4.route-metric "$connection_route_metric"
+  nmcli con up "$connection_name"
 
 }
 
