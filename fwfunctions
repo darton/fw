@@ -737,7 +737,7 @@ function firewall_up {
     iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protected_ports dst -m state --state NEW -m recent --update --seconds 120 --hitcount 5 --rttl --name LDDOSPP -j SET --add-set fw_wan_ddos_source src
 
     # Enable packet logging
-    lsmod | grep -q ipt_LOG && iptables -A FORWARD -i $LAN -m state --state NEW -p tcp -j ULOG --ulog-nlgroup 1 --ulog-prefix FORWARDED-CONN
+    lsmod | grep -q ipt_ULOG && iptables -A FORWARD -i $LAN -m state --state NEW -p tcp -j ULOG --ulog-nlgroup 1 --ulog-prefix FORWARDED-CONN
     lsmod | grep -q xt_NFLOG && iptables -A FORWARD -i $LAN -m state --state NEW -p tcp -j NFLOG --nflog-group 1 --nflog-prefix FORWARDED-CONN
 
 
