@@ -4,7 +4,8 @@
 REMOTE_HOST="10.10.10.10"
 REMOTE_PORT=22
 REMOTE_USER="remoteuser"
-REMOTE_SSH_PORT=2221
+REVERSE_TUNNEL_PORT=2221
+LOCAL_TUNNEL_PORT=222
 PRIVATE_KEY_PATH=""
 PING_TIMEOUT=2
 
@@ -48,7 +49,7 @@ for IFACE in "${SORTED_INTERFACES[@]}"; do
   IP_ADDR=$(get_ip "$IFACE")
   if [ -n "$IP_ADDR" ] && check_ping "$IP_ADDR"; then
     echo "Using interface $IFACE ($IP_ADDR) to establish the tunnel"
-    exec autossh -M 0 -N -R "$REMOTE_SSH_PORT":localhost:"$REMOTE_PORT" \
+    exec autossh -M 0 -N -R "$REVERSE_TUNNEL_PORT":localhost:"$LOCAL_TUNNEL_PORT" -p "$REMOTE_PORT"  \
       -o BindAddress="$IP_ADDR" -o ExitOnForwardFailure=yes \
       -i "${PRIVATE_KEY_PATH:-$HOME/.ssh/id_rsa}" \
       "$REMOTE_USER@$REMOTE_HOST"
