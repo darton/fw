@@ -688,10 +688,10 @@ function firewall_up {
     # Allow for squid server
     #iptables -A INPUT -i $LAN -m set --match-set fw_warned_hosts src -m set --match-set fw_denied_hosts src -p tcp --dport 3128 -j ACCEPT
 
-    # Allow for remote fw.sh operator
+    # Allow for remote service operator
     iptables -A INPUT -i $WAN -p tcp --dport 222 -s $wan_fw_operator_ip -j ACCEPT # dla wsparcia
 
-    # Allow for local ADK service
+    # Allow for local service operator
     iptables -A INPUT -i $LAN -p tcp --dport 222 -s $lan_fw_operator_ip -j ACCEPT
 
     # Allow for log server
