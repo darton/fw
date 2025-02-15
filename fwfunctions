@@ -724,7 +724,7 @@ function firewall_up {
     # Drop ddos attack from fw_wan_ddos_source to fw_lan_ddos_protected_ports
     iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protected_ports dst -m set --match-set fw_wan_ddos_source src -j DROP
 
-    # Drop forward some ports from WAN to LAN
+    # Drop forward some ports from LAN to WAN
     iptables -A FORWARD -i $LAN -o $WAN -p tcp -m set --match-set fw_wan_banned_dst_ports dst -j DROP
 
     #https://pl.wikibooks.org/wiki/Sieci_w_Linuksie/Netfilter/iptables/dopasowania
