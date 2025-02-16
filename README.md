@@ -2,9 +2,8 @@
 # Description
 
 The fw.sh script configures the linux system to run as middlebox:
-- Router
+- Router (static routing)
 - NAT (NAT1:1, multiple NAT1:n groups)
-- Firewall (iptables + ipset)
 - Shaper (HTB + fq_codel) limiting bandwidth per computer or per group of computers
 - DHCP server
 
