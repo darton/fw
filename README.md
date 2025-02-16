@@ -1,7 +1,7 @@
 
 # Description
 
-The fw.sh script configures the linux system to run as middlebox:
+The fw.sh script configures the Linux system to run as middlebox:
 - Router (static routing)
 - NAT (NAT1:1, multiple NAT1:n groups)
 - Shaper (HTB + fq_codel) limiting bandwidth per computer or per group of computers
