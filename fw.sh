@@ -17,7 +17,6 @@ SCRIPT_DIR=`dirname "$(readlink -f "$0")"`
 
 SCRIPT_NAME="$(basename $0)"
 
-
 current_time=$(date +"%F %T.%3N%:z")
 
 if [[ $EUID -ne 0 ]]; then
@@ -25,6 +24,8 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
+FW_CONFIG_TEMP_DIR=$(mktemp -d -p /dev/shm/ FW_CONFIG.XXXX)
+trap 'rm -rf ${FW_CONFIG_TEMP_DIR}' INT TERM EXIT
 
 #Load fw.sh config file
 source $SCRIPT_DIR/fw.conf || { echo "$current_time Error: Can not load fw.conf"; exit 1; }
