@@ -1,1 +1,12 @@
+[Unit]
+Description=LMS Daemon
+After=network-online.target
 
+[Service]
+ExecStart=/etc/lms/lmsd-init.sh
+Restart=always
+RestartSec=60s
+
+
+[Install]
+WantedBy=multi-user.target
