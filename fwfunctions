@@ -18,6 +18,9 @@ function Log {
     local logdate=$(date +"%F %T.%3N%:z")
     MESSAGE_FORMAT="${logdate} ${flag~}: ${message}"
     MESSAGE_FORMAT_SIMPLE="${message}"
+
+    logger -p "${flag~}" -t fw.sh "${message}"
+
     if [[ "$DEBUG" == "true" || "$DEBUG" == "yes" ]]; then
         echo "${MESSAGE_FORMAT_SIMPLE}"
         echo "${MESSAGE_FORMAT}" >> "$LOG_FILE_PATH"
