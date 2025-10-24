@@ -11,16 +11,9 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 
-PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
-
-SCRIPT_DIR=`dirname "$(readlink -f "$0")"`
-
-SCRIPT_NAME="$(basename $0)"
-
-current_time=$(date +"%F %T.%3N%:z")
-
 if [[ $EUID -ne 0 ]]; then
-    Log "info" "Program must be run as root !"
+    logger -p "warn" -t "${SCRIPT_NAME}" "Program must be run as root !"
+    echo "Program must be run as root !"
     exit 1
 fi
 
@@ -28,17 +21,17 @@ FW_CONFIG_TEMP_DIR=$(mktemp -d -p /dev/shm/ FW_CONFIG.XXXX)
 trap 'rm -rf ${FW_CONFIG_TEMP_DIR}' INT TERM EXIT
 
 #Load fw.sh config file
-source $SCRIPT_DIR/fw.conf || { echo "$current_time Error: Can not load fw.conf"; exit 1; }
-
+MESSAGE="Can not load fw.conf !"
+source $SCRIPT_DIR/fw.conf || { logger -p "error" -t "${SCRIPT_NAME}" "${MESSAGE}"; echo "${MESSAGE}"; exit 1; }
 
 if [ "$DEBUG" == "no" ]; then
     logdir="/dev"
     logfile="null"
 fi
 
-
 #Load fwfunction
-source $SCRIPT_DIR/fwfunctions || { echo "$current_time Error: Can not load fwfunctions"; exit 1; }
+MESSAGE="Can not load fwfunctions !"
+source $SCRIPT_DIR/fwfunctions || { logger -p "error" -t "${SCRIPT_NAME}" "${MESSAGE}"; echo "${MESSAGE}"; exit 1; }
 
 
 ####Makes necessary directories and files####
