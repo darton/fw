@@ -15,7 +15,7 @@ PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
 SCRIPT_DIR=`dirname "$(readlink -f "$0")"`
 SCRIPT_NAME="$(basename $0)"
 FW_CONF_PATH="${SCRIPT_DIR}/fw.conf"
-FW_FUNCTIONs_PATH="$SCRIPT_DIR/fwfunctions"
+FW_FUNCTIONS_PATH="$SCRIPT_DIR/fwfunctions"
 
 current_time=$(date +"%F %T.%3N%:z")
 
@@ -43,7 +43,7 @@ fi
 
 #Load fwfunction
 MESSAGE="Can not load fwfunctions !"
-if ! source "${FW_FUNCTIONs_PATH}"; then
+if ! source "${FW_FUNCTIONS_PATH}"; then
     logger -p error -t "$SCRIPT_NAME" "$MESSAGE"
     echo "$MESSAGE"
     exit 1
