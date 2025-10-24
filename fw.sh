@@ -19,9 +19,10 @@ FW_FUNCTIONS_PATH="$SCRIPT_DIR/fwfunctions"
 
 current_time=$(date +"%F %T.%3N%:z")
 
+MESSAGE="Program must be run as root"
 if [[ $EUID -ne 0 ]]; then
-    logger -p "info" -t "${SCRIPT_NAME}" "Program must be run as root !"
-    echo "Program must be run as root !"
+    logger -p "info" -t "${SCRIPT_NAME}" "${MESSAGE}"
+    echo "${MESSAGE}"
     exit 1
 fi
 
@@ -29,9 +30,9 @@ FW_CONFIG_TEMP_DIR=$(mktemp -d -p /dev/shm/ FW_CONFIG.XXXX)
 trap 'rm -rf ${FW_CONFIG_TEMP_DIR}' INT TERM EXIT
 
 #Load fw.sh config file
-MESSAGE="Can not load fw.conf !"
+MESSAGE="Can not load fw.conf"
 if ! source "${FW_CONF_PATH}"; then
-    logger -p error -t "$SCRIPT_NAME" "$MESSAGE"
+    logger -p error -t "$SCRIPT_NAME" "${MESSAGE}"
     echo "$MESSAGE"
     exit 1
 fi
@@ -42,10 +43,10 @@ if [ "$DEBUG" == "no" ]; then
 fi
 
 #Load fwfunction
-MESSAGE="Can not load fwfunctions !"
+MESSAGE="Can not load fwfunctions"
 if ! source "${FW_FUNCTIONS_PATH}"; then
-    logger -p error -t "$SCRIPT_NAME" "$MESSAGE"
-    echo "$MESSAGE"
+    logger -p error -t "${SCRIPT_NAME}" "${MESSAGE}"
+    echo "${MESSAGE}"
     exit 1
 fi
 
