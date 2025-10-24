@@ -11,8 +11,16 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 
+PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
+SCRIPT_DIR=`dirname "$(readlink -f "$0")"`
+SCRIPT_NAME="$(basename $0)"
+FW_CONF_PATH="${SCRIPT_DIR}/fw.conf"
+FW_FUNCTIONs_PATH="$SCRIPT_DIR/fwfunctions"
+
+current_time=$(date +"%F %T.%3N%:z")
+
 if [[ $EUID -ne 0 ]]; then
-    logger -p "warn" -t "${SCRIPT_NAME}" "Program must be run as root !"
+    logger -p "info" -t "${SCRIPT_NAME}" "Program must be run as root !"
     echo "Program must be run as root !"
     exit 1
 fi
@@ -22,7 +30,11 @@ trap 'rm -rf ${FW_CONFIG_TEMP_DIR}' INT TERM EXIT
 
 #Load fw.sh config file
 MESSAGE="Can not load fw.conf !"
-source $SCRIPT_DIR/fw.conf || { logger -p "error" -t "${SCRIPT_NAME}" "${MESSAGE}"; echo "${MESSAGE}"; exit 1; }
+if ! source "${FW_CONF_PATH}"; then
+    logger -p error -t "$SCRIPT_NAME" "$MESSAGE"
+    echo "$MESSAGE"
+    exit 1
+fi
 
 if [ "$DEBUG" == "no" ]; then
     logdir="/dev"
@@ -31,8 +43,11 @@ fi
 
 #Load fwfunction
 MESSAGE="Can not load fwfunctions !"
-source $SCRIPT_DIR/fwfunctions || { logger -p "error" -t "${SCRIPT_NAME}" "${MESSAGE}"; echo "${MESSAGE}"; exit 1; }
-
+if ! source "${FW_FUNCTIONs_PATH}"; then
+    logger -p error -t "$SCRIPT_NAME" "$MESSAGE"
+    echo "$MESSAGE"
+    exit 1
+fi
 
 ####Makes necessary directories and files####
 [[ -f $logdir/$logfile ]] || touch $logdir/$logfile
