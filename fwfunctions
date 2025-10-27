@@ -11,21 +11,24 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 
+
 function Log {
-    [[ -f "$LOG_FILE_PATH" ]] || touch $LOG_FILE_PATH
+    [[ -f "$LOG_FILE_PATH" ]] || touch "$LOG_FILE_PATH"
     local message
     message="${*:2}"
-    local flag="$1"
-    local logdate=$(date +"%F %T.%3N%:z")
-    MESSAGE_FORMAT="${logdate} ${flag}: ${message}"
-    MESSAGE_FORMAT_SIMPLE="${message}"
+    local level="$1"
+    local logdate
+    logdate=$(date +"%F %T.%3N%:z")
+    local MESSAGE_FORMAT="${logdate} ${level}: ${message}"
+    local MESSAGE_FORMAT_SIMPLE="${message}"
 
-    logger -p "user.${flag}" -t fw "${message}"
+    logger -p "user.${level}" -t fw.sh "${message}"
+
     if [[ "$DEBUG" == "true" || "$DEBUG" == "yes" ]]; then
         echo "${MESSAGE_FORMAT_SIMPLE}"
         echo "${MESSAGE_FORMAT}" >> "$LOG_FILE_PATH"
     else
-        if [[ "flag" == "error"  || "flag" == "info" ]]; then
+        if [[ "$level" == "error"  || "$level" == "info" ]]; then
             echo "${MESSAGE_FORMAT_SIMPLE}"
         fi
     fi

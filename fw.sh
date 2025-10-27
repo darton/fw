@@ -11,16 +11,18 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 
+
 PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+SCRIPT_NAME="$(basename "$0")"
+FW_CONF_PATH="${SCRIPT_DIR}/fw.conf"
+FW_FUNCTIONS_PATH="$SCRIPT_DIR/fwfunctions"
 
-SCRIPT_DIR=`dirname "$(readlink -f "$0")"`
 
-SCRIPT_NAME="$(basename $0)"
-
-current_time=$(date +"%F %T.%3N%:z")
-
+MESSAGE="Program must be run as root"
 if [[ $EUID -ne 0 ]]; then
-    Log "info" "Program must be run as root !"
+    logger -p "info" -t "${SCRIPT_NAME}" "${MESSAGE}"
+    echo "${MESSAGE}"
     exit 1
 fi
 
@@ -28,35 +30,43 @@ FW_CONFIG_TEMP_DIR=$(mktemp -d -p /dev/shm/ FW_CONFIG.XXXX)
 trap 'rm -rf ${FW_CONFIG_TEMP_DIR}' INT TERM EXIT
 
 #Load fw.sh config file
-source $SCRIPT_DIR/fw.conf || { echo "$current_time Error: Can not load fw.conf"; exit 1; }
-
+MESSAGE="Can not load fw.conf"
+if ! source "${FW_CONF_PATH}"; then
+    logger -p error -t "$SCRIPT_NAME" "${MESSAGE}"
+    echo "$MESSAGE"
+    exit 1
+fi
 
 if [ "$DEBUG" == "no" ]; then
     logdir="/dev"
     logfile="null"
 fi
 
-
 #Load fwfunction
-source $SCRIPT_DIR/fwfunctions || { echo "$current_time Error: Can not load fwfunctions"; exit 1; }
+MESSAGE="Can not load fwfunctions"
+if ! source "${FW_FUNCTIONS_PATH}"; then
+    logger -p error -t "${SCRIPT_NAME}" "${MESSAGE}"
+    echo "${MESSAGE}"
+    exit 1
+fi
 
 
 ####Makes necessary directories and files####
-[[ -f $logdir/$logfile ]] || touch $logdir/$logfile
+[[ -f "$logdir"/"$logfile" ]] || touch "$logdir"/"$logfile"
 [[ -d /run/fw-sh/ ]] || mkdir /run/fw-sh
 [[ -f /run/fw-sh/maintenance.pid ]] || echo 0 > /run/fw-sh/maintenance.pid
-[[ -d $confdir ]] || mkdir -p $confdir
-[[ -d $oldconfdir ]] || mkdir -p $oldconfdir
+[[ -d "$confdir" ]] || mkdir -p "$confdir"
+[[ -d "$oldconfdir" ]] || mkdir -p "$oldconfdir"
 
 for param in $confdir $oldconfdir; do
-    [[ -f $param/$nat_11_file ]] || touch $param/$nat_11_file
-    [[ -f $param/$nat_1n_ip_file ]] || touch $param/$nat_1n_ip_file
-    [[ -f $param/$public_ip_file ]] || touch $param/$public_ip_file
-    [[ -f $param/$routed_nets_file ]] || touch $param/$routed_nets_file
-    [[ -f $param/$blacklist_file ]] || touch $param/$blacklist_file
-    [[ -f $param/$lan_banned_dst_ports_file ]] || touch $param/$lan_banned_dst_ports_file
-    [[ -f $param/$shaper_file ]] || touch $param/$shaper_file
-    [[ -f $param/$dhcp_conf_file ]] || touch $param/$dhcp_conf_file
+    [[ -f "$param"/"$nat_11_file" ]] || touch "$param"/"$nat_11_file"
+    [[ -f "$param"/"$nat_1n_ip_file" ]] || touch "$param"/"$nat_1n_ip_file"
+    [[ -f "$param"/"$public_ip_file" ]] || touch "$param"/"$public_ip_file"
+    [[ -f "$param"/"$routed_nets_file" ]] || touch "$param"/"$routed_nets_file"
+    [[ -f "$param"/"$blacklist_file" ]] || touch "$param"/"$blacklist_file"
+    [[ -f "$param"/"$lan_banned_dst_ports_file" ]] || touch "$param"/"$lan_banned_dst_ports_file"
+    [[ -f "$param"/"$shaper_file" ]] || touch "$param"/"$shaper_file"
+    [[ -f "$param"/"$dhcp_conf_file" ]] || touch "$param"/"$dhcp_conf_file"
 done
 
 
@@ -188,3 +198,4 @@ case "$1" in
        echo -e "\nUsage: fw.sh start|stop|restart|reload|status|lmsd|shaper_stop|shaper_start|shaper_restart|shaper_stats|shaper_status|maintenance-on|maintenance-off"
     ;;
 esac
+
