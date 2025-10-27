@@ -194,7 +194,7 @@ case "$1" in
         maintenance-off
     ;;
     *)
-       Log "info" "fw.sh running without parameter"
+       Log "info" "Script running without parameter"
        echo -e "\nUsage: fw.sh start|stop|restart|reload|status|lmsd|shaper_stop|shaper_start|shaper_restart|shaper_stats|shaper_status|maintenance-on|maintenance-off"
     ;;
 esac
