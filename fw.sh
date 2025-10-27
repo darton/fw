@@ -32,7 +32,7 @@ trap 'rm -rf ${FW_CONFIG_TEMP_DIR}' INT TERM EXIT
 #Load fw.sh config file
 MESSAGE="Can not load fw.conf"
 if ! source "${FW_CONF_PATH}"; then
-    logger -p error -t "$SCRIPT_NAME" "${MESSAGE}"
+    logger -p error -t "${SCRIPT_NAME}" "${MESSAGE}"
     echo "$MESSAGE"
     exit 1
 fi
