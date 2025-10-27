@@ -115,9 +115,9 @@ maintenance-on (){
         exit
     else
         ip link set dev $MGMT up && { echo 1 > /run/fw-sh/maintenance.pid; Log "info" "Firewall maintenance is on"; } || { Log "error" "Can not set device $MGMT up"; exit 1; }
-        stop
-        ip link set dev $LAN down
-        ip link set dev $WAN down
+        #stop
+        #ip link set dev $LAN down
+        #ip link set dev $WAN down
     fi
 
 }
@@ -129,10 +129,10 @@ maintenance-off (){
         Log "info" "Firewall maintenance is allready off"
         exit
     else
-        ip link set dev $WAN up || { Log "error" "Can not set device $WAN up"; exit 1; }
-        ip link set dev $LAN up || { Log "error" "Can not set device $LAN up"; exit 1; }
+        #ip link set dev $WAN up || { Log "error" "Can not set device $WAN up"; exit 1; }
+        #ip link set dev $LAN up || { Log "error" "Can not set device $LAN up"; exit 1; }
         sleep 5
-        start
+        #start
         ip link set dev $MGMT down && { echo 0 > /run/fw-sh/maintenance.pid; Log "info" "Firewall maintenance is off"; } || { Log "error" "Can not set device $MGMT down"; }
     fi
 }

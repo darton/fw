@@ -13,14 +13,14 @@
 
 function Log {
     [[ -f "$LOG_FILE_PATH" ]] || touch $LOG_FILE_PATH
-    local message="${@:2}"
+    local message
+    message="${*:2}"
     local flag="$1"
     local logdate=$(date +"%F %T.%3N%:z")
-    MESSAGE_FORMAT="${logdate} ${flag~}: ${message}"
+    MESSAGE_FORMAT="${logdate} ${flag}: ${message}"
     MESSAGE_FORMAT_SIMPLE="${message}"
 
-    logger -p "${flag~}" -t fw.sh "${message}"
-
+    logger -p "user.${flag}" -t fw "${message}"
     if [[ "$DEBUG" == "true" || "$DEBUG" == "yes" ]]; then
         echo "${MESSAGE_FORMAT_SIMPLE}"
         echo "${MESSAGE_FORMAT}" >> "$LOG_FILE_PATH"
@@ -245,9 +245,6 @@ function shaper_cmd {
         tc qdisc add dev $WAN root handle 2:0 htb default 3 r2q 1
         tc class add dev $WAN parent 2:0 classid 2:1 htb rate $ISP_TX_LIMIT ceil $ISP_TX_LIMIT burst 2000000 quantum 1514
 
-        # Set default limit for traffic from WAN to Internet
-        tc class add dev $WAN parent 2:1 classid 2:3 htb rate $WAN_UNCLASSIFIED_RATE_LIMIT ceil $WAN_UNCLASSIFIED_CEIL_LIMIT prio $WAN_UNCLASSIFIED_PRIORITY quantum 1514
-        tc qdisc add dev $WAN parent 2:3 fq_codel memory_limit 1Mb
 
         #Set limit for traffic from GATEWAY to WAN
         tc class add dev $WAN parent 2:1 classid 2:4 htb rate $GW_TO_WAN_RATE_LIMIT ceil $GW_TO_WAN_CEIL_LIMIT $BURST prio $GW_TO_WAN_PRIORITY quantum 1514
@@ -263,9 +260,6 @@ function shaper_cmd {
         # Set limit for all traffic from Internet to LAN
         tc class add dev $LAN parent 1:1 classid 1:2 htb rate 950000kbit ceil 950000kbit burst 1187500 quantum 1514
 
-        #Set default limit for traffic from Internet to LAN
-        tc class add dev $LAN parent 1:1 classid 1:3 htb rate $LAN_UNCLASSIFIED_RATE_LIMIT ceil $LAN_UNCLASSIFIED_CEIL_LIMIT prio $LAN_UNCLASSIFIED_PRIORITY quantum 1514
-        tc qdisc add dev $LAN parent 1:3 fq_codel memory_limit 1Mb
 
         #Set limit for traffic from GATEWAY to LAN
         tc class add dev $LAN parent 1:1 classid 1:4 htb rate $GW_TO_LAN_RATE_LIMIT ceil $GW_TO_LAN_CEIL_LIMIT $BURST prio $GW_TO_LAN_PRIORITY quantum 1514
@@ -314,6 +308,16 @@ function shaper_cmd {
                 iptables -t mangle -A COUNTERSIN$octet1.$octet2.$octet3 -d $arg2 -j CLASSIFY --set-class 1:$h; }
             fi
         done < <(cat $confdir/$shaper_file|grep -v \#)
+
+
+        # Set default limit for traffic from WAN to Internet
+        tc class add dev $WAN parent 2:1 classid 2:3 htb rate $WAN_UNCLASSIFIED_RATE_LIMIT ceil $WAN_UNCLASSIFIED_CEIL_LIMIT prio $WAN_UNCLASSIFIED_PRIORITY quantum 1514
+        tc qdisc add dev $WAN parent 2:3 fq_codel memory_limit 1Mb
+
+        #Set default limit for traffic from Internet to LAN
+        tc class add dev $LAN parent 1:1 classid 1:3 htb rate $LAN_UNCLASSIFIED_RATE_LIMIT ceil $LAN_UNCLASSIFIED_CEIL_LIMIT prio $LAN_UNCLASSIFIED_PRIORITY quantum 1514
+        tc qdisc add dev $LAN parent 1:3 fq_codel memory_limit 1Mb
+
 
     elif [ "$1" = "stats" ]; then
 
