@@ -17,7 +17,7 @@ SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 SCRIPT_NAME="$(basename "$0")"
 FW_CONF_PATH="${SCRIPT_DIR}/fw.conf"
 FW_FUNCTIONS_PATH="$SCRIPT_DIR/fwfunctions"
-
+current_time=$(date +"%F %T.%3N%:z")
 
 MESSAGE="Program must be run as root"
 if [[ $EUID -ne 0 ]]; then
