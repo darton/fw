@@ -702,10 +702,6 @@ function firewall_up {
     lsmod | grep -q ipt_ULOG && iptables -A FORWARD -i "$LAN" -p tcp --tcp-flags SYN,RST,ACK SYN -m conntrack --ctstate NEW -j ULOG --ulog-nlgroup 1 --ulog-prefix "FORWARDED-CONN"
     lsmod | grep -q xt_NFLOG && iptables -A FORWARD -i "$LAN" -p tcp --tcp-flags SYN,RST,ACK SYN -m conntrack --ctstate NEW -j NFLOG --nflog-group 1 --nflog-prefix "FORWARDED-CONN"
 
-    # Allow packet transfer only between LAN and WAN interfaces for selected hosts from the fw_ip list
-    iptables -A FORWARD -i $LAN -o $WAN -m set --match-set fw_ip src -j ACCEPT
-    iptables -A FORWARD -i $WAN -o $LAN -m set --match-set fw_ip dst -j ACCEPT
-
     # Allow packet transfer only between devices in LAN
     iptables -A FORWARD -i $LAN -o $LAN -m set --match-set fw_ip src -j ACCEPT
     iptables -A FORWARD -i $LAN -o $LAN -m set --match-set fw_ip dst -j ACCEPT
@@ -713,20 +709,30 @@ function firewall_up {
     # Drop forward some ports from WAN to LAN
     iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_banned_dst_ports dst -j DROP
 
-    # Drop ddos attack from fw_wan_ddos_source to fw_lan_ddos_protected_ports
-    iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protected_ports dst -m set --match-set fw_wan_ddos_source src -j DROP
-
     # Drop forward some ports from LAN to WAN
     iptables -A FORWARD -i $LAN -o $WAN -p tcp -m set --match-set fw_wan_banned_dst_ports dst -j DROP
 
-    #https://pl.wikibooks.org/wiki/Sieci_w_Linuksie/Netfilter/iptables/dopasowania
-    # Saves IP addresses from which traffic to forbidden ports is made in the fw_time_blackli ipset list
-    #iptables -A FORWARD -i $WAN -o $LAN -p tcp --dport 3389 -m recent --name forcerdp --rdest --set
-    #iptables -A FORWARD -i $WAN -o $LAN -p tcp --dport 3389 -m recent --name forcerdp --rdest --update --seconds 120 --hitcount 5 -j DROP
-    #iptables -A FORWARD -i $WAN -o $LAN -p tcp --match multiport --dport 22,23,3389 -m state --state NEW -m recent --set --name RMTMGMT
-    #iptables -A FORWARD -i $WAN -o $LAN -p tcp --match multiport --dport 22,23,3389 -m state --state NEW -m recent --update --seconds 120 --hitcount 5 --rttl --name RMTMGMT -j SET --add-set fw_time_blacklist src
-    iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protected_ports dst -m state --state NEW -m recent --set --name LDDOSPP
-    iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_ddos_protected_ports dst -m state --state NEW -m recent --update --seconds 120 --hitcount 5 --rttl --name LDDOSPP -j SET --add-set fw_wan_ddos_source src
+    # Drop ddos attack from fw_wan_ddos_source to fw_lan_ddos_protected_ports
+    iptables -A FORWARD -i $WAN -o $LAN -p tcp \
+	-m set --match-set fw_lan_ddos_protected_ports dst \
+	-m set --match-set fw_wan_ddos_source src -j DROP
+
+    iptables -A FORWARD -i $WAN -o $LAN -p tcp \
+	-m set --match-set fw_lan_ddos_protected_ports dst \
+	-m conntrack --ctstate NEW \
+	-m recent --set --name LDDOSPP
+
+    iptables -A FORWARD -i $WAN -o $LAN -p tcp \
+	-m set --match-set fw_lan_ddos_protected_ports dst \
+	-m conntrack --ctstate NEW \
+	-m recent --update --seconds 120 --hitcount 5 --rttl --name LDDOSPP \
+	-j SET --add-set fw_wan_ddos_source src
+
+    # Allow packet transfer only between LAN and WAN interfaces for selected hosts from the fw_ip list
+    iptables -A FORWARD -i $LAN -o $WAN -m set --match-set fw_ip src -j ACCEPT
+    iptables -A FORWARD -i $WAN -o $LAN -m set --match-set fw_ip dst -j ACCEPT
+
+
 
     #
     # NAT TABLE
