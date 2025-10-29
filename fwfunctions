@@ -698,7 +698,8 @@ function firewall_up {
     ## FORWARD CHAIN
 
     #
-    iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
+    iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+    #iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
 
     # Allow packet transfer only between LAN and WAN interfaces for selected hosts from the fw_ip list
     iptables -A FORWARD -i $LAN -o $WAN -m set --match-set fw_ip src -j ACCEPT
