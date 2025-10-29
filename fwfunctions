@@ -130,23 +130,21 @@ function shaper_cmd {
         fi
 
     elif [ "$1" = "stop" ]; then
-		if check_interfaces_up "$LAN"; then
-	            tc qdisc del dev $LAN root 2> /dev/null
-		fi
-		if check_interfaces_up "$WAN"; then
-	            tc qdisc del dev $WAN root 2> /dev/null
-	    fi
-	    iptables -t mangle -F
-	    iptables -t mangle -X
+	if check_interfaces_up "$LAN"; then
+	    tc qdisc del dev $LAN root 2> /dev/null
+	fi
+	if check_interfaces_up "$WAN"; then
+	    tc qdisc del dev $WAN root 2> /dev/null
+	fi
+	iptables -t mangle -F
+	iptables -t mangle -X
 	
     elif [ "$1" = "start" ]; then
 	shaper_cmd stop
-
 	if ! check_interfaces_up "$WAN" "$LAN"; then
 	    Log "error" "Interface check failed: skipping traffic shaping configuration."
 	    return 1
 	fi
-	
 	delimiter=$IFS
 	while IFS='=' read arg1 arg2; do
     	    case "$arg1" in
@@ -169,7 +167,7 @@ function shaper_cmd {
         	WAN_HOSTS_PRIORITY)               WAN_HOSTS_PRIORITY=$arg2 ;;
     	    esac
 	done < <(grep -v \# "$confdir/$shaper_file")
-    	IFS=$delimiter
+	IFS=$delimiter
 
 	: "${LAN_INTERFACE_SPEED_LIMIT:=$DEFAULT_LAN_INTERFACE_SPEED_LIMIT}"
 	: "${ISP_RX_LIMIT:=$DEFAULT_ISP_RX_LIMIT}"
@@ -188,7 +186,6 @@ function shaper_cmd {
 	: "${WAN_UNCLASSIFIED_PRIORITY:=$DEFAULT_WAN_UNCLASSIFIED_PRIORITY}"
 	: "${LAN_HOSTS_PRIORITY:=$DEFAULT_LAN_HOSTS_PRIORITY}"
 	: "${WAN_HOSTS_PRIORITY:=$DEFAULT_WAN_HOSTS_PRIORITY}"
-	
 	if [ -z "$BURST" ]; then
 	    BURST=""
 	else
