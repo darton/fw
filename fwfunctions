@@ -703,10 +703,10 @@ function firewall_up {
     lsmod | grep -q xt_NFLOG && iptables -A FORWARD -i "$LAN" -p tcp --tcp-flags SYN,RST,ACK SYN -m conntrack --ctstate NEW -j NFLOG --nflog-group 1 --nflog-prefix "FORWARDED-CONN"
 
     #Logging DNS UDP – without conntrack
-    iptables -A FORWARD -i "$LAN" -o "$WAN" -p udp --dport 53 -j ULOG --ulog-nlgroup 1 --ulog-prefix "DNS-UDP"
+    iptables -A FORWARD -i "$LAN" -o "$WAN" -p udp --dport 53 -j ULOG --ulog-nlgroup 1 --ulog-prefix "FORWARDED-CONN"
 
     #Logging DNS over TCP – SYN only (due to NOTRACK)
-    iptables -A FORWARD -i "$LAN" -o "$WAN" -p tcp --dport 53 --tcp-flags SYN SYN -j ULOG --ulog-nlgroup 1 --ulog-prefix "DNS-TCP"
+    iptables -A FORWARD -i "$LAN" -o "$WAN" -p tcp --dport 53 --tcp-flags SYN SYN -j ULOG --ulog-nlgroup 1 --ulog-prefix "FORWARDED-CONN"
 
     # Allow packet transfer only between devices in LAN
     iptables -A FORWARD -i $LAN -o $LAN -m set --match-set fw_ip src -j ACCEPT
