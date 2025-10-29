@@ -34,6 +34,21 @@ function Log {
     fi
 }
 
+check_interfaces_up() {
+    for iface in "$@"; do
+        if [[ ! -e "/sys/class/net/$iface/operstate" ]]; then
+            #echo "Interface $iface does not exist — aborting."
+            return 1
+        fi
+        read -r state < "/sys/class/net/$iface/operstate"
+        if [[ "$state" != "up" ]]; then
+            #echo "Interface $iface is not up — aborting."
+            return 1
+        fi
+    done
+    return 0
+}
+
 function get_config {
     echo "$current_time - Connecting to LMS and downloading configuration files" >> $logdir/$logfile
     $copy_cmd_url/* ${FW_CONFIG_TEMP_DIR} || { echo "$current_time - Can not download config files" >> $logdir/$logfile; exit 1; }
@@ -115,114 +130,69 @@ function shaper_cmd {
         fi
 
     elif [ "$1" = "stop" ]; then
-        tc qdisc del dev $LAN root 2> /dev/null
-        tc qdisc del dev $WAN root 2> /dev/null
+	if check_interfaces_up "$LAN"; then
+            tc qdisc del dev $LAN root 2> /dev/null
+	fi
+	if check_interfaces_up "$WAN"; then
+            tc qdisc del dev $WAN root 2> /dev/null
+        fi
         iptables -t mangle -F
         iptables -t mangle -X
 
     elif [ "$1" = "start" ]; then
-
         shaper_cmd stop
+        if ! check_interfaces_up "$WAN" "$LAN"; then
+	    Log "error" "Interface check failed: skipping traffic shaping configuration."
+    	    return 1
+	fi
 
-        delimiter=$IFS
-        while IFS='=' read arg1 arg2; do
 
-            if [ "$arg1" = "LAN_INTERFACE_SPEED_LIMIT" ]; then
-                LAN_INTERFACE_SPEED_LIMIT=$arg2
-            elif [ "$arg1" = "ISP_RX_LIMIT" ]; then
-                ISP_RX_LIMIT=$arg2
-            elif [ "$arg1" = "ISP_TX_LIMIT" ]; then
-                ISP_TX_LIMIT=$arg2
-            elif [ "$arg1" = "LAN_UNCLASSIFIED_RATE_LIMIT" ]; then
-                LAN_UNCLASSIFIED_RATE_LIMIT=$arg2
-            elif [ "$arg1" = "LAN_UNCLASSIFIED_CEIL_LIMIT" ]; then
-                LAN_UNCLASSIFIED_CEIL_LIMIT=$arg2
-            elif [ "$arg1" = "WAN_UNCLASSIFIED_RATE_LIMIT" ]; then
-                WAN_UNCLASSIFIED_RATE_LIMIT=$arg2
-            elif [ "$arg1" = "WAN_UNCLASSIFIED_CEIL_LIMIT" ]; then
-                WAN_UNCLASSIFIED_CEIL_LIMIT=$arg2
-            elif [ "$arg1" = "GW_TO_LAN_RATE_LIMIT" ]; then
-                GW_TO_LAN_RATE_LIMIT=$arg2
-            elif [ "$arg1" = "GW_TO_LAN_CEIL_LIMIT" ]; then
-                GW_TO_LAN_CEIL_LIMIT=$arg2
-            elif [ "$arg1" = "GW_TO_WAN_RATE_LIMIT" ]; then
-                GW_TO_WAN_RATE_LIMIT=$arg2
-            elif [ "$arg1" = "GW_TO_WAN_CEIL_LIMIT" ]; then
-                GW_TO_WAN_CEIL_LIMIT=$arg2
-            elif [ "$arg1" = "GW_TO_LAN_PRIORITY" ]; then
-                GW_TO_LAN_PRIORITY=$arg2
-            elif [ "$arg1" = "GW_TO_WAN_PRIORITY" ]; then
-                GW_TO_WAN_PRIORITY=$arg2
-            elif [ "$arg1" = "LAN_UNCLASSIFIED_PRIORITY" ]; then
-                LAN_UNCLASSIFIED_PRIORITY=$arg2
-            elif [ "$arg1" = "WAN_UNCLASSIFIED_PRIORITY" ]; then
-                WAN_UNCLASSIFIED_PRIORITY=$arg2
-            elif [ "$arg1" = "LAN_HOSTS_PRIORITY" ]; then
-                LAN_HOSTS_PRIORITY=$arg2
-            elif [ "$arg1" = "WAN_HOSTS_PRIORITY" ]; then
-                WAN_HOSTS_PRIORITY=$arg2
-            fi
-
-        done < <(cat $confdir/$shaper_file|grep -v \#)
+	delimiter=$IFS
+	while IFS='=' read arg1 arg2; do
+    	    case "$arg1" in
+        	LAN_INTERFACE_SPEED_LIMIT)        LAN_INTERFACE_SPEED_LIMIT=$arg2 ;;
+        	ISP_RX_LIMIT)                     ISP_RX_LIMIT=$arg2 ;;
+        	ISP_TX_LIMIT)                     ISP_TX_LIMIT=$arg2 ;;
+        	LAN_UNCLASSIFIED_RATE_LIMIT)      LAN_UNCLASSIFIED_RATE_LIMIT=$arg2 ;;
+        	LAN_UNCLASSIFIED_CEIL_LIMIT)      LAN_UNCLASSIFIED_CEIL_LIMIT=$arg2 ;;
+        	WAN_UNCLASSIFIED_RATE_LIMIT)      WAN_UNCLASSIFIED_RATE_LIMIT=$arg2 ;;
+        	WAN_UNCLASSIFIED_CEIL_LIMIT)      WAN_UNCLASSIFIED_CEIL_LIMIT=$arg2 ;;
+        	GW_TO_LAN_RATE_LIMIT)             GW_TO_LAN_RATE_LIMIT=$arg2 ;;
+        	GW_TO_LAN_CEIL_LIMIT)             GW_TO_LAN_CEIL_LIMIT=$arg2 ;;
+        	GW_TO_WAN_RATE_LIMIT)             GW_TO_WAN_RATE_LIMIT=$arg2 ;;
+        	GW_TO_WAN_CEIL_LIMIT)             GW_TO_WAN_CEIL_LIMIT=$arg2 ;;
+        	GW_TO_LAN_PRIORITY)               GW_TO_LAN_PRIORITY=$arg2 ;;
+        	GW_TO_WAN_PRIORITY)               GW_TO_WAN_PRIORITY=$arg2 ;;
+        	LAN_UNCLASSIFIED_PRIORITY)        LAN_UNCLASSIFIED_PRIORITY=$arg2 ;;
+        	WAN_UNCLASSIFIED_PRIORITY)        WAN_UNCLASSIFIED_PRIORITY=$arg2 ;;
+        	LAN_HOSTS_PRIORITY)               LAN_HOSTS_PRIORITY=$arg2 ;;
+        	WAN_HOSTS_PRIORITY)               WAN_HOSTS_PRIORITY=$arg2 ;;
+    	    esac
+	done < <(grep -v \# "$confdir/$shaper_file")
         IFS=$delimiter
+	: "${LAN_INTERFACE_SPEED_LIMIT:=$DEFAULT_LAN_INTERFACE_SPEED_LIMIT}"
+	: "${ISP_RX_LIMIT:=$DEFAULT_ISP_RX_LIMIT}"
+	: "${ISP_TX_LIMIT:=$DEFAULT_ISP_TX_LIMIT}"
+	: "${LAN_UNCLASSIFIED_RATE_LIMIT:=$DEFAULT_LAN_UNCLASSIFIED_RATE_LIMIT}"
+	: "${LAN_UNCLASSIFIED_CEIL_LIMIT:=$DEFAULT_LAN_UNCLASSIFIED_CEIL_LIMIT}"
+	: "${WAN_UNCLASSIFIED_RATE_LIMIT:=$DEFAULT_WAN_UNCLASSIFIED_RATE_LIMIT}"
+	: "${WAN_UNCLASSIFIED_CEIL_LIMIT:=$DEFAULT_WAN_UNCLASSIFIED_CEIL_LIMIT}"
+	: "${GW_TO_LAN_RATE_LIMIT:=$DEFAULT_GW_TO_LAN_RATE_LIMIT}"
+	: "${GW_TO_LAN_CEIL_LIMIT:=$DEFAULT_GW_TO_LAN_CEIL_LIMIT}"
+	: "${GW_TO_WAN_RATE_LIMIT:=$DEFAULT_GW_TO_WAN_RATE_LIMIT}"
+	: "${GW_TO_WAN_CEIL_LIMIT:=$DEFAULT_GW_TO_WAN_CEIL_LIMIT}"
+	: "${GW_TO_LAN_PRIORITY:=$DEFAULT_GW_TO_LAN_PRIORITY}"
+	: "${GW_TO_WAN_PRIORITY:=$DEFAULT_GW_TO_WAN_PRIORITY}"
+	: "${LAN_UNCLASSIFIED_PRIORITY:=$DEFAULT_LAN_UNCLASSIFIED_PRIORITY}"
+	: "${WAN_UNCLASSIFIED_PRIORITY:=$DEFAULT_WAN_UNCLASSIFIED_PRIORITY}"
+	: "${LAN_HOSTS_PRIORITY:=$DEFAULT_LAN_HOSTS_PRIORITY}"
+	: "${WAN_HOSTS_PRIORITY:=$DEFAULT_WAN_HOSTS_PRIORITY}"
 
-
-            if [ -z "$LAN_INTERFACE_SPEED_LIMIT" ]; then
-                LAN_INTERFACE_SPEED_LIMIT=$DEFAULT_LAN_INTERFACE_SPEED_LIMIT
-            fi
-            if [ -z "$ISP_RX_LIMIT" ]; then
-                ISP_RX_LIMIT=$DEFAULT_ISP_RX_LIMIT
-            fi
-            if [ -z "$ISP_TX_LIMIT" ]; then
-                ISP_TX_LIMIT=$DEFAULT_ISP_TX_LIMIT
-            fi
-            if [ -z "$LAN_UNCLASSIFIED_RATE_LIMIT" ]; then
-                LAN_UNCLASSIFIED_RATE_LIMIT=$DEFAULT_LAN_UNCLASSIFIED_RATE_LIMIT
-            fi
-            if [ -z "$LAN_UNCLASSIFIED_CEIL_LIMIT" ]; then
-                LAN_UNCLASSIFIED_CEIL_LIMIT=$DEFAULT_LAN_UNCLASSIFIED_CEIL_LIMIT
-            fi
-            if [ -z "$WAN_UNCLASSIFIED_RATE_LIMIT" ]; then
-                WAN_UNCLASSIFIED_RATE_LIMIT=$DEFAULT_WAN_UNCLASSIFIED_RATE_LIMIT
-            fi
-            if [ -z "$WAN_UNCLASSIFIED_CEIL_LIMIT" ]; then
-                WAN_UNCLASSIFIED_CEIL_LIMIT=$DEFAULT_WAN_UNCLASSIFIED_CEIL_LIMIT
-            fi
-            if [ -z "$GW_TO_LAN_RATE_LIMIT" ]; then
-                GW_TO_LAN_RATE_LIMIT=$DEFAULT_GW_TO_LAN_RATE_LIMIT
-            fi
-            if [ -z "$GW_TO_LAN_CEIL_LIMIT" ]; then
-                GW_TO_LAN_CEIL_LIMIT=$DEFAULT_GW_TO_LAN_CEIL_LIMIT
-            fi
-            if [ -z "$GW_TO_WAN_RATE_LIMIT" ]; then
-                GW_TO_WAN_RATE_LIMIT=$DEFAULT_GW_TO_WAN_RATE_LIMIT
-            fi
-            if [ -z "$GW_TO_WAN_CEIL_LIMIT" ]; then
-                GW_TO_WAN_CEIL_LIMIT=$DEFAULT_GW_TO_WAN_CEIL_LIMIT
-            fi
-            if [ -z "$GW_TO_LAN_PRIORITY" ]; then
-                GW_TO_LAN_PRIORITY=$DEFAULT_GW_TO_LAN_PRIORITY
-            fi
-            if [ -z "$GW_TO_WAN_PRIORITY" ]; then
-                GW_TO_WAN_PRIORITY=$DEFAULT_GW_TO_WAN_PRIORITY
-            fi
-            if [ -z "$LAN_UNCLASSIFIED_PRIORITY" ]; then
-                LAN_UNCLASSIFIED_PRIORITY=$DEFAULT_LAN_UNCLASSIFIED_PRIORITY
-            fi
-            if [ -z "$WAN_UNCLASSIFIED_PRIORITY" ]; then
-                WAN_UNCLASSIFIED_PRIORITY=$DEFAULT_WAN_UNCLASSIFIED_PRIORITY
-            fi
-            if [ -z "$LAN_HOSTS_PRIORITY" ]; then
-                LAN_HOSTS_PRIORITY=$DEFAULT_LAN_HOSTS_PRIORITY
-            fi
-            if [ -z "$WAN_HOSTS_PRIORITY" ]; then
-                WAN_HOSTS_PRIORITY=$DEFAULT_WAN_HOSTS_PRIORITY
-            fi
-            if [ -z "$BURST" ]; then
-                BURST=""
-            else
-                BURST="burst $BURST"
-            fi
+	if [ -z "$BURST" ]; then
+		BURST=""
+	else
+		BURST="burst $BURST"
+	fi
 
         echo LAN_INTERFACE_SPEED_LIMIT=$LAN_INTERFACE_SPEED_LIMIT
         echo ISP_RX_LIMIT=$ISP_RX_LIMIT
@@ -248,12 +218,10 @@ function shaper_cmd {
         tc qdisc add dev $WAN root handle 2:0 htb default 3 r2q 1
         tc class add dev $WAN parent 2:0 classid 2:1 htb rate $ISP_TX_LIMIT ceil $ISP_TX_LIMIT burst 2000000 quantum 1514
 
-
         #Set limit for traffic from GATEWAY to WAN
         tc class add dev $WAN parent 2:1 classid 2:4 htb rate $GW_TO_WAN_RATE_LIMIT ceil $GW_TO_WAN_CEIL_LIMIT $BURST prio $GW_TO_WAN_PRIORITY quantum 1514
         tc qdisc add dev $WAN parent 2:4 fq_codel memory_limit 32Mb
         iptables -t mangle -A OUTPUT -o $WAN -j CLASSIFY --set-class 2:4
-
 
         #To LAN
         # Set global limit for LAN interface
@@ -294,6 +262,12 @@ function shaper_cmd {
                 ceil=$(echo ${arg3/kbit/})
                 ceil=$((ceil * 1000))
                 CUSTOMER_UP_CBURST=$(echo "$ceil * 0.0125" | bc -l)
+
+    		if ! check_interfaces_up "$WAN"; then
+		    Log "error" "Interface $WAN check failed: skipping traffic shaping configuration."
+    		    return 1
+		fi
+
                 tc class add dev $WAN parent 2:1 classid 2:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_UP_BURST}b cburst ${CUSTOMER_UP_CBURST}b prio $WAN_HOSTS_PRIORITY quantum 1514
                 tc qdisc add dev $WAN parent 2:$h fq_codel memory_limit 4Mb
             elif [ "$arg1" = "class_down" ]; then
@@ -303,6 +277,12 @@ function shaper_cmd {
                 ceil=$(echo ${arg3/kbit/})
                 ceil=$((ceil * 1000))
                 CUSTOMER_DOWN_CBURST=$(echo "$ceil * 0.0125" | bc -l)
+
+    		if ! check_interfaces_up "$LAN"; then
+		    Log "error" "Interface $LAN check failed: skipping traffic shaping configuration."
+    		    return 1
+		fi
+
                 tc class add dev $LAN parent 1:2 classid 1:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_DOWN_BURST}b cburst ${CUSTOMER_DOWN_CBURST}b prio $LAN_HOSTS_PRIORITY quantum 1514
                 tc qdisc add dev $LAN parent 1:$h fq_codel memory_limit 4Mb
             elif [ "$arg1" = "filter" ]; then
@@ -310,7 +290,7 @@ function shaper_cmd {
                 iptables -t mangle -A COUNTERSOUT$octet1.$octet2.$octet3 -s $arg2 -j CLASSIFY --set-class 2:$h;
                 iptables -t mangle -A COUNTERSIN$octet1.$octet2.$octet3 -d $arg2 -j CLASSIFY --set-class 1:$h; }
             fi
-        done < <(cat $confdir/$shaper_file|grep -v \#)
+        done < <(grep -v \# $confdir/$shaper_file)
 
 
         # Set default limit for traffic from WAN to Internet
@@ -342,7 +322,7 @@ function shaper_cmd {
 
     elif [ "$1" = "status" ]; then
 
-        iptables -t mangle -w 2 -nvL
+        #iptables -t mangle -w 2 -nvL
         echo
         echo "$LAN interface"
         echo "----------------"
