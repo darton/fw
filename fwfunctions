@@ -703,12 +703,12 @@ function firewall_up {
     lsmod | grep -q xt_NFLOG && iptables -A FORWARD -i "$LAN" -p tcp --tcp-flags SYN,RST,ACK SYN -m conntrack --ctstate NEW -j NFLOG --nflog-group 1 --nflog-prefix "FORWARDED-CONN"
 
     #Logging DNS UDP – without conntrack
-    lsmod | grep -q ipt_ULOG && iptables -A FORWARD -i "$LAN" -o "$WAN" -p udp --dport 53 -j ULOG --ulog-nlgroup 1 --ulog-prefix "FORWARDED-CONN"
-    lsmod | grep -q xt_NFLOG && iptables -A FORWARD -i "$LAN" -o "$WAN" -p udp --dport 53 -j NFLOG --nflog-group 1 --nflog-prefix "FORWARDED-CONN"
+    #lsmod | grep -q ipt_ULOG && iptables -A FORWARD -i "$LAN" -o "$WAN" -p udp --dport 53 -j ULOG --ulog-nlgroup 1 --ulog-prefix "FORWARDED-CONN"
+    #lsmod | grep -q xt_NFLOG && iptables -A FORWARD -i "$LAN" -o "$WAN" -p udp --dport 53 -j NFLOG --nflog-group 1 --nflog-prefix "FORWARDED-CONN"
 
     #Logging DNS over TCP – SYN only (due to NOTRACK)
-    lsmod | grep -q ipt_ULOG && iptables -A FORWARD -i "$LAN" -o "$WAN" -p tcp --dport 53 --tcp-flags SYN,RST,ACK SYN -j ULOG --ulog-nlgroup 1 --ulog-prefix "FORWARDED-CON"
-    lsmod | grep -q xt_NFLOG && iptables -A FORWARD -i "$LAN" -o "$WAN" -p tcp --dport 53 --tcp-flags SYN,RST,ACK SYN -j NFLOG --nflog-group 1 --nflog-prefix "FORWARDED-CONN"
+    #lsmod | grep -q ipt_ULOG && iptables -A FORWARD -i "$LAN" -o "$WAN" -p tcp --dport 53 --tcp-flags SYN,RST,ACK SYN -j ULOG --ulog-nlgroup 1 --ulog-prefix "FORWARDED-CON"
+    #lsmod | grep -q xt_NFLOG && iptables -A FORWARD -i "$LAN" -o "$WAN" -p tcp --dport 53 --tcp-flags SYN,RST,ACK SYN -j NFLOG --nflog-group 1 --nflog-prefix "FORWARDED-CONN"
 
     # Allow packet transfer only between devices in LAN
     iptables -A FORWARD -i $LAN -o $LAN -m set --match-set fw_ip src -j ACCEPT
@@ -768,7 +768,7 @@ function firewall_up {
     #
 
     #Disabling conntrack for DNS – performance optimization
-    iptables -t raw -A PREROUTING -i "$LAN" -p udp --dport 53 -j NOTRACK
+    #iptables -t raw -A PREROUTING -i "$LAN" -p udp --dport 53 -j NOTRACK
 
     # Blacklisted host/network
     iptables -t raw -A PREROUTING -m set --match-set fw_permanent_blacklist src -j DROP
