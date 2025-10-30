@@ -130,85 +130,85 @@ function shaper_cmd {
         fi
 
     elif [ "$1" = "stop" ]; then
-	if check_interfaces_up "$LAN"; then
-	    tc qdisc del dev $LAN root 2> /dev/null
-	fi
-	if check_interfaces_up "$WAN"; then
-	    tc qdisc del dev $WAN root 2> /dev/null
-	fi
-	iptables -t mangle -F
-	iptables -t mangle -X
-	
+        if check_interfaces_up "$LAN"; then
+            tc qdisc del dev $LAN root 2> /dev/null
+        fi
+        if check_interfaces_up "$WAN"; then
+            tc qdisc del dev $WAN root 2> /dev/null
+        fi
+        iptables -t mangle -F
+        iptables -t mangle -X
+        
     elif [ "$1" = "start" ]; then
-	shaper_cmd stop
-	if ! check_interfaces_up "$WAN" "$LAN"; then
-	    Log "error" "Interface check failed: skipping traffic shaping configuration."
-	    return 1
-	fi
-	delimiter=$IFS
-	while IFS='=' read arg1 arg2; do
-    	    case "$arg1" in
-        	LAN_INTERFACE_SPEED_LIMIT)        LAN_INTERFACE_SPEED_LIMIT=$arg2 ;;
-        	ISP_RX_LIMIT)                     ISP_RX_LIMIT=$arg2 ;;
-        	ISP_TX_LIMIT)                     ISP_TX_LIMIT=$arg2 ;;
-        	LAN_UNCLASSIFIED_RATE_LIMIT)      LAN_UNCLASSIFIED_RATE_LIMIT=$arg2 ;;
-        	LAN_UNCLASSIFIED_CEIL_LIMIT)      LAN_UNCLASSIFIED_CEIL_LIMIT=$arg2 ;;
-        	WAN_UNCLASSIFIED_RATE_LIMIT)      WAN_UNCLASSIFIED_RATE_LIMIT=$arg2 ;;
-        	WAN_UNCLASSIFIED_CEIL_LIMIT)      WAN_UNCLASSIFIED_CEIL_LIMIT=$arg2 ;;
-        	GW_TO_LAN_RATE_LIMIT)             GW_TO_LAN_RATE_LIMIT=$arg2 ;;
-        	GW_TO_LAN_CEIL_LIMIT)             GW_TO_LAN_CEIL_LIMIT=$arg2 ;;
-        	GW_TO_WAN_RATE_LIMIT)             GW_TO_WAN_RATE_LIMIT=$arg2 ;;
-        	GW_TO_WAN_CEIL_LIMIT)             GW_TO_WAN_CEIL_LIMIT=$arg2 ;;
-        	GW_TO_LAN_PRIORITY)               GW_TO_LAN_PRIORITY=$arg2 ;;
-        	GW_TO_WAN_PRIORITY)               GW_TO_WAN_PRIORITY=$arg2 ;;
-        	LAN_UNCLASSIFIED_PRIORITY)        LAN_UNCLASSIFIED_PRIORITY=$arg2 ;;
-        	WAN_UNCLASSIFIED_PRIORITY)        WAN_UNCLASSIFIED_PRIORITY=$arg2 ;;
-        	LAN_HOSTS_PRIORITY)               LAN_HOSTS_PRIORITY=$arg2 ;;
-        	WAN_HOSTS_PRIORITY)               WAN_HOSTS_PRIORITY=$arg2 ;;
-    	    esac
-	done < <(grep -v \# "$confdir/$shaper_file")
-	IFS=$delimiter
+        shaper_cmd stop
+        if ! check_interfaces_up "$WAN" "$LAN"; then
+            Log "error" "Interface check failed: skipping traffic shaping configuration."
+            return 1
+        fi
+        delimiter=$IFS
+        while IFS='=' read arg1 arg2; do
+                case "$arg1" in
+                LAN_INTERFACE_SPEED_LIMIT)        LAN_INTERFACE_SPEED_LIMIT=$arg2 ;;
+                ISP_RX_LIMIT)                     ISP_RX_LIMIT=$arg2 ;;
+                ISP_TX_LIMIT)                     ISP_TX_LIMIT=$arg2 ;;
+                LAN_UNCLASSIFIED_RATE_LIMIT)      LAN_UNCLASSIFIED_RATE_LIMIT=$arg2 ;;
+                LAN_UNCLASSIFIED_CEIL_LIMIT)      LAN_UNCLASSIFIED_CEIL_LIMIT=$arg2 ;;
+                WAN_UNCLASSIFIED_RATE_LIMIT)      WAN_UNCLASSIFIED_RATE_LIMIT=$arg2 ;;
+                WAN_UNCLASSIFIED_CEIL_LIMIT)      WAN_UNCLASSIFIED_CEIL_LIMIT=$arg2 ;;
+                GW_TO_LAN_RATE_LIMIT)             GW_TO_LAN_RATE_LIMIT=$arg2 ;;
+                GW_TO_LAN_CEIL_LIMIT)             GW_TO_LAN_CEIL_LIMIT=$arg2 ;;
+                GW_TO_WAN_RATE_LIMIT)             GW_TO_WAN_RATE_LIMIT=$arg2 ;;
+                GW_TO_WAN_CEIL_LIMIT)             GW_TO_WAN_CEIL_LIMIT=$arg2 ;;
+                GW_TO_LAN_PRIORITY)               GW_TO_LAN_PRIORITY=$arg2 ;;
+                GW_TO_WAN_PRIORITY)               GW_TO_WAN_PRIORITY=$arg2 ;;
+                LAN_UNCLASSIFIED_PRIORITY)        LAN_UNCLASSIFIED_PRIORITY=$arg2 ;;
+                WAN_UNCLASSIFIED_PRIORITY)        WAN_UNCLASSIFIED_PRIORITY=$arg2 ;;
+                LAN_HOSTS_PRIORITY)               LAN_HOSTS_PRIORITY=$arg2 ;;
+                WAN_HOSTS_PRIORITY)               WAN_HOSTS_PRIORITY=$arg2 ;;
+                esac
+        done < <(grep -v \# "$confdir/$shaper_file")
+        IFS=$delimiter
 
-	: "${LAN_INTERFACE_SPEED_LIMIT:=$DEFAULT_LAN_INTERFACE_SPEED_LIMIT}"
-	: "${ISP_RX_LIMIT:=$DEFAULT_ISP_RX_LIMIT}"
-	: "${ISP_TX_LIMIT:=$DEFAULT_ISP_TX_LIMIT}"
-	: "${LAN_UNCLASSIFIED_RATE_LIMIT:=$DEFAULT_LAN_UNCLASSIFIED_RATE_LIMIT}"
-	: "${LAN_UNCLASSIFIED_CEIL_LIMIT:=$DEFAULT_LAN_UNCLASSIFIED_CEIL_LIMIT}"
-	: "${WAN_UNCLASSIFIED_RATE_LIMIT:=$DEFAULT_WAN_UNCLASSIFIED_RATE_LIMIT}"
-	: "${WAN_UNCLASSIFIED_CEIL_LIMIT:=$DEFAULT_WAN_UNCLASSIFIED_CEIL_LIMIT}"
-	: "${GW_TO_LAN_RATE_LIMIT:=$DEFAULT_GW_TO_LAN_RATE_LIMIT}"
-	: "${GW_TO_LAN_CEIL_LIMIT:=$DEFAULT_GW_TO_LAN_CEIL_LIMIT}"
-	: "${GW_TO_WAN_RATE_LIMIT:=$DEFAULT_GW_TO_WAN_RATE_LIMIT}"
-	: "${GW_TO_WAN_CEIL_LIMIT:=$DEFAULT_GW_TO_WAN_CEIL_LIMIT}"
-	: "${GW_TO_LAN_PRIORITY:=$DEFAULT_GW_TO_LAN_PRIORITY}"
-	: "${GW_TO_WAN_PRIORITY:=$DEFAULT_GW_TO_WAN_PRIORITY}"
-	: "${LAN_UNCLASSIFIED_PRIORITY:=$DEFAULT_LAN_UNCLASSIFIED_PRIORITY}"
-	: "${WAN_UNCLASSIFIED_PRIORITY:=$DEFAULT_WAN_UNCLASSIFIED_PRIORITY}"
-	: "${LAN_HOSTS_PRIORITY:=$DEFAULT_LAN_HOSTS_PRIORITY}"
-	: "${WAN_HOSTS_PRIORITY:=$DEFAULT_WAN_HOSTS_PRIORITY}"
-	if [ -z "$BURST" ]; then
-	    BURST=""
-	else
-	    BURST="burst $BURST"
-	fi
+        : "${LAN_INTERFACE_SPEED_LIMIT:=$DEFAULT_LAN_INTERFACE_SPEED_LIMIT}"
+        : "${ISP_RX_LIMIT:=$DEFAULT_ISP_RX_LIMIT}"
+        : "${ISP_TX_LIMIT:=$DEFAULT_ISP_TX_LIMIT}"
+        : "${LAN_UNCLASSIFIED_RATE_LIMIT:=$DEFAULT_LAN_UNCLASSIFIED_RATE_LIMIT}"
+        : "${LAN_UNCLASSIFIED_CEIL_LIMIT:=$DEFAULT_LAN_UNCLASSIFIED_CEIL_LIMIT}"
+        : "${WAN_UNCLASSIFIED_RATE_LIMIT:=$DEFAULT_WAN_UNCLASSIFIED_RATE_LIMIT}"
+        : "${WAN_UNCLASSIFIED_CEIL_LIMIT:=$DEFAULT_WAN_UNCLASSIFIED_CEIL_LIMIT}"
+        : "${GW_TO_LAN_RATE_LIMIT:=$DEFAULT_GW_TO_LAN_RATE_LIMIT}"
+        : "${GW_TO_LAN_CEIL_LIMIT:=$DEFAULT_GW_TO_LAN_CEIL_LIMIT}"
+        : "${GW_TO_WAN_RATE_LIMIT:=$DEFAULT_GW_TO_WAN_RATE_LIMIT}"
+        : "${GW_TO_WAN_CEIL_LIMIT:=$DEFAULT_GW_TO_WAN_CEIL_LIMIT}"
+        : "${GW_TO_LAN_PRIORITY:=$DEFAULT_GW_TO_LAN_PRIORITY}"
+        : "${GW_TO_WAN_PRIORITY:=$DEFAULT_GW_TO_WAN_PRIORITY}"
+        : "${LAN_UNCLASSIFIED_PRIORITY:=$DEFAULT_LAN_UNCLASSIFIED_PRIORITY}"
+        : "${WAN_UNCLASSIFIED_PRIORITY:=$DEFAULT_WAN_UNCLASSIFIED_PRIORITY}"
+        : "${LAN_HOSTS_PRIORITY:=$DEFAULT_LAN_HOSTS_PRIORITY}"
+        : "${WAN_HOSTS_PRIORITY:=$DEFAULT_WAN_HOSTS_PRIORITY}"
+        if [ -z "$BURST" ]; then
+            BURST=""
+        else
+            BURST="burst $BURST"
+        fi
 
-	echo LAN_INTERFACE_SPEED_LIMIT=$LAN_INTERFACE_SPEED_LIMIT
-	echo ISP_RX_LIMIT=$ISP_RX_LIMIT
-	echo ISP_TX_LIMIT=$ISP_TX_LIMIT
-	echo LAN_UNCLASSIFIED_RATE_LIMIT=$LAN_UNCLASSIFIED_RATE_LIMIT
-	echo LAN_UNCLASSIFIED_CEIL_LIMIT=$LAN_UNCLASSIFIED_CEIL_LIMIT
-	echo WAN_UNCLASSIFIED_RATE_LIMIT=$WAN_UNCLASSIFIED_RATE_LIMIT
-	echo WAN_UNCLASSIFIED_CEIL_LIMIT=$WAN_UNCLASSIFIED_CEIL_LIMIT
-	echo GW_TO_LAN_RATE_LIMIT=$GW_TO_LAN_RATE_LIMIT
-	echo GW_TO_LAN_CEIL_LIMIT=$GW_TO_LAN_CEIL_LIMIT
-	echo GW_TO_WAN_RATE_LIMIT=$GW_TO_WAN_RATE_LIMIT
-	echo GW_TO_WAN_CEIL_LIMIT=$GW_TO_WAN_CEIL_LIMIT
-	echo GW_TO_LAN_PRIORITY=$GW_TO_LAN_PRIORITY
-	echo GW_TO_WAN_PRIORITY=$GW_TO_WAN_PRIORITY
-	echo LAN_UNCLASSIFIED_PRIORITY=$LAN_UNCLASSIFIED_PRIORITY
-	echo WAN_UNCLASSIFIED_PRIORITY=$WAN_UNCLASSIFIED_PRIORITY
-	echo LAN_HOSTS_PRIORITY=$LAN_HOSTS_PRIORITY
-	echo WAN_HOSTS_PRIORITY=$WAN_HOSTS_PRIORITY
+        echo LAN_INTERFACE_SPEED_LIMIT=$LAN_INTERFACE_SPEED_LIMIT
+        echo ISP_RX_LIMIT=$ISP_RX_LIMIT
+        echo ISP_TX_LIMIT=$ISP_TX_LIMIT
+        echo LAN_UNCLASSIFIED_RATE_LIMIT=$LAN_UNCLASSIFIED_RATE_LIMIT
+        echo LAN_UNCLASSIFIED_CEIL_LIMIT=$LAN_UNCLASSIFIED_CEIL_LIMIT
+        echo WAN_UNCLASSIFIED_RATE_LIMIT=$WAN_UNCLASSIFIED_RATE_LIMIT
+        echo WAN_UNCLASSIFIED_CEIL_LIMIT=$WAN_UNCLASSIFIED_CEIL_LIMIT
+        echo GW_TO_LAN_RATE_LIMIT=$GW_TO_LAN_RATE_LIMIT
+        echo GW_TO_LAN_CEIL_LIMIT=$GW_TO_LAN_CEIL_LIMIT
+        echo GW_TO_WAN_RATE_LIMIT=$GW_TO_WAN_RATE_LIMIT
+        echo GW_TO_WAN_CEIL_LIMIT=$GW_TO_WAN_CEIL_LIMIT
+        echo GW_TO_LAN_PRIORITY=$GW_TO_LAN_PRIORITY
+        echo GW_TO_WAN_PRIORITY=$GW_TO_WAN_PRIORITY
+        echo LAN_UNCLASSIFIED_PRIORITY=$LAN_UNCLASSIFIED_PRIORITY
+        echo WAN_UNCLASSIFIED_PRIORITY=$WAN_UNCLASSIFIED_PRIORITY
+        echo LAN_HOSTS_PRIORITY=$LAN_HOSTS_PRIORITY
+        echo WAN_HOSTS_PRIORITY=$WAN_HOSTS_PRIORITY
 
 
         #To WAN
@@ -260,10 +260,10 @@ function shaper_cmd {
                 ceil=$(echo ${arg3/kbit/})
                 ceil=$((ceil * 1000))
                 CUSTOMER_UP_CBURST=$(echo "$ceil * 0.0125" | bc -l)
-    		if ! check_interfaces_up "$WAN"; then
-		    Log "error" "Interface $WAN check failed: skipping traffic shaping configuration."
-    		    return 1
-		fi
+                if ! check_interfaces_up "$WAN"; then
+                    Log "error" "Interface $WAN check failed: skipping traffic shaping configuration."
+                    return 1
+                fi
                 tc class add dev $WAN parent 2:1 classid 2:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_UP_BURST}b cburst ${CUSTOMER_UP_CBURST}b prio $WAN_HOSTS_PRIORITY quantum 1514
                 tc qdisc add dev $WAN parent 2:$h fq_codel memory_limit 4Mb
 
@@ -274,10 +274,10 @@ function shaper_cmd {
                 ceil=$(echo ${arg3/kbit/})
                 ceil=$((ceil * 1000))
                 CUSTOMER_DOWN_CBURST=$(echo "$ceil * 0.0125" | bc -l)
-    		if ! check_interfaces_up "$LAN"; then
-		    Log "error" "Interface $LAN check failed: skipping traffic shaping configuration."
-    		    return 1
-		fi
+                if ! check_interfaces_up "$LAN"; then
+            	    Log "error" "Interface $LAN check failed: skipping traffic shaping configuration."
+                    return 1
+            	fi
                 tc class add dev $LAN parent 1:2 classid 1:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_DOWN_BURST}b cburst ${CUSTOMER_DOWN_CBURST}b prio $LAN_HOSTS_PRIORITY quantum 1514
                 tc qdisc add dev $LAN parent 1:$h fq_codel memory_limit 4Mb
 
@@ -714,19 +714,19 @@ function firewall_up {
 
     # Drop ddos attack from fw_wan_ddos_source to fw_lan_ddos_protected_ports
     iptables -A FORWARD -i $WAN -o $LAN -p tcp \
-	-m set --match-set fw_lan_ddos_protected_ports dst \
-	-m set --match-set fw_wan_ddos_source src -j DROP
+        -m set --match-set fw_lan_ddos_protected_ports dst \
+        -m set --match-set fw_wan_ddos_source src -j DROP
 
     iptables -A FORWARD -i $WAN -o $LAN -p tcp \
-	-m set --match-set fw_lan_ddos_protected_ports dst \
-	-m conntrack --ctstate NEW \
-	-m recent --set --name LDDOSPP
+        -m set --match-set fw_lan_ddos_protected_ports dst \
+        -m conntrack --ctstate NEW \
+        -m recent --set --name LDDOSPP
 
     iptables -A FORWARD -i $WAN -o $LAN -p tcp \
-	-m set --match-set fw_lan_ddos_protected_ports dst \
-	-m conntrack --ctstate NEW \
-	-m recent --update --seconds 120 --hitcount 5 --rttl --name LDDOSPP \
-	-j SET --add-set fw_wan_ddos_source src
+        -m set --match-set fw_lan_ddos_protected_ports dst \
+        -m conntrack --ctstate NEW \
+        -m recent --update --seconds 120 --hitcount 5 --rttl --name LDDOSPP \
+        -j SET --add-set fw_wan_ddos_source src
 
     # Allow packet transfer only between LAN and WAN interfaces for selected hosts from the fw_ip list
     iptables -A FORWARD -i $LAN -o $WAN -m set --match-set fw_ip src -j ACCEPT
