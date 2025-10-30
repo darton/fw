@@ -609,8 +609,10 @@ function modify_nat1n_fw_rules {
 }
 
 function firewall_up {
+    #
     #Network Tuning Factors
-
+    #
+    
     #Change default ARP table for large networks.
     if [ $(cat /proc/sys/net/ipv4/neigh/default/gc_thresh1) -lt 2048 ]; then
         sysctl -w net.ipv4.neigh.default.gc_thresh1=2048
@@ -640,7 +642,6 @@ function firewall_up {
     iptables -P FORWARD DROP
     iptables -P INPUT ACCEPT
     iptables -P OUTPUT ACCEPT
-
 
 
     #
@@ -689,7 +690,6 @@ function firewall_up {
     # Global INPUT reject
     iptables -A INPUT -j REJECT --reject-with icmp-host-prohibited
 
-
     ## FORWARD CHAIN
 
     #
@@ -729,11 +729,7 @@ function firewall_up {
     iptables -A FORWARD -i $LAN -o $WAN -m set --match-set fw_ip src -j ACCEPT
     iptables -A FORWARD -i $WAN -o $LAN -m set --match-set fw_ip dst -j ACCEPT
 
-
-
-    #
-    # NAT TABLE
-    #
+    ## NAT TABLE
 
     # Redirect for blocked clients with enabled warning in LMS
     #iptables -t nat -A PREROUTING -i $LAN -m set --match-set fw_warned_hosts src -m set --match-set fw_denied_hosts src -p tcp --dport 80 -j DNAT --to $proxy_ip:3128
@@ -748,17 +744,13 @@ function firewall_up {
 
     # Load SNAT / DNAT rules for 1:1 NAT users
     load_nat_11_fw_rules
-    echo "$current_time - firewall_up OK" >> $logdir/$logfile
 
-
-
-    #
-    # RAW TABLE
-    #
+    ## RAW TABLE
 
     # Blacklisted host/network
     iptables -t raw -A PREROUTING -m set --match-set fw_permanent_blacklist src -j DROP
     iptables -t raw -A PREROUTING -m set --match-set fw_time_blacklist src -j DROP
+    echo "$current_time - firewall_up OK" >> $logdir/$logfile
 }
 
 function firewall_down {
