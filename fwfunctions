@@ -650,7 +650,7 @@ function firewall_up {
     ## INPUT CHAIN
 
     #
-    iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+    iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
     # Honeypot
     iptables -I INPUT -i $WAN -p tcp --match multiport --dport 22,80,443,3306 -j SET --add-set fw_time_blacklist src
@@ -694,11 +694,8 @@ function firewall_up {
 
     #
     iptables -A FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-    #iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
 
     # Enable packet logging
-    #lsmod | grep -q ipt_ULOG && iptables -A FORWARD -i $LAN -m state --state NEW -p tcp -j ULOG --ulog-nlgroup 1 --ulog-prefix FORWARDED-CONN
-    #lsmod | grep -q xt_NFLOG && iptables -A FORWARD -i $LAN -m state --state NEW -p tcp -j NFLOG --nflog-group 1 --nflog-prefix FORWARDED-CONN
     lsmod | grep -q ipt_ULOG && iptables -A FORWARD -i "$LAN" -p tcp --tcp-flags SYN,RST,ACK SYN -m conntrack --ctstate NEW -j ULOG --ulog-nlgroup 1 --ulog-prefix "FORWARDED-CONN"
     lsmod | grep -q xt_NFLOG && iptables -A FORWARD -i "$LAN" -p tcp --tcp-flags SYN,RST,ACK SYN -m conntrack --ctstate NEW -j NFLOG --nflog-group 1 --nflog-prefix "FORWARDED-CONN"
 
