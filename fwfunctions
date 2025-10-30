@@ -699,10 +699,6 @@ function firewall_up {
     lsmod | grep -q ipt_ULOG && iptables -A FORWARD -i "$LAN" -p tcp --tcp-flags SYN,RST,ACK SYN -m conntrack --ctstate NEW -j ULOG --ulog-nlgroup 1 --ulog-prefix "FORWARDED-CONN"
     lsmod | grep -q xt_NFLOG && iptables -A FORWARD -i "$LAN" -p tcp --tcp-flags SYN,RST,ACK SYN -m conntrack --ctstate NEW -j NFLOG --nflog-group 1 --nflog-prefix "FORWARDED-CONN"
 
-    # Allow packet transfer only between devices in LAN
-    iptables -A FORWARD -i $LAN -o $LAN -m set --match-set fw_ip src -j ACCEPT
-    iptables -A FORWARD -i $LAN -o $LAN -m set --match-set fw_ip dst -j ACCEPT
-
     # Drop forward some ports from WAN to LAN
     iptables -A FORWARD -i $WAN -o $LAN -p tcp -m set --match-set fw_lan_banned_dst_ports dst -j DROP
 
@@ -728,6 +724,12 @@ function firewall_up {
     # Allow packet transfer only between LAN and WAN interfaces for selected hosts from the fw_ip list
     iptables -A FORWARD -i $LAN -o $WAN -m set --match-set fw_ip src -j ACCEPT
     iptables -A FORWARD -i $WAN -o $LAN -m set --match-set fw_ip dst -j ACCEPT
+
+    # Allow packet transfer only between devices in LAN
+    iptables -A FORWARD  -i $LAN -o $LAN -m set --match-set fw_ip src,dst -j ACCEPT
+    #iptables -A FORWARD -i $LAN -o $LAN -m set --match-set fw_ip src -j ACCEPT
+    #iptables -A FORWARD -i $LAN -o $LAN -m set --match-set fw_ip dst -j ACCEPT
+
 
     ## NAT TABLE
 
