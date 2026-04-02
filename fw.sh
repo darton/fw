@@ -17,7 +17,7 @@ current_time=$(date +"%F %T.%3N%:z")
 
 MESSAGE="Program must be run as root"
 if [[ $EUID -ne 0 ]]; then
-    logger -p "info" -t "${SCRIPT_NAME}" "${MESSAGE}"
+    logger -p "error" -t "${SCRIPT_NAME}" "${MESSAGE}"
     echo "${MESSAGE}"
     exit 1
 fi
