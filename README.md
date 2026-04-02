@@ -8,6 +8,7 @@ The fw.sh script configures the Linux system to run as powerful gateway/middlebo
 - DHCP server
 - DNS resolver
 - Network Connection Logger
+- Export host statistic data for LMS lms-traffic script
 
 It is optimized for large networks from several hundred to several thousand of computers.
 It is recommended to use a minimum 4-core processor.
