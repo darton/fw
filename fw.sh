@@ -13,8 +13,14 @@
 
 
 PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
-SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
-SCRIPT_NAME="$(basename "$0")"
+#SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+#SCRIPT_NAME="$(basename "$0")"
+SCRIPT_NAME="${BASH_SOURCE[0]##*/}"
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P) || {
+    printf "ERROR Cannot determine the script directory\n"; exit 1
+}
+#SCRIPT_PATH="${SCRIPT_DIR}/${SCRIPT_NAME}"
+
 FW_CONF_PATH="${SCRIPT_DIR}/fw.conf"
 FW_FUNCTIONS_PATH="$SCRIPT_DIR/fwfunctions"
 current_time=$(date +"%F %T.%3N%:z")
