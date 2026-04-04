@@ -122,7 +122,7 @@ case "$1" in
         maintenance-off
     ;;
     *)
-       menu_help
+        menu_help
     ;;
 esac
 
