@@ -34,7 +34,7 @@ function Log {
     fi
 }
 
-functions check_interfaces_up {
+function check_interfaces_up {
     for iface in "$@"; do
         if [[ ! -e "/sys/class/net/$iface/operstate" ]]; then
             #echo "Interface $iface does not exist — aborting."
