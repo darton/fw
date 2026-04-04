@@ -116,6 +116,27 @@ function dhcpd_cmd {
     fi
 }
 
+function get_counters {
+    mapfile -t CO < <(iptables -t mangle -w 2 -nL FORWARD | awk '/COUNTERSOUT/{print $1}')
+    mapfile -t CI < <(iptables -t mangle -w 2 -nL FORWARD | awk '/COUNTERSIN/{print $1}')
+
+    if [[ "${#CO[@]}" == "${#CI[@]}" ]]; then
+
+        join \
+            <(for chain in "${CO[@]}"; do
+                iptables -t mangle -w 1 -nvxL "$chain" \
+                | awk 'NR>2 && $8!="0.0.0.0" {print $8, $2}'
+                iptables -t mangle -Z "$chain"
+              done | sort -V) \
+            <(for chain in "${CI[@]}"; do
+                iptables -t mangle -w 1 -nvxL "$chain" \
+                | awk 'NR>2 && $9!="0.0.0.0" {print $9, $2}'
+                iptables -t mangle -Z "$chain"
+              done | sort -V) \
+        | grep -v " 0 0"
+    fi
+}
+
 function shaper_cmd {
     if [ "$1" = "restart" ]; then
         shaper_current=$(cat $confdir/$shaper_file |sha1sum)
@@ -300,21 +321,7 @@ function shaper_cmd {
 
     elif [ "$1" = "stats" ]; then
 
-        #IPT_TABLE_CC=$(iptables -t mangle -w 2 -nL FORWARD |grep COUNTERSOUT |awk '{print $1}')
-        IPT_TABLE_CC=$(iptables -t mangle -w 2 -nL FORWARD |awk '/COUNTERSOUT/{print $1}')
-        if [ ! -z "$IPT_TABLE_CC" ]; then
-            for IPT_TABLE_ELEMENT in $IPT_TABLE_CC; do
-                #iptables -t mangle -w 1 -nvxL $IPT_TABLE_ELEMENT |tail -n +3 | awk '{print $8 " "$2}' |grep -v 0.0.0.0 >> /tmp/upload.tmp
-                iptables -t mangle -w 1 -nvxL $IPT_TABLE_ELEMENT |awk 'NR>2 {if ($8 != "0.0.0.0") print $8 " "$2}' >> /tmp/upload.tmp
-            done
-            for IPT_TABLE_ELEMENT in $(iptables -t mangle -nL FORWARD |grep COUNTERSIN |awk '{print $1}'); do
-                #iptables -t mangle -w 1 -nvxL $IPT_TABLE_ELEMENT |tail -n +3 | awk '{print $9 " "$2}' |grep -v 0.0.0.0 >> /tmp/download.tmp
-                iptables -t mangle -w 1 -nvxL $IPT_TABLE_ELEMENT | awk 'NR>2 {if ($8 != "0.0.0.0") print $9 " "$2}'  >> /tmp/download.tmp
-            done
-            iptables -t mangle -Z
-            join /tmp/upload.tmp /tmp/download.tmp | grep -v  " 0 0"
-            rm /tmp/upload.tmp /tmp/download.tmp
-        fi
+        get_counters
 
     elif [ "$1" = "status" ]; then
 
