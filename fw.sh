@@ -18,6 +18,8 @@ trap 'rm -rf ${FW_CONFIG_TEMP_DIR}' INT TERM EXIT
 
 current_time=$(date +"%F %T.%3N%:z")
 
+SCRIPT_NAME="${BASH_SOURCE[0]##*/}"
+
 MESSAGE="Program must be run as root"
 if [[ $EUID -ne 0 ]]; then
     logger -p "error" -t "${SCRIPT_NAME}" "${MESSAGE}"
@@ -25,7 +27,6 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-SCRIPT_NAME="${BASH_SOURCE[0]##*/}"
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P) || {
     MESSAGE="Cannot determine the script directory"
