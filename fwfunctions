@@ -890,7 +890,7 @@ stop (){
     static_routing_down
     firewall_down
     destroy_all_hashtables
-    Log "info" "Firewall Stoped successfully"
+    Log "info" "Firewall Stopped successfully"
 }
 
 start (){
@@ -932,7 +932,7 @@ maintenance-on (){
     Log "info" "Trying Firewall maintenance on"
     mpid=$(cat /run/fw-sh/maintenance.pid)
     if [ "$mpid" = 1 ]; then
-        Log "info" "Firewall maintenance is allready on"
+        Log "info" "Firewall maintenance is already on"
         Log "info" "To exit from maintenance mode run: fw.sh maintenance-off"
         exit
     else
@@ -948,7 +948,7 @@ maintenance-off (){
     Log "info" "Trying Firewall maintenance off"
     mpid=$(cat /run/fw-sh/maintenance.pid)
     if [ "$mpid" = 0 ]; then
-        Log "info" "Firewall maintenance is allready off"
+        Log "info" "Firewall maintenance is already off"
         exit
     else
         #ip link set dev "$WAN" up || { Log "error" "Can not set device $WAN up"; exit 1; }
