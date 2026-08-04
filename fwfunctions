@@ -51,15 +51,16 @@ function check_interfaces_up {
 
 function get_config {
     echo "$current_time - Connecting to LMS and downloading configuration files" >> $logdir/$logfile
-    $copy_cmd_url/* ${FW_CONFIG_TEMP_DIR} || { echo "$current_time - Can not download config files" >> $logdir/$logfile; exit 1; }
+    $copy_cmd_url/* "${FW_CONFIG_TEMP_DIR}" || { echo "$current_time - Can not download config files" >> $logdir/$logfile; exit 1; }
 
-    cd $confdir
+    cd "$confdir" || { echo "$current_time - Cannot change directory to $confdir" >> $logdir/$logfile; exit 1; }
+
     for FILENAME in *
     do
-        mv $FILENAME $oldconfdir/$FILENAME || { echo "$current_time - Can not move old config file $FILENAME to $oldconfdir/$FILENAME" >> $logdir/$logfile; exit 1; }
+        mv "$FILENAME" "$oldconfdir"/"$FILENAME" || { echo "$current_time - Can not move old config file $FILENAME to $oldconfdir/$FILENAME" >> $logdir/$logf
     done
 
-    cp ${FW_CONFIG_TEMP_DIR}/* $confdir/ || { echo "$current_time - Can not copy new config files $FILENAME to cuurent config" >> $logdir/$logfile; exit 1; }
+    cp "${FW_CONFIG_TEMP_DIR}"/* "$confdir"/ || { echo "$current_time - Can not copy new config files $FILENAME to cuurent config" >> $logdir/$logfile; exit
     echo "$current_time - get_config OK" >> $logdir/$logfile
 }
 
