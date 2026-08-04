@@ -806,7 +806,7 @@ function static_routing_up {
         done < $confdir/$routed_nets_file
         echo "$current_time - Adding static routing entries" >> $logdir/$logfile
     else
-        echo "$current_time - Static routing enries not exist" >> $logdir/$logfile
+        echo "$current_time - Static routing entries not exist" >> $logdir/$logfile
     fi
 }
 
