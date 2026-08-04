@@ -372,7 +372,7 @@ function create_fw_hashtables {
     fi
 
     #hashtable for blacklisted host/networks
-    current_ipset_list=$(ipset -q --list fw_blacklist)
+    current_ipset_list=$(ipset -q --list fw_time_blacklist)
     if ([ "$current_ipset_list" = "" ]); then
         ipset create fw_time_blacklist hash:net hashsize 2048 timeout 900
         ipset create fw_permanent_blacklist hash:net hashsize 2048
