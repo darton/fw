@@ -57,10 +57,10 @@ function get_config {
 
     for FILENAME in *
     do
-        mv "$FILENAME" "$oldconfdir"/"$FILENAME" || { echo "$current_time - Can not move old config file $FILENAME to $oldconfdir/$FILENAME" >> $logdir/$logf
+        mv "$FILENAME" "$oldconfdir"/"$FILENAME" || { echo "$current_time - Can not move old config file $FILENAME to $oldconfdir/$FILENAME" >> $logdir/$logfile; exit 1; }
     done
 
-    cp "${FW_CONFIG_TEMP_DIR}"/* "$confdir"/ || { echo "$current_time - Can not copy new config files $FILENAME to cuurent config" >> $logdir/$logfile; exit
+    cp "${FW_CONFIG_TEMP_DIR}"/* "$confdir"/ || { echo "$current_time - Can not copy new config files $FILENAME to cuurent config" >> $logdir/$logfile; exit 1; }
     echo "$current_time - get_config OK" >> $logdir/$logfile
 }
 
