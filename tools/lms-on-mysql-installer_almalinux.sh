@@ -81,9 +81,9 @@ userpanel_dir = $LMS_DIR/userpanel
 EOF
 
 
-WEBUSER=$(awk '/^User / {print $2}' /etc/httpd/conf/httpd.conf)
-WEBGROUP=$(awk '/^Group / {print $2}' /etc/httpd/conf/httpd.conf)
-install -d -o "$WEBUSER" -g "$WEBGROUP" -m 700 "$BACKUP_DIR"
+#WEBUSER=$(awk '/^User / {print $2}' /etc/httpd/conf/httpd.conf)
+#WEBGROUP=$(awk '/^Group / {print $2}' /etc/httpd/conf/httpd.conf)
+install -d -o "$shell_user" -g "$shell_group" -m 700 "$BACKUP_DIR"
 
 useradd $shell_user
 echo "$shell_user:$shell_password" |chpasswd
@@ -199,7 +199,6 @@ EOF
 systemctl daemon-reload
 systemctl enable lmsd.service
 systemctl start lmsd.service
-systemctl status lmsd.service
 
 
 semanage fcontext -a -t httpd_sys_rw_content_t "$BACKUP_DIR(/.*)?"
