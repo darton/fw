@@ -146,10 +146,10 @@ apachectl configtest && systemctl enable --now httpd.service
 php-fpm -t && systemctl enable --now php-fpm
 systemctl enable --now setroubleshootd
 
-mysql -u root -e "CREATE DATABASE $lms_db CHARACTER SET utf8 COLLATE utf8_polish_ci;"
-mysql -u root -e "CREATE USER IF NOT EXISTS $lms_db_user@localhost IDENTIFIED BY $lms_db_password;"
-mysql -u root -e "GRANT ALL PRIVILEGES ON $lms_db.* TO $lms_db_user@$lms_db_host;"
-mysql -u root -e "flush privileges;"
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS \`$lms_db\` CHARACTER SET utf8 COLLATE utf8_polish_ci;"
+mysql -u root -e "CREATE USER IF NOT EXISTS '$lms_db_user'@'$lms_db_host' IDENTIFIED BY '$lms_db_password';"
+mysql -u root -e "GRANT ALL PRIVILEGES ON \`$lms_db\`.* TO '$lms_db_user'@'$lms_db_host';"
+mysql -u root -e "FLUSH PRIVILEGES;"
 
 mysql_secure_installation
 
