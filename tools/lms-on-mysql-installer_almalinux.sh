@@ -116,7 +116,7 @@ install -d -o "$shell_user" -g "$shell_group" -m 755 \
     "$LMS_DIR"/var/{tmp,sessions}
 	
 
-cat > /etc/php/php-fpm/lms.conf <<EOF
+cat > /etc/php-fpm.d/lms.conf <<EOF
 [lms]
 
 user = lms
@@ -138,7 +138,7 @@ php_admin_value[session.save_path] = /var/www/lms/var/sessions
 php_admin_value[upload_tmp_dir] = /var/www/lms/var/tmp
 EOF
 
-mv /etc/php/php-fpm/www.conf /etc/php/php-fpm/www.conf.disabled
+mv /etc/php-fpm.d/www.conf /etc/php-fpm.d/www.conf.disabled
 mv /etc/httpd/conf.d/php.conf /etc/httpd/conf.d/php.conf.disabled
 
 systemctl enable --now firewalld
