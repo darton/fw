@@ -36,7 +36,6 @@ dnf install wget -y
 dnf install bc -y
 
 dnf install flex -y
-dnf install libfl-static -y
 dnf install bison -y
 
 dnf install setroubleshoot-server -y
@@ -46,6 +45,8 @@ dnf install perl-Mail-Sender -y
 
 dnf config-manager --set-enabled crb -y
 dnf install mariadb-devel -y
+dnf install libfl-static -y
+
 dnf install epel-release -y
 dnf install certbot python3-certbot-apache -y
 
