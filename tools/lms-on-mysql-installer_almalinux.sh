@@ -203,6 +203,18 @@ systemctl start lmsd.service
 systemctl status lmsd.service
 
 
+semanage fcontext -a -t httpd_sys_rw_content_t "$BACKUP_DIR(/.*)?"
+
+install -d \
+    -o "$shell_user" \
+    -g "$shell_group" \
+    -m 755 \
+    "${LMS_DIR}/js/xajax_js/deferred"
+
+semanage fcontext -a -t httpd_sys_rw_content_t "${LMS_DIR}/js/xajax_js/deferred(/.*)?"
+restorecon -R "${LMS_DIR}"
+
+
 if [ $enable_ssl == yes ]
 then
   firewall-cmd --zone=public --add-service=https
