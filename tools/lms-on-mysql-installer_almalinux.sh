@@ -2,7 +2,6 @@
 
 # Use to Rocky/Alma Linux 9 Minimal Server version.
 
-
 #####config###
 enable_ssl=no
 
@@ -97,11 +96,11 @@ su $shell_user -c "cd $LMS_DIR; $LMS_DIR/composer.phar install"
 
 cat > /etc/httpd/conf.d/lms.conf <<EOF
 <VirtualHost *:80>
-  ServerAdmin "${WEBMASTER_EMAIL}"
+  ServerAdmin ${WEBMASTER_EMAIL}
   DocumentRoot /var/www/lms
-  ServerName "${FQDN}"
-  ErrorLog logs/"${FQDN}"-error_log
-  CustomLog logs/"${FQDN}"-access_log common
+  ServerName ${FQDN}
+  ErrorLog logs/${FQDN}-error_log
+  CustomLog logs/${FQDN}-access_log common
 
   <FilesMatch \.php$>
     SetHandler "proxy:unix:/run/php-fpm-lms.sock|fcgi://localhost/"
