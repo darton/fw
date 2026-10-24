@@ -40,7 +40,7 @@ dnf install flex -y
 dnf install libfl-static -y
 dnf install bison -y
 
-dnf install setroubleshoot-server
+dnf install setroubleshoot-server -y
 
 dnf install perl-Config-IniFiles -y
 dnf install perl-Mail-Sender -y
