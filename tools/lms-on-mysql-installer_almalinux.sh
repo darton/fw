@@ -154,7 +154,7 @@ mysql -u root -e "FLUSH PRIVILEGES;"
 
 mysql_secure_installation
 
-#mysql -u root -e "use $lms_db; source $LMS_DIR/doc/lms.mysql;"
+mysql -u root -e "use $lms_db; source $LMS_DIR/doc/lms.mysql;"
 
 
 firewall-cmd --zone=public --add-service=http
@@ -179,6 +179,28 @@ cd "${LMS_DIR}"/daemon
 
 ./configure --with-mysql --enable-debug0 --enable-debug1
 make && make install
+
+cat > /etc/systemd/system/lmsd.service <<EOF
+[Unit]
+Description=LMS Daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/lmsd/bin/lmsd -f -C /etc/lms/lms.ini
+Restart=on-failure
+RestartSec=60s
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable lmsd.service
+systemctl start lmsd.service
+systemctl status lmsd.service
+
 
 if [ $enable_ssl == yes ]
 then
