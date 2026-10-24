@@ -143,7 +143,8 @@ mv /etc/httpd/conf.d/php.conf /etc/httpd/conf.d/php.conf.disabled
 
 systemctl enable --now firewalld
 systemctl enable --now mariadb
-apachectl configtest && systemctl enable --now httpd.service
+
+apachectl configtest && systemctl enable --now httpd
 php-fpm -t && systemctl enable --now php-fpm
 systemctl enable --now setroubleshootd
 
