@@ -101,8 +101,9 @@ cat > /etc/httpd/conf.d/lms.conf <<EOF
   ServerName ${FQDN}
   ErrorLog logs/${FQDN}-error_log
   CustomLog logs/${FQDN}-access_log common
+  
   DirectoryIndex index.php index.html
-
+  
   <FilesMatch \.php$>
     SetHandler "proxy:unix:/run/php-fpm-lms.sock|fcgi://localhost/"
   </FilesMatch>
@@ -114,7 +115,7 @@ install -d -o "$shell_user" -g "$shell_group" -m 755 \
 
 install -d -o "$shell_user" -g "$shell_group" -m 755 \
     "$LMS_DIR"/var/{tmp,sessions}
-	
+
 
 cat > /etc/php-fpm.d/lms.conf <<EOF
 [lms]
@@ -151,7 +152,7 @@ mysql -u root -e "CREATE USER IF NOT EXISTS '$lms_db_user'@'$lms_db_host' IDENTI
 mysql -u root -e "GRANT ALL PRIVILEGES ON \`$lms_db\`.* TO '$lms_db_user'@'$lms_db_host';"
 mysql -u root -e "FLUSH PRIVILEGES;"
 
-mysql_secure_installation
+#mysql_secure_installation
 
 mysql -u root -e "use $lms_db; source $LMS_DIR/doc/lms.mysql;"
 
@@ -197,9 +198,9 @@ install -d \
 
 install -d \
     -o "$shell_user" \
-	-g "$shell_group" \
-	-m 750 \
-	"${BACKUP_DIR}"
+        -g "$shell_group" \
+        -m 750 \
+        "${BACKUP_DIR}"
 
 selinux_status=$(getenforce)
 
@@ -209,12 +210,12 @@ then
   semanage fcontext -a -t httpd_sys_rw_content_t "$BACKUP_DIR(/.*)?"
   semanage fcontext -a -t httpd_sys_rw_content_t "${LMS_DIR}/js/xajax_js/deferred(/.*)?"
   restorecon -R "${LMS_DIR}"
-  
+
   wget http://$FQDN/
   ausearch -c 'httpd' --raw | audit2allow -M my-httpd
   semodule -i my-httpd.pp
 fi
-	
+
 systemctl start httpd && systemctl enable httpd
 
 if [ $enable_ssl == yes ]
