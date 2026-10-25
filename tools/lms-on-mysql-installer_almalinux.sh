@@ -5,10 +5,10 @@
 #####config###
 enable_ssl=no
 
-FQDN=lms.example.com
-WEBMASTER_EMAIL="hostmaster@example.com"
+FQDN=localhost
+WEBMASTER_EMAIL="hostmaster@localhost"
 export LMS_DIR=/var/www/lms
-export BACKUP_DIR=/mnt/backup/lms
+export BACKUP_DIR=/mnt/backup
 
 shell_user=lms
 shell_group=lms
@@ -144,7 +144,6 @@ systemctl enable --now firewalld
 systemctl enable --now mariadb
 
 php-fpm -t && systemctl enable --now php-fpm
-apachectl configtest && systemctl enable httpd
 
 mysql -u root -e "CREATE DATABASE IF NOT EXISTS \`$lms_db\` CHARACTER SET utf8 COLLATE utf8_polish_ci;"
 mysql -u root -e "CREATE USER IF NOT EXISTS '$lms_db_user'@'$lms_db_host' IDENTIFIED BY '$lms_db_password';"
@@ -210,12 +209,12 @@ then
   semanage fcontext -a -t httpd_sys_rw_content_t "${LMS_DIR}/js/xajax_js/deferred(/.*)?"
   restorecon -R "${LMS_DIR}"
   
-  wget http://$FQDN
+  wget http://$FQDN/
   ausearch -c 'httpd' --raw | audit2allow -M my-httpd
   semodule -i my-httpd.pp
 fi
 	
-systemctl start httpd
+systemctl start httpd && systemctl enable httpd
 
 if [ $enable_ssl == yes ]
 then
