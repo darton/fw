@@ -198,9 +198,9 @@ install -d \
 
 install -d \
     -o "$shell_user" \
-        -g "$shell_group" \
-        -m 750 \
-        "${BACKUP_DIR}"
+    -g "$shell_group" \
+    -m 750 \
+    "${BACKUP_DIR}"
 
 selinux_status=$(getenforce)
 
