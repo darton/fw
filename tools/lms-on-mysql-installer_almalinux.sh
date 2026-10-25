@@ -152,10 +152,7 @@ mysql -u root -e "CREATE USER IF NOT EXISTS '$lms_db_user'@'$lms_db_host' IDENTI
 mysql -u root -e "GRANT ALL PRIVILEGES ON \`$lms_db\`.* TO '$lms_db_user'@'$lms_db_host';"
 mysql -u root -e "FLUSH PRIVILEGES;"
 
-#mysql_secure_installation
-
 mysql -u root -e "use $lms_db; source $LMS_DIR/doc/lms.mysql;"
-
 
 firewall-cmd --zone=public --add-service=http
 firewall-cmd --zone=public --permanent --add-service=http
@@ -232,3 +229,5 @@ else
   echo "certbot --apache -d $FQDN"
   echo "systemctl restart httpd.service"
 fi
+
+echo "Run mysql_secure_installation"
