@@ -3,6 +3,7 @@
 # Use to Rocky/Alma Linux 9 Minimal Server version.
 
 #####config###
+
 enable_ssl=no
 
 FQDN=localhost
@@ -30,9 +31,11 @@ dnf install mariadb-server -y
 dnf install firewalld -y
 
 dnf install git -y
+dnf install vi -y
 dnf install unzip -y
 dnf install wget -y
 dnf install bc -y
+dnf install rsync -y
 
 dnf install flex -y
 dnf install bison -y
