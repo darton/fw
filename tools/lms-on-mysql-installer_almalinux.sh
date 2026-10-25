@@ -83,7 +83,7 @@ EOF
 
 #WEBUSER=$(awk '/^User / {print $2}' /etc/httpd/conf/httpd.conf)
 #WEBGROUP=$(awk '/^Group / {print $2}' /etc/httpd/conf/httpd.conf)
-install -d -o "$shell_user" -g "$shell_group" -m 700 "$BACKUP_DIR"
+
 
 useradd $shell_user
 echo "$shell_user:$shell_password" |chpasswd
@@ -143,9 +143,8 @@ mv /etc/httpd/conf.d/php.conf /etc/httpd/conf.d/php.conf.disabled
 systemctl enable --now firewalld
 systemctl enable --now mariadb
 
-apachectl configtest && systemctl enable --now httpd
 php-fpm -t && systemctl enable --now php-fpm
-systemctl enable --now setroubleshootd
+apachectl configtest && systemctl enable httpd
 
 mysql -u root -e "CREATE DATABASE IF NOT EXISTS \`$lms_db\` CHARACTER SET utf8 COLLATE utf8_polish_ci;"
 mysql -u root -e "CREATE USER IF NOT EXISTS '$lms_db_user'@'$lms_db_host' IDENTIFIED BY '$lms_db_password';"
@@ -159,16 +158,6 @@ mysql -u root -e "use $lms_db; source $LMS_DIR/doc/lms.mysql;"
 
 firewall-cmd --zone=public --add-service=http
 firewall-cmd --zone=public --permanent --add-service=http
-
-
-selinux_status=$(getenforce)
-
-if [ $selinux_status == Enforcing ]
-then
-  wget http://$FQDN
-  ausearch -c 'httpd' --raw | audit2allow -M my-httpd
-  semodule -i my-httpd.pp
-fi
 
 echo
 echo "LMS DIR $LMS_DIR"
@@ -200,18 +189,33 @@ systemctl daemon-reload
 systemctl enable lmsd.service
 systemctl start lmsd.service
 
-
-semanage fcontext -a -t httpd_sys_rw_content_t "$BACKUP_DIR(/.*)?"
-
 install -d \
     -o "$shell_user" \
     -g "$shell_group" \
     -m 755 \
     "${LMS_DIR}/js/xajax_js/deferred"
 
-semanage fcontext -a -t httpd_sys_rw_content_t "${LMS_DIR}/js/xajax_js/deferred(/.*)?"
-restorecon -R "${LMS_DIR}"
+install -d \
+    -o "$shell_user" \
+	-g "$shell_group" \
+	-m 750 \
+	"${BACKUP_DIR}"
 
+selinux_status=$(getenforce)
+
+if [ $selinux_status == Enforcing ]
+then
+  systemctl enable --now setroubleshootd
+  semanage fcontext -a -t httpd_sys_rw_content_t "$BACKUP_DIR(/.*)?"
+  semanage fcontext -a -t httpd_sys_rw_content_t "${LMS_DIR}/js/xajax_js/deferred(/.*)?"
+  restorecon -R "${LMS_DIR}"
+  
+  wget http://$FQDN
+  ausearch -c 'httpd' --raw | audit2allow -M my-httpd
+  semodule -i my-httpd.pp
+fi
+	
+systemctl start httpd
 
 if [ $enable_ssl == yes ]
 then
