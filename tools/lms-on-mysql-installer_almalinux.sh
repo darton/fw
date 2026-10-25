@@ -97,10 +97,11 @@ su $shell_user -c "cd $LMS_DIR; $LMS_DIR/composer.phar install"
 cat > /etc/httpd/conf.d/lms.conf <<EOF
 <VirtualHost *:80>
   ServerAdmin ${WEBMASTER_EMAIL}
-  DocumentRoot /var/www/lms
+  DocumentRoot ${LMS_DIR}
   ServerName ${FQDN}
   ErrorLog logs/${FQDN}-error_log
   CustomLog logs/${FQDN}-access_log common
+  DirectoryIndex index.php index.html
 
   <FilesMatch \.php$>
     SetHandler "proxy:unix:/run/php-fpm-lms.sock|fcgi://localhost/"
