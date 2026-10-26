@@ -36,6 +36,7 @@ dnf install unzip -y
 dnf install wget -y
 dnf install bc -y
 dnf install rsync -y
+dnf install glibc-gconv-extra -y
 
 dnf install flex -y
 dnf install bison -y
@@ -204,16 +205,17 @@ install -d \
 
 selinux_status=$(getenforce)
 
-if [ $selinux_status == Enforcing ]
+if [[ $selinux_status == Enforcing ]]
 then
   systemctl enable --now setroubleshootd
   semanage fcontext -a -t httpd_sys_rw_content_t "$BACKUP_DIR(/.*)?"
   semanage fcontext -a -t httpd_sys_rw_content_t "${LMS_DIR}/js/xajax_js/deferred(/.*)?"
   restorecon -R "${LMS_DIR}"
-
+  restorecon -R "$BACKUP_DIR"
+  
   wget http://$FQDN/
-  ausearch -c 'httpd' --raw | audit2allow -M my-httpd
-  semodule -i my-httpd.pp
+  echo "run command ausearch -c 'httpd' --raw | audit2allow -M my-httpd; semodule -i my-httpd.pp"
+
 fi
 
 systemctl start httpd && systemctl enable httpd
