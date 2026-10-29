@@ -76,6 +76,8 @@ for param in $confdir $oldconfdir; do
     [[ -f "$param"/"$lan_banned_dst_ports_file" ]] || touch "$param"/"$lan_banned_dst_ports_file"
     [[ -f "$param"/"$shaper_file" ]] || touch "$param"/"$shaper_file"
     [[ -f "$param"/"$dhcp_conf_file" ]] || touch "$param"/"$dhcp_conf_file"
+    [[ -f "$param"/"$lan_ddos_protected_ports_file" ]] || touch "$param"/"$lan_ddos_protected_ports_file"
+    [[ -f "$param"/"$wan_banned_dst_ports_file" ]] || touch "$param"/"$wan_banned_dst_ports_file"
 done
 
 #####Main program####
