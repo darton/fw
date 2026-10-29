@@ -19,7 +19,7 @@ function Log {
     local level="$1"
     local logdate
     logdate=$(date +"%F %T.%3N%:z")
-    local MESSAGE_FORMAT="${logdate} ${level}: ${message}"
+    local MESSAGE_FORMAT="${logdate} - ${level}: ${message}"
     local MESSAGE_FORMAT_SIMPLE="${message}"
 
     logger -p "user.${level}" -t fw.sh "${message}"
@@ -76,10 +76,10 @@ function get_shaper_config {
 }
 
 function lmsd_reload {
-    echo "Reloading all lmsd instances on the remote machine"
+    echo "Reloading $lmsd_host instances on $lms_ip"
     $exec_cmd "$lmsd -q -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db" || { echo "$current_time - Can not connect to database" >> $logdir/$logfile; exit 1; }
-    echo "$current_time - Waiting 10s for lmsd to create new configuration files" >> $logdir/$logfile
-    sleep 10
+    echo "$current_time - Reload $lmsd_host instances on $lms_ip complited" >> $logdir/$logfile
+    sleep 5
 }
 
 function dhcp_server_cmd {
@@ -927,8 +927,6 @@ get_reload() {
 
 lmsd() {
     local reload
-    local timeout=5
-    local i
 
     if ! reload=$(get_reload); then
         Log "error" "Error connection to DB"
@@ -945,27 +943,6 @@ lmsd() {
     Log "info" "Host reload status has been set"
 
     lmsd_reload
-
-    for ((i=0; i<=timeout; i++)); do
-
-        if ! reload=$(get_reload); then
-            Log "error" "Error checking reload status"
-            return 1
-        fi
-
-        [ "$reload" = "0" ] && break
-
-        Log "info" "Waiting for reload to complete: reload=${reload} (${i}/${timeout}s)"
-        sleep 1
-    done
-
-    if [ "$reload" != "0" ]; then
-        Log "error" "Timeout waiting for reload=0"
-        return 1
-    fi
-
-    Log "info" "Reload completed"
-
     get_config
     newreload
 }
