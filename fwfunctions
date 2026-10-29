@@ -918,27 +918,56 @@ newreload (){
     Log "info" "Firewall reloaded successfully"
 }
 
+get_reload() {
+    $exec_cmd \
+    "mysql -N -s -u '$lms_dbuser' -p'$lms_dbpwd' '$lms_db' \
+    -e \"SELECT reload FROM hosts WHERE name='$lmsd_host'\"" \
+    2>/dev/null
+}
+
 lmsd() {
     local reload
+    local timeout=5
+    local i
 
-    if reload=$(
-        $exec_cmd \
-        "mysql -N -s -u '$lms_dbuser' -p'$lms_dbpwd' '$lms_db' -e \"SELECT reload FROM hosts WHERE name='$lmsd_host'\"" \
-        2>/dev/null
-    ); then
-        Log "info" "Succesfully connected to DB"
-            if [ "$reload" = "1" ]; then
-                Log "info" "Host reload status has been set"
-                lmsd_reload
-                get_config
-                newreload
-            else
-                Log "info" "Host reload status not set"
-            fi
-    else
+    if ! reload=$(get_reload); then
         Log "error" "Error connection to DB"
-        exit 1
+        return 1
     fi
+
+    Log "info" "Successfully connected to DB"
+
+    if [ "$reload" != "1" ]; then
+        Log "info" "Host reload status not set"
+        return 0
+    fi
+
+    Log "info" "Host reload status has been set"
+
+    lmsd_reload
+
+    for ((i=0; i<=timeout; i++)); do
+
+        if ! reload=$(get_reload); then
+            Log "error" "Error checking reload status"
+            return 1
+        fi
+
+        [ "$reload" = "0" ] && break
+
+        Log "info" "Waiting for reload to complete: reload=${reload} (${i}/${timeout}s)"
+        sleep 1
+    done
+
+    if [ "$reload" != "0" ]; then
+        Log "error" "Timeout waiting for reload=0"
+        return 1
+    fi
+
+    Log "info" "Reload completed"
+
+    get_config
+    newreload
 }
 
 maintenance-on (){
