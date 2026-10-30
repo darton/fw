@@ -43,6 +43,7 @@ dnf install bison -y
 
 dnf install perl-Config-IniFiles -y
 dnf install perl-Mail-Sender -y
+dnf install perl-DBD-MySQL -y
 
 dnf config-manager --set-enabled crb -y
 dnf install mariadb-devel -y
