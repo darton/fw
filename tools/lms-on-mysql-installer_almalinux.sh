@@ -112,7 +112,7 @@ cat > /etc/httpd/conf.d/lms.conf <<EOF
   DirectoryIndex index.php index.html
   
   <FilesMatch \.php$>
-    SetHandler "proxy:unix:/run/php-fpm-lms.sock|fcgi://localhost/"
+    SetHandler "proxy:unix:/run/php-fpm/php-fpm-lms.sock|fcgi://localhost/"
   </FilesMatch>
 </VirtualHost>
 EOF
