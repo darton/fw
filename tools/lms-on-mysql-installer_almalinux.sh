@@ -8,7 +8,8 @@ enable_ssl=no
 
 FQDN=localhost
 WEBMASTER_EMAIL="hostmaster@localhost"
-export LMS_DIR=/var/www/lms
+export APP_DIR=/var/www/app
+export LMS_DIR="${APP_DIR}"/lms
 export BACKUP_DIR=/mnt/backup
 
 shell_user=lms
@@ -95,11 +96,18 @@ EOF
 useradd $shell_user
 echo "$shell_user:$shell_password" |chpasswd
 
-install -d -o "$shell_user" -g "$shell_group" -m 755 "$LMS_DIR"
+install -d -o "$shell_user" -g "$shell_group" -m 755 \
+"$APP_DIR" \
+"$LMS_DIR" \
+"$LMS_DIR/var"
 
-su $shell_user -c "cd /var/www; git clone https://github.com/lmsgit/lms.git"
+install -d -o "$shell_user" -g "$shell_group" -m 770 \
+"$LMS_DIR/var/tmp" \
+"$LMS_DIR/var/sessions"
+
+su $shell_user -c "cd {APP_DIR}; git clone https://github.com/lmsgit/lms.git"
 su $shell_user -c "cd $LMS_DIR; curl -sS https://getcomposer.org/installer | php"
-su $shell_user -c "cd $LMS_DIR; $LMS_DIR/composer.phar install"
+su $shell_user -c "cd $LMS_DIR; ./composer.phar install"
 
 cat > /etc/httpd/conf.d/lms.conf <<EOF
 <VirtualHost *:80>
@@ -116,13 +124,6 @@ cat > /etc/httpd/conf.d/lms.conf <<EOF
   </FilesMatch>
 </VirtualHost>
 EOF
-
-install -d -o "$shell_user" -g "$shell_group" -m 755 \
-    "$LMS_DIR"/var
-
-install -d -o "$shell_user" -g "$shell_group" -m 755 \
-    "$LMS_DIR"/var/{tmp,sessions}
-
 
 cat > /etc/php-fpm.d/lms.conf <<EOF
 [lms]
