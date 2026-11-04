@@ -61,6 +61,7 @@ dnf install perl-Config-IniFiles -y
 dnf install perl-Mail-Sender -y
 dnf install perl-DBD-MySQL -y
 
+dnf install -y 'dnf-command(config-manager)'
 dnf config-manager --set-enabled crb -y
 dnf install mariadb-devel -y
 dnf install libfl-static -y
