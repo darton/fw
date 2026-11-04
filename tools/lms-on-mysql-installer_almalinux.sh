@@ -130,11 +130,8 @@ cat > /etc/php-fpm.d/lms.conf <<EOF
 user = lms
 group = lms
 
-listen = /run/php-fpm-lms.sock
-
-listen.owner = lms
-listen.group = apache
-listen.mode = 0660
+listen = /run/php-fpm/php-fpm-lms.sock
+listen.acl_users = apache
 
 pm = dynamic
 pm.max_children = 20
