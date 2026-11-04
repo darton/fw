@@ -88,11 +88,6 @@ backup_dir = $BACKUP_DIR
 userpanel_dir = $LMS_DIR/userpanel
 EOF
 
-
-#WEBUSER=$(awk '/^User / {print $2}' /etc/httpd/conf/httpd.conf)
-#WEBGROUP=$(awk '/^Group / {print $2}' /etc/httpd/conf/httpd.conf)
-
-
 useradd $shell_user
 echo "$shell_user:$shell_password" |chpasswd
 
