@@ -121,6 +121,12 @@ su $shell_user -c "cd {APP_DIR}; git clone https://github.com/lmsgit/lms.git"
 su $shell_user -c "cd $LMS_DIR; curl -sS https://getcomposer.org/installer | php"
 su $shell_user -c "cd $LMS_DIR; ./composer.phar install"
 
+install -d \
+-o "$shell_user" \
+-g "$shell_group" \
+-m 755 \
+"${LMS_DIR}/js/xajax_js/deferred"
+
 cat > /etc/httpd/conf.d/lms.conf <<EOF
 <VirtualHost *:80>
   ServerAdmin ${WEBMASTER_EMAIL}
@@ -204,12 +210,6 @@ EOF
 systemctl daemon-reload
 systemctl enable lmsd.service
 systemctl start lmsd.service
-
-install -d \
--o "$shell_user" \
--g "$shell_group" \
--m 755 \
-"${LMS_DIR}/js/xajax_js/deferred"
 
 selinux_status=$(getenforce)
 
