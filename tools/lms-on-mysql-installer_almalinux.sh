@@ -47,6 +47,7 @@ dnf install git -y
 dnf install vi -y
 dnf install unzip -y
 dnf install wget -y
+dnf install file -y
 dnf install bc -y
 dnf install rsync -y
 dnf install postfix -y
