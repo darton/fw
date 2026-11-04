@@ -96,14 +96,26 @@ EOF
 useradd $shell_user
 echo "$shell_user:$shell_password" |chpasswd
 
-install -d -o "$shell_user" -g "$shell_group" -m 755 \
+install -d \
+-o "$shell_user" \
+-g "$shell_group" \
+-m 755 \
 "$APP_DIR" \
 "$LMS_DIR" \
 "$LMS_DIR/var"
 
-install -d -o "$shell_user" -g "$shell_group" -m 770 \
+install -d \
+-o "$shell_user" \
+-g "$shell_group" \
+-m 770 \
 "$LMS_DIR/var/tmp" \
 "$LMS_DIR/var/sessions"
+
+install -d \
+-o "$shell_user" \
+-g "$shell_group" \
+-m 750 \
+"${BACKUP_DIR}"
 
 su $shell_user -c "cd {APP_DIR}; git clone https://github.com/lmsgit/lms.git"
 su $shell_user -c "cd $LMS_DIR; curl -sS https://getcomposer.org/installer | php"
@@ -161,6 +173,7 @@ mysql -u root -e "use $lms_db; source $LMS_DIR/doc/lms.mysql;"
 
 firewall-cmd --zone=public --add-service=http
 firewall-cmd --zone=public --permanent --add-service=http
+firewall-cmd --reload
 
 echo
 echo "LMS DIR $LMS_DIR"
@@ -193,16 +206,10 @@ systemctl enable lmsd.service
 systemctl start lmsd.service
 
 install -d \
-    -o "$shell_user" \
-    -g "$shell_group" \
-    -m 755 \
-    "${LMS_DIR}/js/xajax_js/deferred"
-
-install -d \
-    -o "$shell_user" \
-    -g "$shell_group" \
-    -m 750 \
-    "${BACKUP_DIR}"
+-o "$shell_user" \
+-g "$shell_group" \
+-m 755 \
+"${LMS_DIR}/js/xajax_js/deferred"
 
 selinux_status=$(getenforce)
 
@@ -210,21 +217,25 @@ if [[ $selinux_status == Enforcing ]]
 then
   systemctl enable --now setroubleshootd
   semanage fcontext -a -t httpd_sys_rw_content_t "$BACKUP_DIR(/.*)?"
+  semanage fcontext -a -e /var/www/html "${APP_DIR}"
+  semanage fcontext -a -t httpd_sys_rw_content_t "${APP_DIR}/var/sessions(/.*)?"
+  semanage fcontext -a -t httpd_sys_rw_content_t "${APP_DIR}/var/tmp(/.*)?"
   semanage fcontext -a -t httpd_sys_rw_content_t "${LMS_DIR}/js/xajax_js/deferred(/.*)?"
-  restorecon -R "${LMS_DIR}"
+  restorecon -R "${APP_DIR}"
   restorecon -R "$BACKUP_DIR"
-  
-  wget http://$FQDN/
-  echo "run command ausearch -c 'httpd' --raw | audit2allow -M my-httpd; semodule -i my-httpd.pp"
-
 fi
 
 systemctl start httpd && systemctl enable httpd
 
 if [ $enable_ssl == yes ]
 then
+  wget http://$FQDN/
+  echo "run command ausearch -c 'httpd' --raw | audit2allow -M my-httpd; semodule -i my-httpd.pp"
+  
   firewall-cmd --zone=public --add-service=https
   firewall-cmd --zone=public --permanent --add-service=https
+  firewall-cmd --reload
+  
   certbot --apache -d $FQDN
   systemctl restart httpd.service
 else
