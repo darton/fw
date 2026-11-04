@@ -153,8 +153,12 @@ pm.start_servers = 4
 pm.min_spare_servers = 2
 pm.max_spare_servers = 6
 
-php_admin_value[session.save_path] = /var/www/lms/var/sessions
-php_admin_value[upload_tmp_dir] = /var/www/lms/var/tmp
+php_admin_value[session.save_path] = {LMS_DIR}/var/sessions
+php_admin_value[upload_tmp_dir] = {LMS_DIR}/var/tmp
+php_admin_value[memory_limit] = 512M
+php_admin_value[upload_max_filesize] = 32M
+php_admin_value[post_max_size] = 32M
+php_admin_value[max_execution_time] = 120
 EOF
 
 mv /etc/php-fpm.d/www.conf /etc/php-fpm.d/www.conf.disabled
