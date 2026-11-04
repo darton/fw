@@ -107,8 +107,16 @@ install -d \
 -o "$shell_user" \
 -g "$shell_group" \
 -m 755 \
-"$APP_DIR" \
-"$LMS_DIR" \
+"$APP_DIR"
+
+su $shell_user -c "cd ${APP_DIR}; git clone https://github.com/lmsgit/lms.git" || exit 1
+su $shell_user -c "cd ${LMS_DIR}; curl -sS https://getcomposer.org/installer | php" || exit 1
+su $shell_user -c "cd ${LMS_DIR}; ${LMS_DIR}/composer.phar install" || exit 1
+
+install -d \
+-o "$shell_user" \
+-g "$shell_group" \
+-m 755 \
 "$LMS_DIR/var"
 
 install -d \
@@ -123,10 +131,6 @@ install -d \
 -g "$shell_group" \
 -m 750 \
 "${BACKUP_DIR}"
-
-su $shell_user -c "cd ${APP_DIR}; git clone https://github.com/lmsgit/lms.git" || exit 1
-su $shell_user -c "cd ${LMS_DIR}; curl -sS https://getcomposer.org/installer | php" || exit 1
-su $shell_user -c "cd ${LMS_DIR}; ${LMS_DIR}/composer.phar install" || exit 1
 
 install -d \
 -o "$shell_user" \
