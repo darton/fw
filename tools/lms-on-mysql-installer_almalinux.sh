@@ -37,6 +37,7 @@ dnf install wget -y
 dnf install bc -y
 dnf install rsync -y
 dnf install postfix -y
+dnf install s-nail
 dnf install glibc-gconv-extra -y
 
 dnf install flex -y
