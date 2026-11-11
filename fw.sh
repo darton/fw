@@ -59,26 +59,8 @@ if ! source "${FW_FUNCTIONS_PATH}"; then
     exit 1
 fi
 
-
 ####Makes necessary directories and files####
-[[ -f "$logdir"/"$logfile" ]] || touch "$logdir"/"$logfile"
-[[ -d /run/fw-sh/ ]] || mkdir /run/fw-sh
-[[ -f /run/fw-sh/maintenance.pid ]] || echo 0 > /run/fw-sh/maintenance.pid
-[[ -d "$confdir" ]] || mkdir -p "$confdir"
-[[ -d "$oldconfdir" ]] || mkdir -p "$oldconfdir"
-
-for param in $confdir $oldconfdir; do
-    [[ -f "$param"/"$nat_11_file" ]] || touch "$param"/"$nat_11_file"
-    [[ -f "$param"/"$nat_1n_ip_file" ]] || touch "$param"/"$nat_1n_ip_file"
-    [[ -f "$param"/"$public_ip_file" ]] || touch "$param"/"$public_ip_file"
-    [[ -f "$param"/"$routed_nets_file" ]] || touch "$param"/"$routed_nets_file"
-    [[ -f "$param"/"$blacklist_file" ]] || touch "$param"/"$blacklist_file"
-    [[ -f "$param"/"$lan_banned_dst_ports_file" ]] || touch "$param"/"$lan_banned_dst_ports_file"
-    [[ -f "$param"/"$shaper_file" ]] || touch "$param"/"$shaper_file"
-    [[ -f "$param"/"$dhcp_conf_file" ]] || touch "$param"/"$dhcp_conf_file"
-    [[ -f "$param"/"$lan_ddos_protected_ports_file" ]] || touch "$param"/"$lan_ddos_protected_ports_file"
-    [[ -f "$param"/"$wan_banned_dst_ports_file" ]] || touch "$param"/"$wan_banned_dst_ports_file"
-done
+init_fw
 
 #####Main program####
 case "$1" in

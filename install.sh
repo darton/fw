@@ -57,4 +57,4 @@ cp ./fwfunctions $scriptsdir/fwfunctions
 chmod u+x $scriptsdir/fw.sh
 echo "export PATH=$PATH:$scriptsdir" >> /root/.bash_profile
 source /root/.bash_profile
-
+dnf install dhcp-server bc

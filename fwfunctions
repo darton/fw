@@ -34,6 +34,36 @@ function Log {
     fi
 }
 
+init_fw() {
+
+    local dir file
+
+    [[ -f "$logdir/$logfile" ]] || touch "$logdir/$logfile"
+    [[ -d /run/fw-sh ]] || mkdir -p /run/fw-sh
+    [[ -f /run/fw-sh/maintenance.pid ]] || echo 0 > /run/fw-sh/maintenance.pid
+    [[ -d "$confdir" ]] || mkdir -p "$confdir"
+    [[ -d "$oldconfdir" ]] || mkdir -p "$oldconfdir"
+
+    for dir in "$confdir" "$oldconfdir"; do
+
+        for file in \
+            "$nat_11_file" \
+            "$nat_1n_ip_file" \
+            "$public_ip_file" \
+            "$routed_nets_file" \
+            "$blacklist_file" \
+            "$lan_banned_dst_ports_file" \
+            "$shaper_file" \
+            "$dhcp_conf_file" \
+            "$lan_ddos_protected_ports_file" \
+            "$wan_banned_dst_ports_file"
+        do
+            [[ -f "$dir/$file" ]] || touch "$dir/$file"
+        done
+    done
+    ln -sf "$confdir"/"$dhcp_conf_file" /etc/dhcp/"$dhcp_conf_file"
+}
+
 function check_interfaces_up {
     for iface in "$@"; do
         if [[ ! -e "/sys/class/net/$iface/operstate" ]]; then
@@ -102,8 +132,8 @@ function dhcp_server_cmd {
 function dhcpd_cmd {
     local arg="$1"
     if [ "$arg" = "restart" ]; then
-        dhcpd_conf_current=$(cat $confdir/dhcpd.conf |sha1sum)
-        dhcpd_conf_new=$(cat $oldconfdir/dhcpd.conf |sha1sum)
+        dhcpd_conf_current=$(cat $confdir/$dhcpd_conf_file |sha1sum)
+        dhcpd_conf_new=$(cat $oldconfdir/$dhcpd_conf_file |sha1sum)
         if [ "$dhcpd_conf_current" != "$dhcpd_conf_new" ]; then
             echo "$current_time - The dhcpd.conf file has a new configuration, restarting the DHCP server" >> $logdir/$logfile
             dhcp_server_cmd restart
@@ -160,7 +190,7 @@ function shaper_cmd {
         fi
         iptables -t mangle -F
         iptables -t mangle -X
-        
+
     elif [ "$1" = "start" ]; then
         shaper_cmd stop
         if ! check_interfaces_up "$WAN" "$LAN"; then
