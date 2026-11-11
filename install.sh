@@ -14,6 +14,8 @@
 #Config
 LAN=eth0
 WAN=eth1
+MGMT=eno1
+
 installdir=/opt/gateway
 scriptsdir="${installdir}"/scripts
 
@@ -42,5 +44,5 @@ set_env_var() {
 
 set_env_var LAN "${LAN}" /etc/environment
 set_env_var WAN "${WAN}" /etc/environment
+set_env_var MGMT "${MGMT}" /etc/environment
 . /etc/environment
-
