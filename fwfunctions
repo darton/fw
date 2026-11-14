@@ -306,14 +306,17 @@ function shaper_cmd {
         #To and from CUSTOMERS
         Log "debug" "Set limit for customers host"
 
-        #network_list=$(cat $confdir/$shaper_file |grep filter |awk '{print $2}'|awk -F\. '{print $1"."$2"."$3}'|sort -u)
-        network_list=`awk '/filter / {split($2, ip, "."); print ip[1]"."ip[2]"."ip[3]}' "$confdir/$shaper_file" | sort -u`
+        declare -A nets
+        while read -r type ip; do
+            [[ $type == filter ]] || continue
+            nets["${ip%.*}"]=1
+        done < "$confdir/$shaper_file"
 
-        for net in $network_list; do
-            iptables -t mangle -N COUNTERSIN$net
-            iptables -t mangle -N COUNTERSOUT$net
-            iptables -t mangle -I FORWARD -i $WAN -d $net.0/24 -j COUNTERSIN$net
-            iptables -t mangle -I FORWARD -o $WAN -s $net.0/24 -j COUNTERSOUT$net
+        for net in "${!nets[@]}"; do
+            iptables -t mangle -N "COUNTERSIN$net"
+            iptables -t mangle -N "COUNTERSOUT$net"
+            iptables -t mangle -I FORWARD -i "$WAN" -d "$net.0/24" -j "COUNTERSIN$net"
+            iptables -t mangle -I FORWARD -o "$WAN" -s "$net.0/24" -j "COUNTERSOUT$net"
         done
 
         h=99
