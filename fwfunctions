@@ -452,7 +452,7 @@ function create_fw_hashtables {
     while read nat_name ip; do
         ipset create "$nat_name" hash:ip hashsize 1024
     done <$confdir/$nat_1n_ip_file
-    Log "info" "create_fw_hashtables OK"
+    Log "debug" "create_fw_hashtables OK"
 }
 
 function create_tmp_hashtables {
@@ -481,7 +481,7 @@ function create_tmp_hashtables {
     while read nat_name ip; do
         ipset create "$nat_name".tmp hash:ip hashsize 1024
     done <$confdir/$nat_1n_ip_file
-    Log "info" "create_tmp_hashtables OK"
+    Log "debug" "create_tmp_hashtables OK"
 }
 
 function destroy_tmp_hashtables {
@@ -489,7 +489,7 @@ function destroy_tmp_hashtables {
     do
         ipset destroy $ipsetlist
     done
-    Log "info" "destroy_tmp_hashtables OK"
+    Log "debug" "destroy_tmp_hashtables OK"
 }
 
 function load_tmp_fw_ip_hashtable {
@@ -504,7 +504,7 @@ function load_tmp_fw_ip_hashtable {
             Log "error" "The file $public_ip_file has an invalid format, the correct one is: grantedhost|deniedhost|warnedhost ip_addres"
         fi
     done < $confdir/$public_ip_file
-    Log "info" "load_tmp_fw_ip_hashtable OK"
+    Log "debug" "load_tmp_fw_ip_hashtable OK"
 }
 
 function load_tmp_nat1n_hashtables {
@@ -522,7 +522,7 @@ function load_tmp_nat1n_hashtables {
             fi
         done < $confdir/$nat_name
     done <$confdir/$nat_1n_ip_file
-    Log "info" "load_tmp_nat1n_hashtables OK"
+    Log "debug" "load_tmp_nat1n_hashtables OK"
 }
 
 function load_tmp_nat_11_hashtable {
@@ -537,28 +537,28 @@ function load_tmp_nat_11_hashtable {
             Log "error" "File $nat_11_file has the wrong format, correct format: grantedhost|deniedhost|warnedhost ip_adres ipub_adres"
         fi
     done < $confdir/$nat_11_file
-    Log "info" "load_tmp_nat_11_hashtable OK"
+    Log "debug" "load_tmp_nat_11_hashtable OK"
 }
 
 function load_tmp_blacklist_hashtable {
     while read network; do
             ipset add fw_permanent_blacklist.tmp $network
     done < $confdir/$blacklist_file
-    Log "info" "load_permanent_blacklist_tmp_hashtable OK"
+    Log "debug" "load_permanent_blacklist_tmp_hashtable OK"
 }
 
 function load_tmp_lan_banned_dst_ports_hashtable {
     while read ports; do
             ipset add fw_lan_banned_dst_ports.tmp $ports
     done < $confdir/$lan_banned_dst_ports_file
-    Log "info" "load_tmp_lan_banned_dst_ports_hashtable OK"
+    Log "debug" "load_tmp_lan_banned_dst_ports_hashtable OK"
 }
 
 function load_tmp_wan_banned_dst_ports_hashtable {
     while read ports; do
             ipset add fw_wan_banned_dst_ports.tmp $ports
     done < $confdir/$wan_banned_dst_ports_file
-    Log "info" "load_tmp_wan_banned_dst_ports_hashtable OK"
+    Log "debug" "load_tmp_wan_banned_dst_ports_hashtable OK"
 }
 
 
@@ -566,7 +566,7 @@ function load_tmp_lan_ddos_protected_ports_hashtable {
     while read ports; do
             ipset add fw_lan_ddos_protected_ports.tmp $ports
     done < $confdir/$lan_ddos_protected_ports_file
-    Log "info" "load_tmp_lan_ddos_protected_ports_hashtable OK"
+    Log "debug" "load_tmp_lan_ddos_protected_ports_hashtable OK"
 }
 
 
@@ -576,20 +576,20 @@ function load_new_ipset_hashtables {
         new=$(ipset list $ipsetname.tmp |tail -n +9 |sort |sha1sum)
 
         if [ "$current" != "$new" ]; then
-            Log "info" "Loading new content into $ipsetname"
+            Log "debug" "Loading new content into $ipsetname"
             ipset -W $ipsetname $ipsetname.tmp
         fi
         ipset -X $ipsetname.tmp
-        Log "info" "Deleting $ipsetname.tmp"
+        Log "debug" "Deleting $ipsetname.tmp"
     done
-    Log "info" "load_new_ipset_hashtables OK"
+    Log "debug" "load_new_ipset_hashtables OK"
 }
 
 function load_nat_1n_fw_rules {
     while read nat_name ip; do
         iptables -t nat -A POSTROUTING -o $WAN -m set --match-set $nat_name src -j SNAT --to-source $ip
     done <$confdir/$nat_1n_ip_file
-    Log "info" "load_nat_1n_fw_rules OK"
+    Log "debug" "load_nat_1n_fw_rules OK"
 }
 
 function load_nat_11_fw_rules {
@@ -599,7 +599,7 @@ function load_nat_11_fw_rules {
             iptables -t nat -A PREROUTING -i $WAN -d $ipub -j DNAT --to-destination $i
         fi
     done < $confdir/$nat_11_file
-    Log "info" "load_nat_11_fw_rules OK"
+    Log "debug" "load_nat_11_fw_rules OK"
 }
 
 function modify_nat11_fw_rules {
@@ -633,7 +633,7 @@ function modify_nat11_fw_rules {
                 fi
         fi
     done < <(echo -e "$lista_zmian")
-    Log "info" "modify_nat11_fw_rules OK"
+    Log "debug" "modify_nat11_fw_rules OK"
 }
 
 function modify_nat1n_fw_rules {
@@ -658,7 +658,7 @@ function modify_nat1n_fw_rules {
             fi
         fi
     done < <(echo -e "$lista_zmian")
-    Log "info" "modify_nat1n_fw_rules OK"
+    Log "debug" "modify_nat1n_fw_rules OK"
 }
 
 function firewall_up {
@@ -828,7 +828,7 @@ function destroy_all_hashtables {
     do
         ipset destroy $ipsetlist
     done
-    Log "info" "destroy_all_hashtables OK"
+    Log "debug" "destroy_all_hashtables OK"
 }
 
 function load_fw_hashtables {
@@ -842,7 +842,7 @@ function load_fw_hashtables {
     load_tmp_lan_ddos_protected_ports_hashtable
     load_tmp_blacklist_hashtable
     load_new_ipset_hashtables
-    Log "info" "load_fw_hashtables OK"
+    Log "debug" "load_fw_hashtables OK"
 }
 
 function static_routing_up {
@@ -981,7 +981,7 @@ lmsd() {
     Log "info" "Successfully connected to DB"
 
     if [ "$reload" != "1" ]; then
-        Log "info" "Host reload status not set"
+        Log "debug" "Host reload status not set"
         return 0
     fi
 
