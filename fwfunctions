@@ -321,13 +321,9 @@ function shaper_cmd {
             if [ "$arg1" = "customer" ]; then
                 let h=$h+1
             elif [ "$arg1" = "class_up" ]; then
-                #rate=$(echo ${arg2/kbit/})
                 rate=${arg2%kbit}
-                #rate=$((rate * 1000))
                 CUSTOMER_UP_BURST=$(( $rate * 125 / 10 ))
-                #ceil=$(echo ${arg3/kbit/})
                 ceil=${arg3%kbit}
-                #ceil=$((ceil * 1000))
                 CUSTOMER_UP_CBURST=$(( $ceil * 125 / 10 ))
                 if ! check_interfaces_up "$WAN"; then
                     Log "error" "Interface $WAN check failed: skipping traffic shaping configuration."
@@ -338,13 +334,9 @@ function shaper_cmd {
                 tc qdisc add dev $WAN parent 2:$h fq_codel memory_limit 4Mb
 
             elif [ "$arg1" = "class_down" ]; then
-                #rate=$(echo ${arg2/kbit/})
                 rate=${arg2%kbit}
-                #rate=$((rate * 1000))
                 CUSTOMER_DOWN_BURST=$(( $rate * 125 / 10 ))
-                #ceil=$(echo ${arg3/kbit/})
                 ceil=${arg3%kbit}
-                #ceil=$((ceil * 1000))
                 CUSTOMER_DOWN_CBURST=$(( $ceil * 125 / 10 ))
                 if ! check_interfaces_up "$LAN"; then
                     Log "error" "Interface $LAN check failed: skipping traffic shaping configuration."
@@ -356,11 +348,7 @@ function shaper_cmd {
 
             elif [ "$arg1" = "filter" ]; then
                 Log "debug" "Configure iptables mangle with --set-class for $h"
-                #echo $arg2 | { IFS='.' read -r octet1 octet2 octet3 octet4;
-                ##IFS='.' read -r octet1 octet2 octet3 octet4 <<< "$arg2";
                 subnet=${arg2%.*}
-                #iptables -t mangle -A COUNTERSOUT$octet1.$octet2.$octet3 -s $arg2 -j CLASSIFY --set-class 2:$h;
-                #iptables -t mangle -A COUNTERSIN$octet1.$octet2.$octet3 -d $arg2 -j CLASSIFY --set-class 1:$h;
                 iptables -t mangle -A COUNTERSOUT$subnet -s $arg2 -j CLASSIFY --set-class 2:$h;
                 iptables -t mangle -A COUNTERSIN$subnet -d $arg2 -j CLASSIFY --set-class 1:$h;
             fi
