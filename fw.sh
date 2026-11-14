@@ -49,11 +49,6 @@ if ! source "${FW_CONF_PATH}"; then
     exit 1
 fi
 
-if [ "$DEBUG" == "no" ]; then
-    logdir="/dev"
-    logfile="null"
-fi
-
 #Load fwfunction
 MESSAGE="Can not load ${FW_FUNCTIONS_PATH}"
 if ! source "${FW_FUNCTIONS_PATH}"; then
