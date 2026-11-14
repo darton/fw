@@ -92,35 +92,35 @@ function check_interfaces_up {
 }
 
 function get_config {
-    echo "$current_time - Connecting to LMS and downloading configuration files" >> $logdir/$logfile
-    $copy_cmd_url/* "${FW_CONFIG_TEMP_DIR}" || { echo "$current_time - Can not download config files" >> $logdir/$logfile; exit 1; }
+    Log "debug" "Connecting to LMS and downloading configuration files"
+    $copy_cmd_url/* "${FW_CONFIG_TEMP_DIR}" || { Log "error" "Can not download config files"; exit 1; }
 
-    cd "$confdir" || { echo "$current_time - Cannot change directory to $confdir" >> $logdir/$logfile; exit 1; }
+    cd "$confdir" || { Log "error" "Cannot change directory to $confdir"; exit 1; }
 
     for FILENAME in *
     do
-        mv "$FILENAME" "$oldconfdir"/"$FILENAME" || { echo "$current_time - Can not move old config file $FILENAME to $oldconfdir/$FILENAME" >> $logdir/$logfile; exit 1; }
+        mv "$FILENAME" "$oldconfdir"/"$FILENAME" || { Log "error" "Can not move old config file $FILENAME to $oldconfdir/$FILENAME"; exit 1; }
     done
 
-    cp "${FW_CONFIG_TEMP_DIR}"/* "$confdir"/ || { echo "$current_time - Can not copy new config files $FILENAME to cuurent config" >> $logdir/$logfile; exit 1; }
-    echo "$current_time - get_config OK" >> $logdir/$logfile
+    cp "${FW_CONFIG_TEMP_DIR}"/* "$confdir"/ || { Log "error" "Can not copy new config files $FILENAME to cuurent config"; exit 1; }
+    Log "debug" "get_config OK"
 }
 
 function get_shaper_config {
-    echo "The LMS generates a configuration for the Shaper"
-    $exec_cmd "timeout 10 $lmsd -q -i $lmsd_shaper_instance -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db" || { echo "$current_time - Can not connect to database" >> $logdir/$logfile; exit 1; }
-    echo "Waiting a few seconds"
+    Log "debug" "The LMS generates a configuration for the Shaper"
+    $exec_cmd "timeout 10 $lmsd -q -i $lmsd_shaper_instance -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db" || { Log "error" "Can not connect to database"; exit 1; }
+    Log "debug" "Waiting a few seconds"
     sleep 5
     mv $confdir/$shaper_file $oldconfdir/$shaper_file
-    echo "Connecting to the server and download the configuration file for Shaper"
-    $copy_cmd_url/$shaper_file $confdir/ || { echo "$current_time - Can not download shaper config file - $shaper_file" >> $logdir/$logfile; mv $oldconfdir/$shaper_file $confdir/; exit 1; }
-    echo "$current_time - get_shaper_config OK" >> $logdir/$logfile
+    Log "debug" "Connecting to the server and download the configuration file for Shaper"
+    $copy_cmd_url/$shaper_file $confdir/ || { Log "error" "Can not download shaper config file - $shaper_file"; mv $oldconfdir/$shaper_file $confdir/; exit 1; }
+    Log "debug" "get_shaper_config OK"
 }
 
 function lmsd_reload {
-    echo "Reloading $lmsd_host instances on $lms_ip"
-    $exec_cmd "$lmsd -q -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db" || { echo "$current_time - Can not connect to database" >> $logdir/$logfile; exit 1; }
-    echo "$current_time - Reload $lmsd_host instances on $lms_ip complited" >> $logdir/$logfile
+    Log "debug" "Reloading $lmsd_host instances on $lms_ip"
+    $exec_cmd "$lmsd -q -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db" || { Log "error" "Can not connect to database"; exit 1; }
+    Log "debug" "Reload $lmsd_host instances on $lms_ip complited"
     sleep 5
 }
 
@@ -137,7 +137,7 @@ function dhcp_server_cmd {
     elif [[ "$distro_id" == "arch" ]]; then
         systemctl "$arg" dhcpd4 > /dev/null 2>&1 || return 1
     else
-        echo "Unknown Linux distro: $distro_id"
+        Log "debug" "Unknown Linux distro: $distro_id"
     fi
 }
 
@@ -158,7 +158,7 @@ function dhcpd_cmd {
 
     elif [ "$arg" = "stop" ]; then
         dhcp_server_cmd stop || Log "error" "The DHCP SERVER start failed"; return 1
-        Log "info" "The dhcpd server successfully stopped OK" >> $logdir/$logfile
+        Log "info" "The dhcpd server successfully stopped OK"
     fi
 }
 
@@ -188,12 +188,12 @@ function shaper_cmd {
         shaper_current=$(cat $confdir/$shaper_file |sha1sum)
         shaper_new=$(cat $oldconfdir/$shaper_file |sha1sum)
         if [ "$shaper_current" != "$shaper_new" ]; then
-            echo "$current_time - Shaper has a new configuration, restarting Shaper" >> $logdir/$logfile
+            Log "info" "Shaper has a new configuration, restarting Shaper"
             sleep 5
             shaper_cmd stop
             shaper_cmd start
         else
-            echo "The Shaper configuration is identical, a restart is not needed"
+            Log "debug" "The Shaper configuration is identical, a restart is not needed"
         fi
 
     elif [ "$1" = "stop" ]; then
@@ -452,7 +452,7 @@ function create_fw_hashtables {
     while read nat_name ip; do
         ipset create "$nat_name" hash:ip hashsize 1024
     done <$confdir/$nat_1n_ip_file
-    echo "$current_time - create_fw_hashtables OK" >> $logdir/$logfile
+    Log "info" "create_fw_hashtables OK"
 }
 
 function create_tmp_hashtables {
@@ -481,7 +481,7 @@ function create_tmp_hashtables {
     while read nat_name ip; do
         ipset create "$nat_name".tmp hash:ip hashsize 1024
     done <$confdir/$nat_1n_ip_file
-    echo "$current_time - create_tmp_hashtables OK" >> $logdir/$logfile
+    Log "info" "create_tmp_hashtables OK"
 }
 
 function destroy_tmp_hashtables {
@@ -489,7 +489,7 @@ function destroy_tmp_hashtables {
     do
         ipset destroy $ipsetlist
     done
-    echo "$current_time - destroy_tmp_hashtables OK" >> $logdir/$logfile
+    Log "info" "destroy_tmp_hashtables OK"
 }
 
 function load_tmp_fw_ip_hashtable {
@@ -501,10 +501,10 @@ function load_tmp_fw_ip_hashtable {
         elif [ "$status" = "warnedhost" ]; then
             ipset add fw_warned_hosts.tmp $i
         else
-            echo "The file $public_ip_file has an invalid format, the correct one is: grantedhost|deniedhost|warnedhost ip_addres" >> $logdir/$logfile
+            Log "error" "The file $public_ip_file has an invalid format, the correct one is: grantedhost|deniedhost|warnedhost ip_addres"
         fi
     done < $confdir/$public_ip_file
-    echo "$current_time - load_tmp_fw_ip_hashtable OK" >> $logdir/$logfile
+    Log "info" "load_tmp_fw_ip_hashtable OK"
 }
 
 function load_tmp_nat1n_hashtables {
@@ -518,11 +518,11 @@ function load_tmp_nat1n_hashtables {
             elif [ "$status" = "warnedhost" ]; then
                 ipset add fw_warned_hosts.tmp $i
             else
-                echo "The file $nat_name is not in the correct format, the correct format is: grantedhost | deniedhost | warnedhost ip_address" >> $logdir/$logfile
+                Log "error" "The file $nat_name is not in the correct format, the correct format is: grantedhost | deniedhost | warnedhost ip_address"
             fi
         done < $confdir/$nat_name
     done <$confdir/$nat_1n_ip_file
-    echo "$current_time - load_tmp_nat1n_hashtables OK" >> $logdir/$logfile
+    Log "info" "load_tmp_nat1n_hashtables OK"
 }
 
 function load_tmp_nat_11_hashtable {
@@ -534,31 +534,31 @@ function load_tmp_nat_11_hashtable {
         elif [ "$status" = "warnedhost" ]; then
             ipset add fw_warned_hosts.tmp $i
         else
-            echo "File $nat_11_file has the wrong format, correct format: grantedhost|deniedhost|warnedhost ip_adres ipub_adres" >> $logdir/$logfile
+            Log "error" "File $nat_11_file has the wrong format, correct format: grantedhost|deniedhost|warnedhost ip_adres ipub_adres"
         fi
     done < $confdir/$nat_11_file
-    echo "$current_time - load_tmp_nat_11_hashtable OK" >> $logdir/$logfile
+    Log "info" "load_tmp_nat_11_hashtable OK"
 }
 
 function load_tmp_blacklist_hashtable {
     while read network; do
             ipset add fw_permanent_blacklist.tmp $network
     done < $confdir/$blacklist_file
-    echo "$current_time - load_permanent_blacklist_tmp_hashtable OK" >> $logdir/$logfile
+    Log "info" "load_permanent_blacklist_tmp_hashtable OK"
 }
 
 function load_tmp_lan_banned_dst_ports_hashtable {
     while read ports; do
             ipset add fw_lan_banned_dst_ports.tmp $ports
     done < $confdir/$lan_banned_dst_ports_file
-    echo "$current_time - load_tmp_lan_banned_dst_ports_hashtable OK" >> $logdir/$logfile
+    Log "info" "load_tmp_lan_banned_dst_ports_hashtable OK"
 }
 
 function load_tmp_wan_banned_dst_ports_hashtable {
     while read ports; do
             ipset add fw_wan_banned_dst_ports.tmp $ports
     done < $confdir/$wan_banned_dst_ports_file
-    echo "$current_time - load_tmp_wan_banned_dst_ports_hashtable OK" >> $logdir/$logfile
+    Log "info" "load_tmp_wan_banned_dst_ports_hashtable OK"
 }
 
 
@@ -566,7 +566,7 @@ function load_tmp_lan_ddos_protected_ports_hashtable {
     while read ports; do
             ipset add fw_lan_ddos_protected_ports.tmp $ports
     done < $confdir/$lan_ddos_protected_ports_file
-    echo "$current_time - load_tmp_lan_ddos_protected_ports_hashtable OK" >> $logdir/$logfile
+    Log "info" "load_tmp_lan_ddos_protected_ports_hashtable OK"
 }
 
 
@@ -576,20 +576,20 @@ function load_new_ipset_hashtables {
         new=$(ipset list $ipsetname.tmp |tail -n +9 |sort |sha1sum)
 
         if [ "$current" != "$new" ]; then
-            echo "$current_time - Loading new content into $ipsetname" >> $logdir/$logfile
+            Log "info" "Loading new content into $ipsetname"
             ipset -W $ipsetname $ipsetname.tmp
         fi
         ipset -X $ipsetname.tmp
-        echo "$current_time - Deleting $ipsetname.tmp" >> $logdir/$logfile
+        Log "info" "Deleting $ipsetname.tmp"
     done
-    echo "$current_time - load_new_ipset_hashtables OK" >> $logdir/$logfile
+    Log "info" "load_new_ipset_hashtables OK"
 }
 
 function load_nat_1n_fw_rules {
     while read nat_name ip; do
         iptables -t nat -A POSTROUTING -o $WAN -m set --match-set $nat_name src -j SNAT --to-source $ip
     done <$confdir/$nat_1n_ip_file
-    echo "$current_time - load_nat_1n_fw_rules OK" >> $logdir/$logfile
+    Log "info" "load_nat_1n_fw_rules OK"
 }
 
 function load_nat_11_fw_rules {
@@ -599,7 +599,7 @@ function load_nat_11_fw_rules {
             iptables -t nat -A PREROUTING -i $WAN -d $ipub -j DNAT --to-destination $i
         fi
     done < $confdir/$nat_11_file
-    echo "$current_time - load_nat_11_fw_rules OK" >> $logdir/$logfile
+    Log "info" "load_nat_11_fw_rules OK"
 }
 
 function modify_nat11_fw_rules {
@@ -633,7 +633,7 @@ function modify_nat11_fw_rules {
                 fi
         fi
     done < <(echo -e "$lista_zmian")
-    echo "$current_time - modify_nat11_fw_rules OK" >> $logdir/$logfile
+    Log "info" "modify_nat11_fw_rules OK"
 }
 
 function modify_nat1n_fw_rules {
@@ -658,7 +658,7 @@ function modify_nat1n_fw_rules {
             fi
         fi
     done < <(echo -e "$lista_zmian")
-    echo "$current_time - modify_nat1n_fw_rules OK" >> $logdir/$logfile
+    Log "info" "modify_nat1n_fw_rules OK"
 }
 
 function firewall_up {
@@ -806,7 +806,7 @@ function firewall_up {
     # Blacklisted host/network
     iptables -t raw -A PREROUTING -m set --match-set fw_permanent_blacklist src -j DROP
     iptables -t raw -A PREROUTING -m set --match-set fw_time_blacklist src -j DROP
-    echo "$current_time - firewall_up OK" >> $logdir/$logfile
+    Log "info" "firewall_up OK"
 }
 
 function firewall_down {
@@ -820,7 +820,7 @@ function firewall_down {
         iptables -P FORWARD DROP
         iptables -P INPUT ACCEPT
         iptables -P OUTPUT ACCEPT
-        echo "$current_time - firewall_down OK" >> $logdir/$logfile
+        Log "info" "firewall_down OK"
 }
 
 function destroy_all_hashtables {
@@ -828,7 +828,7 @@ function destroy_all_hashtables {
     do
         ipset destroy $ipsetlist
     done
-    echo "$current_time - destroy_all_hashtables OK" >> $logdir/$logfile
+    Log "info" "destroy_all_hashtables OK"
 }
 
 function load_fw_hashtables {
@@ -842,7 +842,7 @@ function load_fw_hashtables {
     load_tmp_lan_ddos_protected_ports_hashtable
     load_tmp_blacklist_hashtable
     load_new_ipset_hashtables
-    echo "$current_time - load_fw_hashtables OK" >> $logdir/$logfile
+    Log "info" "load_fw_hashtables OK"
 }
 
 function static_routing_up {
@@ -850,9 +850,9 @@ function static_routing_up {
         while read net gw interface; do
             ip route add $net via $gw dev $LAN
         done < $confdir/$routed_nets_file
-        echo "$current_time - Adding static routing entries" >> $logdir/$logfile
+        Log "info" "Adding static routing entries"
     else
-        echo "$current_time - Static routing entries not exist" >> $logdir/$logfile
+        Log "error" "Static routing entries not exist"
     fi
 }
 
@@ -860,7 +860,7 @@ function static_routing_down {
     while read net gw interface; do
         ip route del $net via $gw dev $LAN
     done < $confdir/$routed_nets_file
-    echo "$current_time - Removing static routing entries" >> $logdir/$logfile
+    Log "info" "Removing static routing entries"
 }
 
 function fw_cron {
@@ -873,13 +873,13 @@ MAILTO=""
 00 22 * * * root $scriptsdir/fw.sh shaper_restart  > /dev/null 2>&1
 00 10 * * * root $scriptsdir/fw.sh shaper_restart  > /dev/null 2>&1
 " > /etc/cron.d/fw_sh
-        echo "$current_time - Enabling cron for fw.sh" >> $logdir/$logfile
+        Log "info" "Enabling cron for fw.sh"
 
     elif [ "$1" = "stop" ]; then
         if [ -f /etc/cron.d/fw_sh ]; then
             rm /etc/cron.d/fw_sh
         fi
-        echo "$current_time - Disabling cron for fw.sh" >> $logdir/$logfile
+        Log "info" "Disabling cron for fw.sh"
     fi
 }
 
@@ -925,7 +925,7 @@ function fwstatus {
     sysctl net.netfilter.nf_conntrack_max
     sysctl net.netfilter.nf_conntrack_count
     echo ""
-    echo "$current_time - fwstatus OK" >> $logdir/$logfile
+    Log "info" "fwstatus OK"
 }
 
 stop (){
