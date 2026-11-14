@@ -636,7 +636,8 @@ function load_nat_11_fw_rules {
 }
 
 function modify_nat11_fw_rules {
-    lista_zmian=$(diff  --unchanged-line-format="" --old-line-format="removed %L" --new-line-format="added %L" $oldconfdir/$nat_11_file $confdir/$nat_11_file)
+    local lista_zmian=$(diff  --unchanged-line-format="" --old-line-format="removed %L" --new-line-format="added %L" $oldconfdir/$nat_11_file $confdir/$nat_11_file)
+    [[ -z $lista_zmian ]] && { Log "info" "modify_nat11_fw_rules exit without changes"; return 0; }
     while read -r arg1 arg2 arg3 arg4; do
         if ([ "$arg1" = "added" ] && [ "$arg2" = "deniedhost" ]) || ([ "$arg1" = "removed" ] && [ "$arg2" = "grantedhost" ]); then
                 current_iptables_nat11_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep NAT)
@@ -670,7 +671,8 @@ function modify_nat11_fw_rules {
 }
 
 function modify_nat1n_fw_rules {
-    lista_zmian=$(diff  --unchanged-line-format="" --old-line-format="removed %L" --new-line-format="added %L" $oldconfdir/$nat_1n_ip_file $confdir/$nat_1n_ip_file)
+    local lista_zmian=$(diff  --unchanged-line-format="" --old-line-format="removed %L" --new-line-format="added %L" $oldconfdir/$nat_1n_ip_file $confdir/$nat_1n_ip_file)
+    [[ -z $lista_zmian ]] && { Log "info" "modify_nat1n_fw_rules exit without changes"; return 0; }
     while read -r arg1 arg2 arg3; do
         if ([ "$arg1" = "removed" ]); then
             current_iptables_nat1n_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep match-set)
@@ -998,14 +1000,14 @@ newreload (){
     Log "info" "Firewall reloaded successfully"
 }
 
-get_reload() {
+get_reload () {
     $exec_cmd \
     "mysql -N -s -u '$lms_dbuser' -p'$lms_dbpwd' '$lms_db' \
     -e \"SELECT reload FROM hosts WHERE name='$lmsd_host'\"" \
     2>/dev/null
 }
 
-lmsd() {
+lmsd (){
     local reload
 
     if ! reload=$(get_reload); then
