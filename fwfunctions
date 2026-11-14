@@ -331,6 +331,7 @@ function shaper_cmd {
                     Log "error" "Interface $WAN check failed: skipping traffic shaping configuration."
                     return 1
                 fi
+                Log "debug" "Configure tc class for $h on $WAN"
                 tc class add dev $WAN parent 2:1 classid 2:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_UP_BURST}b cburst ${CUSTOMER_UP_CBURST}b prio $WAN_HOSTS_PRIORITY quantum 1514
                 tc qdisc add dev $WAN parent 2:$h fq_codel memory_limit 4Mb
 
@@ -345,10 +346,12 @@ function shaper_cmd {
             	    Log "error" "Interface $LAN check failed: skipping traffic shaping configuration."
                     return 1
             	fi
+            	Log "debug" "Configure tc class for $h on $LAN"
                 tc class add dev $LAN parent 1:2 classid 1:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_DOWN_BURST}b cburst ${CUSTOMER_DOWN_CBURST}b prio $LAN_HOSTS_PRIORITY quantum 1514
                 tc qdisc add dev $LAN parent 1:$h fq_codel memory_limit 4Mb
 
             elif [ "$arg1" = "filter" ]; then
+                Log "debug" "Configure iptables mangle with --set-class for $h"
                 echo $arg2 | { IFS='.' read -r octet1 octet2 octet3 octet4;
                 iptables -t mangle -A COUNTERSOUT$octet1.$octet2.$octet3 -s $arg2 -j CLASSIFY --set-class 2:$h;
                 iptables -t mangle -A COUNTERSIN$octet1.$octet2.$octet3 -d $arg2 -j CLASSIFY --set-class 1:$h; }
