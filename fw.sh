@@ -11,7 +11,10 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 
-PATH=/sbin:/usr/sbin/:/bin:/usr/bin:$PATH
+set -u
+set -o pipefail
+
+PATH="/sbin:/usr/sbin/:/bin:/usr/bin:${PATH:-}"
 
 FW_CONFIG_TEMP_DIR=$(mktemp -d -p /dev/shm/ FW_CONFIG.XXXX)
 trap 'rm -rf ${FW_CONFIG_TEMP_DIR}' INT TERM EXIT
@@ -63,7 +66,7 @@ fi
 init_fw
 
 #####Main program####
-case "$1" in
+case "${1:-}" in
 
     'start')
         start

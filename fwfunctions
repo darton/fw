@@ -11,25 +11,37 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 
-
 function Log {
     [[ -f "$LOG_FILE_PATH" ]] || touch "$LOG_FILE_PATH"
-    local message
-    message="${*:2}"
+
+    local message="${*:2}"
     local level="$1"
     local logdate
+
     logdate=$(date +"%F %T.%3N%:z")
+
     local MESSAGE_FORMAT="${logdate} - ${level}: ${message}"
     local MESSAGE_FORMAT_SIMPLE="${message}"
 
+    local COLOR_RED=$'\033[0;31m'
+    local COLOR_RESET=$'\033[0m'
+
     logger -p "user.${level}" -t fw.sh "${message}"
 
+    PrintMessage() {
+        if [[ "$level" == "error" ]]; then
+            printf '%s%s%s\n' "$COLOR_RED" "$MESSAGE_FORMAT_SIMPLE" "$COLOR_RESET" >&2
+        else
+            printf '%s\n' "$MESSAGE_FORMAT_SIMPLE"
+        fi
+    }
+
     if [[ "$DEBUG" == "true" || "$DEBUG" == "yes" ]]; then
-        echo "${MESSAGE_FORMAT_SIMPLE}"
-        echo "${MESSAGE_FORMAT}" >> "$LOG_FILE_PATH"
+        PrintMessage
+        printf '%s\n' "$MESSAGE_FORMAT" >> "$LOG_FILE_PATH"
     else
-        if [[ "$level" == "error"  || "$level" == "info" ]]; then
-            echo "${MESSAGE_FORMAT_SIMPLE}"
+        if [[ "$level" == "error" || "$level" == "info" ]]; then
+            PrintMessage
         fi
     fi
 }
@@ -119,11 +131,11 @@ function dhcp_server_cmd {
     fi
     local arg="$1"
     if [[ "$distro_id" == "debian" || "$distro_id" == "ubuntu" ]]; then
-        systemctl "$arg" isc-dhcp-server
-    elif [[ "$distro_id" == "fedora" || "$distro_id" == "rocky" || "$distro_id" == "rhel" ]]; then
-        systemctl "$arg" dhcpd
+        systemctl "$arg" isc-dhcp-server > /dev/null 2>&1 || return 1
+    elif [[ "$distro_id" == "almalinux" || "$distro_id" == "fedora" || "$distro_id" == "rhel" || "$distro_id" == "rocky" ]]; then
+        systemctl "$arg" dhcpd > /dev/null 2>&1 || return 1
     elif [[ "$distro_id" == "arch" ]]; then
-        systemctl "$arg" dhcpd4
+        systemctl "$arg" dhcpd4 > /dev/null 2>&1 || return 1
     else
         echo "Unknown Linux distro: $distro_id"
     fi
@@ -135,15 +147,18 @@ function dhcpd_cmd {
         dhcpd_conf_current=$(cat $confdir/$dhcpd_conf_file |sha1sum)
         dhcpd_conf_new=$(cat $oldconfdir/$dhcpd_conf_file |sha1sum)
         if [ "$dhcpd_conf_current" != "$dhcpd_conf_new" ]; then
-            echo "$current_time - The dhcpd.conf file has a new configuration, restarting the DHCP server" >> $logdir/$logfile
+            Log "info" "The dhcpd.conf file has a new configuration, restarting the DHCP SERVER"
             dhcp_server_cmd restart
         else
-            echo "Configuration of dhcpd.conf is identical, restart is not needed"
+            Log "debug" "Configuration of dhcpd.conf is identical, restart is not needed"
         fi
     elif [ "$arg" = "start" ]; then
-        dhcp_server_cmd start && echo "$current_time - The dhcpd server successfully started OK" >> $logdir/$logfile
+        dhcp_server_cmd start || Log "error" "The DHCP SERVER start failed" ; return 1
+        Log "info" "The dhcpd server successfully started OK"
+
     elif [ "$arg" = "stop" ]; then
-        dhcp_server_cmd stop && echo "$current_time - The dhcpd server successfully stopped OK" >> $logdir/$logfile
+        dhcp_server_cmd stop || Log "error" "The DHCP SERVER start failed"; return 1
+        Log "info" "The dhcpd server successfully stopped OK" >> $logdir/$logfile
     fi
 }
 
@@ -933,8 +948,8 @@ start (){
     load_fw_hashtables
     firewall_up
     shaper_cmd start
-    dhcpd_cmd start
     fw_cron start
+    dhcpd_cmd start
     Log "info" "Firewall Started successfully"
 }
 
