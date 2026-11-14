@@ -132,7 +132,7 @@ function dhcp_server_cmd {
     local arg="$1"
     if [[ "$distro_id" == "debian" || "$distro_id" == "ubuntu" ]]; then
         systemctl "$arg" isc-dhcp-server > /dev/null 2>&1 || return 1
-    elif [[ "$distro_id" == "almalinux" || "$distro_id" == "fedora" || "$distro_id" == "rhel" || "$distro_id" == "rocky" ]]; then
+    elif [[ "$distro_id" == "centos" || "$distro_id" == "almalinux" || "$distro_id" == "fedora" || "$distro_id" == "rhel" || "$distro_id" == "rocky" ]]; then
         systemctl "$arg" dhcpd > /dev/null 2>&1 || return 1
     elif [[ "$distro_id" == "arch" ]]; then
         systemctl "$arg" dhcpd4 > /dev/null 2>&1 || return 1
