@@ -126,8 +126,7 @@ function lmsd_reload {
 
 function dhcp_server_cmd {
     if [[ -f /etc/os-release ]]; then
-        . /etc/os-release
-        distro_id=$(echo $ID)
+        distro_id="$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')"
     fi
     local arg="$1"
     if [[ "$distro_id" == "debian" || "$distro_id" == "ubuntu" ]]; then
