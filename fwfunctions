@@ -132,7 +132,7 @@ function dhcp_server_cmd {
     local arg="$1"
     if [[ "$distro_id" == "debian" || "$distro_id" == "ubuntu" ]]; then
         systemctl "$arg" isc-dhcp-server > /dev/null 2>&1 || return 1
-    elif [[ "$distro_id" == "centos" || "$distro_id" == "almalinux" || "$distro_id" == "fedora" || "$distro_id" == "rhel" || "$distro_id" == "rocky" ]]; then
+    elif [[ "$distro_id" == "almalinux" || "$distro_id" == "fedora" || "$distro_id" == "rhel" || "$distro_id" == "rocky" ]]; then
         systemctl "$arg" dhcpd > /dev/null 2>&1 || return 1
     elif [[ "$distro_id" == "arch" ]]; then
         systemctl "$arg" dhcpd4 > /dev/null 2>&1 || return 1
@@ -451,6 +451,18 @@ function create_fw_hashtables {
         ipset create fw_wan_ddos_source hash:ip hashsize 2048 timeout 900
     fi
 
+    #hashtable for fw operator IPs from WAN interface
+    current_ipset_list=$(ipset -q --list fw_wan_operator_ips)
+    if ([ "$current_ipset_list" = "" ]); then
+        ipset create fw_wan_operator_ips hash:ip hashsize 2048
+    fi
+
+    #hashtable for fw operator IPs from LAN interface
+    current_ipset_list=$(ipset -q --list fw_lan_operator_ips)
+    if ([ "$current_ipset_list" = "" ]); then
+        ipset create fw_lan_operator_ips hash:ip hashsize 2048
+    fi
+
     #hashtable for nat1-n host
     while read nat_name ip; do
         ipset create "$nat_name" hash:ip hashsize 1024
@@ -484,6 +496,13 @@ function create_tmp_hashtables {
     while read nat_name ip; do
         ipset create "$nat_name".tmp hash:ip hashsize 1024
     done <$confdir/$nat_1n_ip_file
+
+    #hashtable for fw operator IPs from LAN interface
+    ipset create fw_lan_operator_ips.tmp hash:ip hashsize 1024
+
+    #hashtable for fw operator IPs from WAN interface
+    ipset create fw_wan_operator_ips.tmp hash:ip hashsize 1024
+
     Log "debug" "create_tmp_hashtables OK"
 }
 
@@ -543,6 +562,20 @@ function load_tmp_nat_11_hashtable {
     Log "debug" "load_tmp_nat_11_hashtable OK"
 }
 
+function load_tmp_lan_operator_hashtable {
+    while read network; do
+            ipset add fw_lan_operator_ips.tmp $network
+    done < $confdir/$lan_operator_file
+    Log "debug" "load_tmp_lan_opertor_hashtable OK"
+}
+
+function load_tmp_wan_operator_hashtable {
+    while read network; do
+            ipset add fw_wan_operator_ips.tmp $network
+    done < $confdir/$wan_operator_file
+    Log "debug" "load_tmp_wan_opertor_hashtable OK"
+}
+
 function load_tmp_blacklist_hashtable {
     while read network; do
             ipset add fw_permanent_blacklist.tmp $network
@@ -564,14 +597,12 @@ function load_tmp_wan_banned_dst_ports_hashtable {
     Log "debug" "load_tmp_wan_banned_dst_ports_hashtable OK"
 }
 
-
 function load_tmp_lan_ddos_protected_ports_hashtable {
     while read ports; do
             ipset add fw_lan_ddos_protected_ports.tmp $ports
     done < $confdir/$lan_ddos_protected_ports_file
     Log "debug" "load_tmp_lan_ddos_protected_ports_hashtable OK"
 }
-
 
 function load_new_ipset_hashtables {
     for ipsetname in $(ipset list -n|grep -v .tmp|grep -v fw_time_blacklist |grep -v fw_wan_ddos_source); do
@@ -668,7 +699,7 @@ function firewall_up {
     #
     #Network Tuning Factors
     #
-    
+
     Log "debug" "Change default ARP table for large networks."
     if [ $(cat /proc/sys/net/ipv4/neigh/default/gc_thresh1) -lt 2048 ]; then
         sysctl -w net.ipv4.neigh.default.gc_thresh1=2048
@@ -729,10 +760,10 @@ function firewall_up {
     #iptables -A INPUT -i $LAN -m set --match-set fw_warned_hosts src -m set --match-set fw_denied_hosts src -p tcp --dport 3128 -j ACCEPT
 
     # Allow for remote service operator
-    iptables -A INPUT -i $WAN -p tcp --dport 222 -s $wan_fw_operator_ip -j ACCEPT
+    iptables -A INPUT -i $WAN -p tcp --dport 222 -m set --match-set fw_wan_operator_ips src -j ACCEPT
 
     # Allow for local service operator
-    iptables -A INPUT -i $LAN -p tcp --dport 222 -s $lan_fw_operator_ip -j ACCEPT
+    iptables -A INPUT -i $LAN -p tcp --dport 222 -m set --match-set fw_lan_operator_ips src -j ACCEPT
 
     # Allow for log server
     iptables -A INPUT -i $LAN -p tcp --dport 222 -s $log_backup_server_ip -j ACCEPT
@@ -837,6 +868,8 @@ function destroy_all_hashtables {
 function load_fw_hashtables {
     destroy_tmp_hashtables
     create_tmp_hashtables
+    load_tmp_lan_operator_hashtable
+    load_tmp_wan_operator_hashtable
     load_tmp_fw_ip_hashtable
     load_tmp_nat1n_hashtables
     load_tmp_nat_11_hashtable
