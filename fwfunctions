@@ -26,7 +26,7 @@ function Log {
     local COLOR_RED=$'\033[0;31m'
     local COLOR_RESET=$'\033[0m'
 
-    logger -p "user.${level}" -t fw.sh "${message}"
+    logger -p "user.${level}" -t "${SCRIPT_NAME}" "${message}"
 
     PrintMessage() {
         if [[ "$level" == "error" ]]; then
@@ -51,8 +51,10 @@ init_fw() {
     local dir file
 
     [[ -f "$logdir/$logfile" ]] || touch "$logdir/$logfile"
-    [[ -d /run/fw-sh ]] || mkdir -p /run/fw-sh
-    [[ -f /run/fw-sh/maintenance.pid ]] || echo 0 > /run/fw-sh/maintenance.pid
+
+    [[ -d /run/"${SCRIPT_NAME}" ]] || mkdir -p /run/"${SCRIPT_NAME}"
+    [[ -f /run/"${SCRIPT_NAME}"/maintenance.pid ]] || echo 0 > /run/"${SCRIPT_NAME}"/maintenance.pid
+
     [[ -d "$confdir" ]] || mkdir -p "$confdir"
     [[ -d "$oldconfdir" ]] || mkdir -p "$oldconfdir"
 
@@ -68,7 +70,9 @@ init_fw() {
             "$shaper_file" \
             "$dhcp_conf_file" \
             "$lan_ddos_protected_ports_file" \
-            "$wan_banned_dst_ports_file"
+            "$wan_banned_dst_ports_file" \
+            "$lan_operator_file" \
+            "$wan_operator_file"
         do
             [[ -f "$dir/$file" ]] || touch "$dir/$file"
         done
@@ -905,9 +909,9 @@ function fw_cron {
 SHELL=/bin/bash
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 MAILTO=""
-* * * * * root $scriptsdir/fw.sh lmsd  > /dev/null 2>&1
-00 22 * * * root $scriptsdir/fw.sh shaper_restart  > /dev/null 2>&1
-00 10 * * * root $scriptsdir/fw.sh shaper_restart  > /dev/null 2>&1
+* * * * * root $SCRIPT_DIR/fw.sh lmsd  > /dev/null 2>&1
+00 22 * * * root $SCRIPT_DIR/fw.sh shaper_restart  > /dev/null 2>&1
+00 10 * * * root $SCRIPT_DIR/fw.sh shaper_restart  > /dev/null 2>&1
 " > /etc/cron.d/fw_sh
         Log "info" "Enabling cron for fw.sh"
 

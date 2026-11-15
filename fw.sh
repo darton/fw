@@ -19,8 +19,6 @@ PATH="/sbin:/usr/sbin/:/bin:/usr/bin:${PATH:-}"
 FW_CONFIG_TEMP_DIR=$(mktemp -d -p /dev/shm/ FW_CONFIG.XXXX)
 trap 'rm -rf ${FW_CONFIG_TEMP_DIR}' INT TERM EXIT
 
-current_time=$(date +"%F %T.%3N%:z")
-
 SCRIPT_NAME="${BASH_SOURCE[0]##*/}"
 
 MESSAGE="Program must be run as root"
@@ -30,13 +28,14 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-
-SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P) || {
-    MESSAGE="Cannot determine the script directory"
-    logger -p "error" -t "${SCRIPT_NAME}" "${MESSAGE}"
+SCRIPT_PATH=$(realpath "${BASH_SOURCE[0]}") || {
+    MESSAGE="Cannot determine the script path"
+    logger -t "${SCRIPT_NAME}" "${MESSAGE}"
     echo "${MESSAGE}"
     exit 1
 }
+
+SCRIPT_DIR=$(dirname "${SCRIPT_PATH}")
 
 FW_CONF_PATH="${SCRIPT_DIR}/fw.conf"
 FW_FUNCTIONS_PATH="$SCRIPT_DIR/fwfunctions"
@@ -108,4 +107,3 @@ case "${1:-}" in
         menu_help
     ;;
 esac
-
