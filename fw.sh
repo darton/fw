@@ -37,10 +37,19 @@ SCRIPT_PATH=$(realpath "${BASH_SOURCE[0]}") || {
 
 SCRIPT_DIR=$(dirname "${SCRIPT_PATH}")
 
+FW_ENV_PATH="/etc/profile.d/fw-env.sh"
 FW_CONF_PATH="${SCRIPT_DIR}/fw.conf"
 FW_FUNCTIONS_PATH="$SCRIPT_DIR/fwfunctions"
 
-#Load fw.sh config file
+#Load fw-env.sh file
+MESSAGE="Can not load ${FW_ENV_PATH}"
+if ! source "${FW_ENV_PATH}"; then
+    logger -p error -t "${SCRIPT_NAME}" "${MESSAGE}"
+    echo "$MESSAGE"
+    exit 1
+fi
+
+#Load fw.conf file
 MESSAGE="Can not load ${FW_CONF_PATH}"
 if ! source "${FW_CONF_PATH}"; then
     logger -p error -t "${SCRIPT_NAME}" "${MESSAGE}"
@@ -48,7 +57,7 @@ if ! source "${FW_CONF_PATH}"; then
     exit 1
 fi
 
-#Load fwfunction
+#Load fwfunctions file
 MESSAGE="Can not load ${FW_FUNCTIONS_PATH}"
 if ! source "${FW_FUNCTIONS_PATH}"; then
     logger -p error -t "${SCRIPT_NAME}" "${MESSAGE}"

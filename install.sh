@@ -90,6 +90,8 @@ readonly LAN WAN MGMT
 
 readonly INSTALLDIR="/opt/gateway"
 readonly SCRIPTSDIR="${INSTALLDIR}/scripts"
+readonly FWPATH="/etc/profile.d/fw-path.sh"
+readonly FWENV="/etc/profile.d/fw-env.sh"
 
 # ============================================================
 # Root check
@@ -188,24 +190,24 @@ install_firewall_files() {
 
 configure_environment() {
 
-    cat >/etc/profile.d/gateway-path.sh <<EOF
+    cat >"${FWPATH}" <<EOF
 export PATH=\$PATH:${SCRIPTSDIR}
 EOF
 
-    chmod 644 /etc/profile.d/gateway-path.sh
+    chmod 644 "${FWPATH}"
 
-    cat >/etc/profile.d/gateway-env.sh <<EOF
+    cat >"${FWENV}" <<EOF
 export WAN=${WAN}
 export LAN=${LAN}
 export MGMT=${MGMT}
 EOF
 
-    chmod 644 /etc/profile.d/gateway-env.sh
+    chmod 644 "${FWENV}"
 
     export PATH="$PATH:${SCRIPTSDIR}"
 
-    echo "[+] Created /etc/profile.d/gateway-path.sh"
-    echo "[+] Created /etc/profile.d/gateway-env.sh"
+    echo "[+] Created "${FWPATH}""
+    echo "[+] Created ${FWENV}"
 }
 
 # ============================================================
@@ -246,8 +248,8 @@ echo "  LAN  = $LAN"
 echo "  MGMT = $MGMT"
 echo
 echo "Environment files:"
-echo "  /etc/profile.d/gateway-path.sh"
-echo "  /etc/profile.d/gateway-env.sh"
+echo "  ${FWPATH}"
+echo "  ${FWENV}"
 echo
 echo "Firewall configuration:"
 echo "  ${SCRIPTSDIR}/fw.conf"
