@@ -12,10 +12,10 @@
 #  GNU General Public License for more details.
 
 # Source only
-[[ ${0} != ${BASH_SOURCE}  ]] || exit 0
+[[ ${0} == ${BASH_SOURCE}  ]] && exit 0
 
 # Source once
-[[ ! ${__fwfunctions-} ]] || return 0
+[[ ${__fwfunctions-} ]] && return 0
 declare __fwfunctions=$(readlink -f ${BASH_SOURCE})
 
 function Log {
