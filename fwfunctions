@@ -11,6 +11,13 @@
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
 
+# File should only be sourced
+[[ ${0} != ${BASH_SOURCE}  ]] || exit 0
+
+# File may only sourced once
+[[ ! ${__fwfunctions-} ]] || return 0
+declare __fwfunctions=$(readlink -f ${BASH_SOURCE})
+
 function Log {
     [[ -f "$LOG_FILE_PATH" ]] || touch "$LOG_FILE_PATH"
 
