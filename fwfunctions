@@ -129,7 +129,7 @@ get_shaper_config() {
     sleep 5
     mv "$confdir"/"$shaper_file" "$oldconfdir"/"$shaper_file"
     Log "debug" "Connecting to the server and download the configuration file for Shaper"
-    $copy_cmd_url /"$shaper_file" "$confdir"/ || { Log "error" "Can not download shaper config file - $shaper_file"; mv $oldconfdir/$shaper_file $confdir/; exit 1; }
+    $copy_cmd_url /"$shaper_file" "$confdir"/ || { Log "error" "Can not download shaper config file - $shaper_file"; mv "$oldconfdir"/"$shaper_file" "$confdir"/; exit 1; }
     Log "debug" "get_shaper_config OK"
 }
 
@@ -159,8 +159,8 @@ dhcp_server_cmd() {
 dhcpd_cmd() {
     local arg="$1"
     if [ "$arg" = "restart" ]; then
-        dhcpd_conf_current=$(cat $confdir/$dhcp_conf_file |sha1sum)
-        dhcpd_conf_new=$(cat $oldconfdir/$dhcp_conf_file |sha1sum)
+        dhcpd_conf_current=$(cat "$confdir"/"$dhcp_conf_file" |sha1sum)
+        dhcpd_conf_new=$(cat "$oldconfdir"/"$dhcp_conf_file" |sha1sum)
         if [ "$dhcpd_conf_current" != "$dhcpd_conf_new" ]; then
             Log "info" "The dhcpd.conf file has a new configuration, restarting the DHCP SERVER"
             dhcp_server_cmd restart
@@ -200,8 +200,8 @@ get_counters() {
 
 shaper_cmd() {
     if [ "$1" = "restart" ]; then
-        shaper_current=$(cat $confdir/$shaper_file |sha1sum)
-        shaper_new=$(cat $oldconfdir/$shaper_file |sha1sum)
+        shaper_current=$(cat "$confdir"/"$shaper_file" |sha1sum)
+        shaper_new=$(cat "$oldconfdir"/"$shaper_file" |sha1sum)
         if [ "$shaper_current" != "$shaper_new" ]; then
             Log "info" "Shaper has a new configuration, restarting Shaper"
             sleep 5
@@ -654,7 +654,7 @@ load_nat_11_fw_rules() {
 }
 
 modify_nat11_fw_rules() {
-    local lista_zmian=$(diff  --unchanged-line-format="" --old-line-format="removed %L" --new-line-format="added %L" $oldconfdir/$nat_11_file $confdir/$nat_11_file)
+    local lista_zmian=$(diff  --unchanged-line-format="" --old-line-format="removed %L" --new-line-format="added %L" "$oldconfdir"/"$nat_11_file" "$confdir"/"$nat_11_file")
     [[ -z $lista_zmian ]] && { Log "info" "modify_nat11_fw_rules exit without changes"; return 0; }
     while read -r arg1 arg2 arg3 arg4; do
         if ([ "$arg1" = "added" ] && [ "$arg2" = "deniedhost" ]) || ([ "$arg1" = "removed" ] && [ "$arg2" = "grantedhost" ]); then
