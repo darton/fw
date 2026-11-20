@@ -482,7 +482,7 @@ create_fw_hashtables() {
 
     #hashtable for nat1-n host
     while read nat_name ip; do
-        ipset create "$nat_name" hash:ip hashsize 1024
+        ipset create "$nat_name" hash:ip hashsize 1024 -exist
     done <"$confdir"/"$nat_1n_ip_file"
     Log "debug" "create_fw_hashtables OK"
 }
@@ -677,11 +677,11 @@ modify_nat11_fw_rules() {
         if ([ "$arg1" = "added" ] && [ "$arg2" = "grantedhost" ]); then
                 current_iptables_postrouting_rules=$(iptables -L POSTROUTING -n -t nat --line-numbers|grep -v match-set|grep SNAT|grep $arg4$)
                 if [ "$current_iptables_postrouting_rules" = "" ]; then
-                    iptables -t nat -A POSTROUTING -o $WAN -s $arg3 -j SNAT --to-source $arg4
+                    iptables -t nat -A POSTROUTING -o "$WAN" -s $arg3 -j SNAT --to-source "$arg4"
                 fi
                 current_iptables_prerouting_rules=$(iptables -L PREROUTING -n -t nat --line-numbers|grep -v match-set|grep DNAT|grep $arg3$)
                 if [ "$current_iptables_prerouting_rules" = "" ]; then
-                    iptables -t nat -A PREROUTING -i $WAN -d $arg4 -j DNAT --to-destination $arg3
+                    iptables -t nat -A PREROUTING -i "$WAN" -d "$arg4" -j DNAT --to-destination "$arg3"
                 fi
         fi
     done <<< "$lista_zmian"
