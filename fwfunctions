@@ -1042,7 +1042,7 @@ lmsd() {
     newreload
 }
 
-maintenance-on() {
+maintenance_on() {
     Log "info" "Trying Firewall maintenance on"
     mpid=$(cat /run/fw-sh/maintenance.pid)
     if [ "$mpid" = 1 ]; then
@@ -1058,7 +1058,7 @@ maintenance-on() {
 
 }
 
-maintenance-off() {
+maintenance_off() {
     Log "info" "Trying Firewall maintenance off"
     mpid=$(cat /run/fw-sh/maintenance.pid)
     if [ "$mpid" = 0 ]; then

@@ -106,11 +106,11 @@ case "${1:-}" in
     'shaper_status')
         shaper_cmd status
     ;;
-    'maintenance-on')
-        maintenance-on
+    'maintenance_on')
+        maintenance_on
     ;;
-    'maintenance-off')
-        maintenance-off
+    'maintenance_off')
+        maintenance_off
     ;;
     *)
         menu_help
