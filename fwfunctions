@@ -53,6 +53,14 @@ init_fw() {
     ln -sf "$confdir"/"$dhcp_conf_file" /etc/dhcp/"$dhcp_conf_file"
 }
 
+__printmessage() {
+    if [[ "$level" == "error" ]]; then
+        printf '%s%s%s\n' "$COLOR_RED" "$MESSAGE_FORMAT_SIMPLE" "$COLOR_RESET" >&2
+    else
+        printf '%s\n' "$MESSAGE_FORMAT_SIMPLE"
+    fi
+}
+
 
 Log() {
     local message="${*:2}"
@@ -69,20 +77,12 @@ Log() {
 
     logger -p "user.${level}" -t "${SCRIPT_NAME}" "${message}"
 
-    PrintMessage() {
-        if [[ "$level" == "error" ]]; then
-            printf '%s%s%s\n' "$COLOR_RED" "$MESSAGE_FORMAT_SIMPLE" "$COLOR_RESET" >&2
-        else
-            printf '%s\n' "$MESSAGE_FORMAT_SIMPLE"
-        fi
-    }
-
     if [[ "$DEBUG" == "true" || "$DEBUG" == "yes" ]]; then
-        PrintMessage
+        __printmessage
         printf '%s\n' "$MESSAGE_FORMAT" >> "$logdir/$logfile"
     else
         if [[ "$level" == "error" || "$level" == "info" ]]; then
-            PrintMessage
+            __printmessage
         fi
     fi
 }
