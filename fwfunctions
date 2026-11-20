@@ -112,35 +112,27 @@ check_interfaces_up() {
 
 get_config() {
     Log "debug" "Connecting to LMS and downloading configuration files"
-    "$copy_cmd_url"/* "${FW_CONFIG_TEMP_DIR}" || { Log "error" "Can not download config files"; exit 1; }
-
+    $copy_cmd_url /* "${FW_CONFIG_TEMP_DIR}" || { Log "error" "Can not download config files"; exit 1; }
     cd "$confdir" || { Log "error" "Cannot change directory to $confdir"; exit 1; }
-
-    shopt -s nullglob
-    for FILENAME in *
-    do
-        mv "$FILENAME" "$oldconfdir"/"$FILENAME" || { Log "error" "Can not move old config file $FILENAME to $oldconfdir/$FILENAME"; exit 1; }
-    done
-    shopt -u nullglob
-
+    cp "$confdir"/* "$oldconfdir"/ || { Log "error" "Can not move old config files to $oldconfdir"; exit 1; }
     cp "${FW_CONFIG_TEMP_DIR}"/* "$confdir"/ || { Log "error" "Can not copy new config files to curent config"; exit 1; }
     Log "debug" "get_config OK"
 }
 
 get_shaper_config() {
     Log "debug" "The LMS generates a configuration for the Shaper"
-    "$exec_cmd" "timeout 10 $lmsd -q -i $lmsd_shaper_instance -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db" || { Log "error" "Can not connect to database"; exit 1; }
+    $exec_cmd "timeout 10 $lmsd -q -i $lmsd_shaper_instance -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db" || { Log "error" "Can not connect to database"; exit 1; }
     Log "debug" "Waiting a few seconds"
     sleep 5
     mv "$confdir"/"$shaper_file" "$oldconfdir"/"$shaper_file"
     Log "debug" "Connecting to the server and download the configuration file for Shaper"
-    "$copy_cmd_url"/"$shaper_file" "$confdir"/ || { Log "error" "Can not download shaper config file - $shaper_file"; mv $oldconfdir/$shaper_file $confdir/; exit 1; }
+    $copy_cmd_url /"$shaper_file" "$confdir"/ || { Log "error" "Can not download shaper config file - $shaper_file"; mv $oldconfdir/$shaper_file $confdir/; exit 1; }
     Log "debug" "get_shaper_config OK"
 }
 
 lmsd_reload() {
     Log "debug" "Reloading $lmsd_host instances on $lms_ip"
-    "$exec_cmd" "$lmsd -q -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db" || { Log "error" "Can not connect to database"; exit 1; }
+    $exec_cmd "$lmsd -q -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db" || { Log "error" "Can not connect to database"; exit 1; }
     Log "debug" "Reload $lmsd_host instances on $lms_ip complited"
     sleep 5
 }
