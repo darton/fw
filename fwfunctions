@@ -266,11 +266,6 @@ shaper_cmd() {
         : "${WAN_UNCLASSIFIED_PRIORITY:=$DEFAULT_WAN_UNCLASSIFIED_PRIORITY}"
         : "${LAN_HOSTS_PRIORITY:=$DEFAULT_LAN_HOSTS_PRIORITY}"
         : "${WAN_HOSTS_PRIORITY:=$DEFAULT_WAN_HOSTS_PRIORITY}"
-        if [ -z "$BURST" ]; then
-            BURST=""
-        else
-            BURST="burst $BURST"
-        fi
 
         Log "debug" LAN_INTERFACE_SPEED_LIMIT=$LAN_INTERFACE_SPEED_LIMIT
         Log "debug" ISP_RX_LIMIT=$ISP_RX_LIMIT
@@ -293,27 +288,35 @@ shaper_cmd() {
 
         #To WAN
         Log "debug" "Set limit for all traffic from WAN to Internet"
-        tc qdisc add dev $WAN root handle 2:0 htb default 3 r2q 1
-        tc class add dev $WAN parent 2:0 classid 2:1 htb rate $ISP_TX_LIMIT ceil $ISP_TX_LIMIT burst 2000000 quantum 1514
+        tc qdisc add dev "$WAN" root handle 2:0 htb default 3 r2q 1
+        tc class add dev "$WAN" parent 2:0 classid 2:1 htb rate "$ISP_TX_LIMIT" ceil "$ISP_TX_LIMIT" burst 2000000 quantum 1514
 
         Log "debug" "Set limit for traffic from GATEWAY to WAN"
-        tc class add dev $WAN parent 2:1 classid 2:4 htb rate $GW_TO_WAN_RATE_LIMIT ceil $GW_TO_WAN_CEIL_LIMIT $BURST prio $GW_TO_WAN_PRIORITY quantum 1514
-        tc qdisc add dev $WAN parent 2:4 fq_codel memory_limit 32Mb
-        iptables -t mangle -A OUTPUT -o $WAN -j CLASSIFY --set-class 2:4
+        if [[ -n $BURST ]]; then
+            tc class add dev "$WAN" parent 2:1 classid 2:4 htb rate "$GW_TO_WAN_RATE_LIMIT" ceil "$GW_TO_WAN_CEIL_LIMIT" burst "$BURST" prio "$GW_TO_WAN_PRIORITY" quantum 1514
+        else
+            tc class add dev "$WAN" parent 2:1 classid 2:4 htb rate "$GW_TO_WAN_RATE_LIMIT" ceil "$GW_TO_WAN_CEIL_LIMIT" prio "$GW_TO_WAN_PRIORITY" quantum 1514            
+        fi
+        tc qdisc add dev "$WAN" parent 2:4 fq_codel memory_limit 32Mb
+        iptables -t mangle -A OUTPUT -o "$WAN" -j CLASSIFY --set-class 2:4
 
         #To LAN
         Log "debug" "Set global limit for LAN interface"
-        tc qdisc add dev $LAN root handle 1:0 htb default 3 r2q 1
-        tc class add dev $LAN parent 1:0 classid 1:1 htb rate $LAN_INTERFACE_SPEED_LIMIT ceil $LAN_INTERFACE_SPEED_LIMIT burst 1250000 quantum 1514
+        tc qdisc add dev "$LAN" root handle 1:0 htb default 3 r2q 1
+        tc class add dev "$LAN" parent 1:0 classid 1:1 htb rate "$LAN_INTERFACE_SPEED_LIMIT" ceil "$LAN_INTERFACE_SPEED_LIMIT" burst 1250000 quantum 1514
 
         Log "debug" "Set limit for all traffic from Internet to LAN"
-        tc class add dev $LAN parent 1:1 classid 1:2 htb rate 950000kbit ceil 950000kbit burst 1187500 quantum 1514
+        tc class add dev "$LAN" parent 1:1 classid 1:2 htb rate 950000kbit ceil 950000kbit burst 1187500 quantum 1514
 
 
         Log "debug" "Set limit for traffic from GATEWAY to LAN"
-        tc class add dev $LAN parent 1:1 classid 1:4 htb rate $GW_TO_LAN_RATE_LIMIT ceil $GW_TO_LAN_CEIL_LIMIT $BURST prio $GW_TO_LAN_PRIORITY quantum 1514
-        tc qdisc add dev $LAN parent 1:4 fq_codel memory_limit 32Mb
-        iptables -t mangle -A OUTPUT -o $LAN -j CLASSIFY --set-class 1:4
+        if [[ -n $BURST ]]; then
+           tc class add dev "$LAN" parent 1:1 classid 1:4 htb rate "$GW_TO_LAN_RATE_LIMIT" ceil "$GW_TO_LAN_CEIL_LIMIT" burst "$BURST" prio "$GW_TO_LAN_PRIORITY" quantum 1514
+        else
+           tc class add dev "$LAN" parent 1:1 classid 1:4 htb rate "$GW_TO_LAN_RATE_LIMIT" ceil "$GW_TO_LAN_CEIL_LIMIT" prio "$GW_TO_LAN_PRIORITY" quantum 1514        
+        fi
+        tc qdisc add dev "$LAN" parent 1:4 fq_codel memory_limit 32Mb
+        iptables -t mangle -A OUTPUT -o "$LAN" -j CLASSIFY --set-class 1:4
 
 
         #To and from CUSTOMERS
@@ -346,8 +349,8 @@ shaper_cmd() {
                     return 1
                 fi
                 #Log "debug" "Configure tc class for $h on $WAN"
-                tc class add dev $WAN parent 2:1 classid 2:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_UP_BURST}b cburst ${CUSTOMER_UP_CBURST}b prio $WAN_HOSTS_PRIORITY quantum 1514
-                tc qdisc add dev $WAN parent 2:$h fq_codel memory_limit 4Mb
+                tc class add dev "$WAN" parent 2:1 classid 2:"$h" htb rate "$arg2" ceil "$arg3" burst "${CUSTOMER_UP_BURST}"b cburst "${CUSTOMER_UP_CBURST}"b prio "$WAN_HOSTS_PRIORITY" quantum 1514
+                tc qdisc add dev "$WAN" parent 2:"$h" fq_codel memory_limit 4Mb
 
             elif [ "$arg1" = "class_down" ]; then
                 rate=${arg2%kbit}
@@ -359,25 +362,25 @@ shaper_cmd() {
                     return 1
                 fi
                 #Log "debug" "Configure tc class for $h on $LAN"
-                tc class add dev $LAN parent 1:2 classid 1:$h htb rate $arg2 ceil $arg3 burst ${CUSTOMER_DOWN_BURST}b cburst ${CUSTOMER_DOWN_CBURST}b prio $LAN_HOSTS_PRIORITY quantum 1514
-                tc qdisc add dev $LAN parent 1:$h fq_codel memory_limit 4Mb
+                tc class add dev "$LAN" parent 1:2 classid 1:"$h" htb rate "$arg2" ceil "$arg3" burst "${CUSTOMER_DOWN_BURST}"b cburst "${CUSTOMER_DOWN_CBURST}"b prio "$LAN_HOSTS_PRIORITY" quantum 1514
+                tc qdisc add dev "$LAN" parent 1:"$h" fq_codel memory_limit 4Mb
 
             elif [ "$arg1" = "filter" ]; then
                 #Log "debug" "Configure iptables mangle with --set-class for $h"
                 subnet=${arg2%.*}
-                iptables -t mangle -A COUNTERSOUT$subnet -s $arg2 -j CLASSIFY --set-class 2:$h;
-                iptables -t mangle -A COUNTERSIN$subnet -d $arg2 -j CLASSIFY --set-class 1:$h;
+                iptables -t mangle -A COUNTERSOUT"$subnet" -s "$arg2" -j CLASSIFY --set-class 2:"$h";
+                iptables -t mangle -A COUNTERSIN"$subnet" -d "$arg2" -j CLASSIFY --set-class 1:"$h";
             fi
         done < <(grep -v \# $confdir/$shaper_file)
 
 
         Log "debug" "Set default limit for traffic from WAN to Internet"
-        tc class add dev $WAN parent 2:1 classid 2:3 htb rate $WAN_UNCLASSIFIED_RATE_LIMIT ceil $WAN_UNCLASSIFIED_CEIL_LIMIT prio $WAN_UNCLASSIFIED_PRIORITY quantum 1514
-        tc qdisc add dev $WAN parent 2:3 fq_codel memory_limit 1Mb
+        tc class add dev "$WAN" parent 2:1 classid 2:3 htb rate "$WAN_UNCLASSIFIED_RATE_LIMIT" ceil "$WAN_UNCLASSIFIED_CEIL_LIMIT" prio "$WAN_UNCLASSIFIED_PRIORITY" quantum 1514
+        tc qdisc add dev "$WAN" parent 2:3 fq_codel memory_limit 1Mb
 
         Log "debug" "Set default limit for traffic from Internet to LAN"
-        tc class add dev $LAN parent 1:1 classid 1:3 htb rate $LAN_UNCLASSIFIED_RATE_LIMIT ceil $LAN_UNCLASSIFIED_CEIL_LIMIT prio $LAN_UNCLASSIFIED_PRIORITY quantum 1514
-        tc qdisc add dev $LAN parent 1:3 fq_codel memory_limit 1Mb
+        tc class add dev "$LAN" parent 1:1 classid 1:3 htb rate "$LAN_UNCLASSIFIED_RATE_LIMIT" ceil "$LAN_UNCLASSIFIED_CEIL_LIMIT" prio "$LAN_UNCLASSIFIED_PRIORITY" quantum 1514
+        tc qdisc add dev "$LAN" parent 1:3 fq_codel memory_limit 1Mb
 
 
     elif [ "$1" = "stats" ]; then
@@ -395,7 +398,7 @@ shaper_cmd() {
                 echo
                 echo "$TC_OPTIONS"
                 echo "------"
-                tc $TC_OPTIONS show dev $LAN
+                tc "$TC_OPTIONS" show dev "$LAN"
             fi
         done
 
@@ -407,7 +410,7 @@ shaper_cmd() {
                 echo
                 echo "$TC_OPTIONS"
                 echo "------"
-                tc $TC_OPTIONS show dev $WAN
+                tc "$TC_OPTIONS" show dev "$WAN"
             fi
         done
     fi
@@ -478,7 +481,7 @@ create_fw_hashtables() {
     #hashtable for nat1-n host
     while read nat_name ip; do
         ipset create "$nat_name" hash:ip hashsize 1024
-    done <$confdir/$nat_1n_ip_file
+    done <"$confdir"/"$nat_1n_ip_file"
     Log "debug" "create_fw_hashtables OK"
 }
 
@@ -507,7 +510,7 @@ create_tmp_hashtables() {
     #create tmp hashtable for nat1-n host
     while read nat_name ip; do
         ipset create "$nat_name".tmp hash:ip hashsize 1024
-    done <$confdir/$nat_1n_ip_file
+    done <"$confdir"/"$nat_1n_ip_file"
 
     #hashtable for fw operator IPs from LAN interface
     ipset create fw_lan_operator_ips.tmp hash:ip hashsize 1024
@@ -519,7 +522,7 @@ create_tmp_hashtables() {
 }
 
 destroy_tmp_hashtables() {
-    for ipsetlist in $(ipset list -n|grep .tmp)
+    for ipsetlist in $(ipset list -n|grep -E "\.tmp$")
     do
         ipset destroy $ipsetlist
     done
@@ -537,7 +540,7 @@ load_tmp_fw_ip_hashtable() {
         else
             Log "error" "The file $public_ip_file has an invalid format, the correct one is: grantedhost|deniedhost|warnedhost ip_addres"
         fi
-    done < $confdir/$public_ip_file
+    done < "$confdir"/"$public_ip_file"
     Log "debug" "load_tmp_fw_ip_hashtable OK"
 }
 
@@ -554,8 +557,8 @@ load_tmp_nat1n_hashtables() {
             else
                 Log "error" "The file $nat_name is not in the correct format, the correct format is: grantedhost | deniedhost | warnedhost ip_address"
             fi
-        done < $confdir/$nat_name
-    done <$confdir/$nat_1n_ip_file
+        done < "$confdir"/"$nat_name"
+    done <"$confdir"/"$nat_1n_ip_file"
     Log "debug" "load_tmp_nat1n_hashtables OK"
 }
 
@@ -570,49 +573,49 @@ load_tmp_nat_11_hashtable() {
         else
             Log "error" "File $nat_11_file has the wrong format, correct format: grantedhost|deniedhost|warnedhost ip_adres ipub_adres"
         fi
-    done < $confdir/$nat_11_file
+    done < "$confdir"/"$nat_11_file"
     Log "debug" "load_tmp_nat_11_hashtable OK"
 }
 
 load_tmp_lan_operator_hashtable() {
     while read network; do
             ipset add fw_lan_operator_ips.tmp $network
-    done < $confdir/$lan_operator_file
+    done < "$confdir"/"$lan_operator_file"
     Log "debug" "load_tmp_lan_opertor_hashtable OK"
 }
 
 load_tmp_wan_operator_hashtable() {
     while read network; do
             ipset add fw_wan_operator_ips.tmp $network
-    done < $confdir/$wan_operator_file
+    done < "$confdir"/"$wan_operator_file"
     Log "debug" "load_tmp_wan_opertor_hashtable OK"
 }
 
 load_tmp_blacklist_hashtable() {
     while read network; do
             ipset add fw_permanent_blacklist.tmp $network
-    done < $confdir/$blacklist_file
+    done < "$confdir"/"$blacklist_file"
     Log "debug" "load_permanent_blacklist_tmp_hashtable OK"
 }
 
 load_tmp_lan_banned_dst_ports_hashtable() {
     while read ports; do
             ipset add fw_lan_banned_dst_ports.tmp $ports
-    done < $confdir/$lan_banned_dst_ports_file
+    done < "$confdir"/"$lan_banned_dst_ports_file"
     Log "debug" "load_tmp_lan_banned_dst_ports_hashtable OK"
 }
 
 load_tmp_wan_banned_dst_ports_hashtable() {
     while read ports; do
             ipset add fw_wan_banned_dst_ports.tmp $ports
-    done < $confdir/$wan_banned_dst_ports_file
+    done < "$confdir"/"$wan_banned_dst_ports_file"
     Log "debug" "load_tmp_wan_banned_dst_ports_hashtable OK"
 }
 
 load_tmp_lan_ddos_protected_ports_hashtable() {
     while read ports; do
             ipset add fw_lan_ddos_protected_ports.tmp $ports
-    done < $confdir/$lan_ddos_protected_ports_file
+    done < "$confdir"/"$lan_ddos_protected_ports_file"
     Log "debug" "load_tmp_lan_ddos_protected_ports_hashtable OK"
 }
 
@@ -625,7 +628,7 @@ load_new_ipset_hashtables() {
             Log "debug" "Loading new content into $ipsetname"
             ipset -W $ipsetname $ipsetname.tmp
         fi
-        ipset -X $ipsetname.tmp
+        ipset -X "$ipsetname".tmp
         Log "debug" "Deleting $ipsetname.tmp"
     done
     Log "debug" "load_new_ipset_hashtables OK"
@@ -633,18 +636,18 @@ load_new_ipset_hashtables() {
 
 load_nat_1n_fw_rules() {
     while read nat_name ip; do
-        iptables -t nat -A POSTROUTING -o $WAN -m set --match-set $nat_name src -j SNAT --to-source $ip
-    done <$confdir/$nat_1n_ip_file
+        iptables -t nat -A POSTROUTING -o "$WAN" -m set --match-set "$nat_name" src -j SNAT --to-source "$ip"
+    done <"$confdir"/"$nat_1n_ip_file"
     Log "debug" "load_nat_1n_fw_rules OK"
 }
 
 load_nat_11_fw_rules() {
     while read status i ipub; do
         if [ "$status" = "grantedhost" ]; then
-            iptables -t nat -A POSTROUTING -o $WAN -s $i -j SNAT --to-source $ipub
-            iptables -t nat -A PREROUTING -i $WAN -d $ipub -j DNAT --to-destination $i
+            iptables -t nat -A POSTROUTING -o "$WAN" -s "$i" -j SNAT --to-source "$ipub"
+            iptables -t nat -A PREROUTING -i "$WAN" -d "$ipub" -j DNAT --to-destination "$i"
         fi
-    done < $confdir/$nat_11_file
+    done < "$confdir"/"$nat_11_file"
     Log "debug" "load_nat_11_fw_rules OK"
 }
 
@@ -872,7 +875,7 @@ firewall_down() {
 }
 
 destroy_all_hashtables() {
-    for ipsetlist in $(ipset list -n)
+    for ipsetlist in $(ipset list -n|grep fw_)
     do
         ipset destroy "$ipsetlist"
     done
@@ -898,7 +901,7 @@ load_fw_hashtables() {
 static_routing_up() {
     if [ -s $confdir/$routed_nets_file ]; then
         while read net gw interface; do
-            ip route add $net via $gw dev $LAN
+            ip route add "$net" via "$gw" dev "$LAN"
         done < "$confdir"/"$routed_nets_file"
         Log "info" "Adding static routing entries"
     else
@@ -908,7 +911,7 @@ static_routing_up() {
 
 static_routing_down() {
     while read net gw interface; do
-        ip route del $net via $gw dev $LAN
+        ip route del "$net" via "$gw" dev "$LAN"
     done < "$confdir"/"$routed_nets_file"
     Log "info" "Removing static routing entries"
 }
