@@ -75,7 +75,14 @@ Log() {
     local COLOR_RED=$'\033[0;31m'
     local COLOR_RESET=$'\033[0m'
 
-    logger -p "user.${level}" -t "${SCRIPT_NAME}" "${message}"
+    local logger_level
+
+    case "$level" in
+        error) logger_level="err" ;;
+        *)     logger_level="$level" ;;
+    esac
+
+    logger -p "user.${logger_level}" -t "${SCRIPT_NAME}" "${message}"
 
     if [[ "$DEBUG" == "true" || "$DEBUG" == "yes" ]]; then
         __printmessage
