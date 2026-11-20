@@ -12,7 +12,10 @@
 #  GNU General Public License for more details.
 
 # Source only
-[[ ${0} == ${BASH_SOURCE}  ]] && exit 0
+[[ ${0} == ${BASH_SOURCE} ]] && {
+    echo "This file must be sourced" >&2
+    exit 1
+}
 
 # Source once
 [[ -n ${__fwfunctions:-} ]] && return 0
