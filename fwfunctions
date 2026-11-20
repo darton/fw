@@ -622,7 +622,7 @@ load_tmp_lan_ddos_protected_ports_hashtable() {
 }
 
 load_new_ipset_hashtables() {
-    for ipsetname in $(ipset list -n|grep -v .tmp|grep -v fw_time_blacklist |grep -v fw_wan_ddos_source); do
+    for ipsetname in $(ipset list -n|grep -v '\.tmp'|grep -v fw_time_blacklist |grep -v fw_wan_ddos_source); do
         current=$(ipset list $ipsetname |tail -n +9 |sort |sha1sum)
         new=$(ipset list $ipsetname.tmp |tail -n +9 |sort |sha1sum)
 
