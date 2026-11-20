@@ -18,46 +18,12 @@
 [[ ${__fwfunctions-} ]] && return 0
 declare __fwfunctions=$(readlink -f ${BASH_SOURCE})
 
-Log() {
-    [[ -f "$LOG_FILE_PATH" ]] || touch "$LOG_FILE_PATH"
-
-    local message="${*:2}"
-    local level="$1"
-    local logdate
-
-    logdate=$(date +"%F %T.%3N%:z")
-
-    local MESSAGE_FORMAT="${logdate} - ${level}: ${message}"
-    local MESSAGE_FORMAT_SIMPLE="${message}"
-
-    local COLOR_RED=$'\033[0;31m'
-    local COLOR_RESET=$'\033[0m'
-
-    logger -p "user.${level}" -t "${SCRIPT_NAME}" "${message}"
-
-    PrintMessage() {
-        if [[ "$level" == "error" ]]; then
-            printf '%s%s%s\n' "$COLOR_RED" "$MESSAGE_FORMAT_SIMPLE" "$COLOR_RESET" >&2
-        else
-            printf '%s\n' "$MESSAGE_FORMAT_SIMPLE"
-        fi
-    }
-
-    if [[ "$DEBUG" == "true" || "$DEBUG" == "yes" ]]; then
-        PrintMessage
-        printf '%s\n' "$MESSAGE_FORMAT" >> "$LOG_FILE_PATH"
-    else
-        if [[ "$level" == "error" || "$level" == "info" ]]; then
-            PrintMessage
-        fi
-    fi
-}
 
 init_fw() {
 
     local dir file
-
-    [[ -f "$logdir/$logfile" ]] || touch "$logdir/$logfile"
+    [[ -d "$logdir" ]] || mkdir -p "$logdir"
+    [[ -f "${logdir}"/"${logfile}" ]] || touch "${logdir}"/"${logfile}"
 
     [[ -d /run/"${SCRIPT_NAME}" ]] || mkdir -p /run/"${SCRIPT_NAME}"
     [[ -f /run/"${SCRIPT_NAME}"/maintenance.pid ]] || echo 0 > /run/"${SCRIPT_NAME}"/maintenance.pid
@@ -86,6 +52,41 @@ init_fw() {
     done
     ln -sf "$confdir"/"$dhcp_conf_file" /etc/dhcp/"$dhcp_conf_file"
 }
+
+
+Log() {
+    local message="${*:2}"
+    local level="$1"
+    local logdate
+
+    logdate=$(date +"%F %T.%3N%:z")
+
+    local MESSAGE_FORMAT="${logdate} - ${level}: ${message}"
+    local MESSAGE_FORMAT_SIMPLE="${message}"
+
+    local COLOR_RED=$'\033[0;31m'
+    local COLOR_RESET=$'\033[0m'
+
+    logger -p "user.${level}" -t "${SCRIPT_NAME}" "${message}"
+
+    PrintMessage() {
+        if [[ "$level" == "error" ]]; then
+            printf '%s%s%s\n' "$COLOR_RED" "$MESSAGE_FORMAT_SIMPLE" "$COLOR_RESET" >&2
+        else
+            printf '%s\n' "$MESSAGE_FORMAT_SIMPLE"
+        fi
+    }
+
+    if [[ "$DEBUG" == "true" || "$DEBUG" == "yes" ]]; then
+        PrintMessage
+        printf '%s\n' "$MESSAGE_FORMAT" >> "$logdir/$logfile"
+    else
+        if [[ "$level" == "error" || "$level" == "info" ]]; then
+            PrintMessage
+        fi
+    fi
+}
+
 
 check_interfaces_up() {
     for iface in "$@"; do
