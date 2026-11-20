@@ -136,7 +136,7 @@ get_shaper_config() {
 lmsd_reload() {
     Log "debug" "Reloading $lmsd_host instances on $lms_ip"
     $exec_cmd "$lmsd -q -h $lms_dbhost:3306 -H $lmsd_host -u $lms_dbuser -d $lms_db" || { Log "error" "Can not connect to database"; exit 1; }
-    Log "debug" "Reload $lmsd_host instances on $lms_ip complited"
+    Log "debug" "Reload $lmsd_host instances on $lms_ip completed"
     sleep 5
 }
 
