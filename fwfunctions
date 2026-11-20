@@ -908,7 +908,7 @@ load_fw_hashtables() {
 static_routing_up() {
     if [ -s $confdir/$routed_nets_file ]; then
         while read net gw interface; do
-            ip route add "$net" via "$gw" dev "$LAN"
+            ip route add "$net" via "$gw" dev "$LAN" > /dev/null 2>&1 || { Log "error" "Route not added for $net, $gw, $LAN"; continue; }
         done < "$confdir"/"$routed_nets_file"
         Log "info" "Adding static routing entries"
     else
