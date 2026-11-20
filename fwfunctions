@@ -15,8 +15,8 @@
 [[ ${0} == ${BASH_SOURCE}  ]] && exit 0
 
 # Source once
-[[ ${__fwfunctions-} ]] && return 0
-declare __fwfunctions=$(readlink -f ${BASH_SOURCE})
+[[ -n ${__fwfunctions:-} ]] && return 0
+readonly __fwfunctions="$(readlink -f "$BASH_SOURCE")"
 
 
 init_fw() {
