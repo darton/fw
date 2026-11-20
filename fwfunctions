@@ -918,7 +918,7 @@ static_routing_up() {
 
 static_routing_down() {
     while read net gw interface; do
-        ip route del "$net" via "$gw" dev "$LAN"
+        ip route del "$net" via "$gw" dev "$LAN" > /dev/null 2>&1 || { Log "error" "Route not deleted for $net, $gw, $LAN"; continue; }
     done < "$confdir"/"$routed_nets_file"
     Log "info" "Removing static routing entries"
 }
