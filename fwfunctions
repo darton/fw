@@ -116,7 +116,7 @@ get_config() {
     done
     shopt -u nullglob
 
-    cp "${FW_CONFIG_TEMP_DIR}"/* "$confdir"/ || { Log "error" "Can not copy new config files $FILENAME to cuurent config"; exit 1; }
+    cp "${FW_CONFIG_TEMP_DIR}"/* "$confdir"/ || { Log "error" "Can not copy new config files to curent config"; exit 1; }
     Log "debug" "get_config OK"
 }
 
