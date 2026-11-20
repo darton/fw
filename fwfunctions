@@ -117,7 +117,7 @@ get_config() {
     Log "debug" "Connecting to LMS and downloading configuration files"
     $copy_cmd_url /* "${FW_CONFIG_TEMP_DIR}" || { Log "error" "Can not download config files"; exit 1; }
     cd "$confdir" || { Log "error" "Cannot change directory to $confdir"; exit 1; }
-    cp "$confdir"/* "$oldconfdir"/ || { Log "error" "Can not move old config files to $oldconfdir"; exit 1; }
+    cp "$confdir"/* "$oldconfdir"/ || { Log "error" "Can not copy old config files to $oldconfdir"; exit 1; }
     cp "${FW_CONFIG_TEMP_DIR}"/* "$confdir"/ || { Log "error" "Can not copy new config files to curent config"; exit 1; }
     Log "debug" "get_config OK"
 }
