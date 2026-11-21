@@ -56,14 +56,6 @@ init_fw() {
     ln -sf "$confdir"/"$dhcp_conf_file" /etc/dhcp/"$dhcp_conf_file"
 }
 
-__printmessage() {
-    if [[ "$level" == "error" ]]; then
-        printf '%s%s%s\n' "$COLOR_RED" "$MESSAGE_FORMAT_SIMPLE" "$COLOR_RESET" >&2
-    else
-        printf '%s\n' "$MESSAGE_FORMAT_SIMPLE"
-    fi
-}
-
 
 Log() {
     local message="${*:2}"
@@ -86,6 +78,14 @@ Log() {
     esac
 
     logger -p "user.${logger_level}" -t "${SCRIPT_NAME}" "${message}"
+
+    __printmessage() {
+        if [[ "$level" == "error" ]]; then
+            printf '%s%s%s\n' "$COLOR_RED" "$MESSAGE_FORMAT_SIMPLE" "$COLOR_RESET" >&2
+        else
+            printf '%s\n' "$MESSAGE_FORMAT_SIMPLE"
+        fi
+    }
 
     if [[ "$DEBUG" == "true" || "$DEBUG" == "yes" ]]; then
         __printmessage
