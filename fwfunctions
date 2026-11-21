@@ -153,6 +153,7 @@ dhcp_server_cmd() {
         systemctl "$arg" dhcpd4 > /dev/null 2>&1 || return 1
     else
         Log "debug" "Unknown Linux distro: $distro_id"
+        return 1
     fi
 }
 
