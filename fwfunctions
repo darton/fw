@@ -1103,5 +1103,5 @@ menu_help() {
       echo -e "Usage: fw.sh start|stop|restart|reload|status"
       echo -e "Usage: fw.sh lmsd"
       echo -e "Usage: fw.sh shaper_stop|shaper_start|shaper_restart|shaper_stats|shaper_status"
-      echo -e "Usage: fw.sh maintenance-on|maintenance-off"
+      echo -e "Usage: fw.sh maintenance_on|maintenance_off"
 }
