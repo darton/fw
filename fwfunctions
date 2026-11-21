@@ -12,14 +12,15 @@
 #  GNU General Public License for more details.
 
 # Source only
-[[ ${0} == ${BASH_SOURCE} ]] && {
+[[ ${0} == "${BASH_SOURCE[0]}" ]] && {
     echo "This file must be sourced" >&2
     exit 1
 }
 
 # Source once
 [[ -n ${__fwfunctions-} ]] && return 0
-readonly __fwfunctions="$(readlink -f "$BASH_SOURCE")"
+readonly __fwfunctions
+__fwfunctions="$(readlink -f "${BASH_SOURCE[0]}")"
 
 
 init_fw() {
