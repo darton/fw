@@ -868,7 +868,7 @@ firewall_up() {
 
     # Blacklisted host/network
     iptables -t raw -A PREROUTING -m set --match-set fw_permanent_blacklist src -j DROP
-    iptables -t raw -A PREROUTING -m set --match-set fw_time_blacklist src -j DROP
+    #iptables -t raw -A PREROUTING -m set --match-set fw_time_blacklist src -j DROP
     Log "info" "firewall_up OK"
 }
 
