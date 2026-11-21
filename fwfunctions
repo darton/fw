@@ -1072,7 +1072,7 @@ maintenance_on() {
     mpid=$(cat /run/"${SCRIPT_NAME}"/maintenance.pid)
     if [ "$mpid" = 1 ]; then
         Log "info" "Firewall maintenance is already on"
-        Log "info" "To exit from maintenance mode run: fw.sh maintenance-off"
+        Log "info" "To exit from maintenance mode run: fw.sh maintenance_off"
         exit
     else
         ip link set dev "$MGMT" up && { echo 1 > /run/"${SCRIPT_NAME}"/maintenance.pid; Log "info" "Firewall maintenance is on"; } || { Log "error" "Can not set device $MGMT up"; exit 1; }
