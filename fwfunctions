@@ -164,17 +164,18 @@ dhcpd_cmd() {
         dhcpd_conf_new=$(sha1sum < "$confdir"/"$dhcp_conf_file")
         if [ "$dhcpd_conf_old" != "$dhcpd_conf_new" ]; then
             Log "info" "The dhcpd.conf file has a new configuration, restarting the DHCP SERVER"
-            dhcp_server_cmd restart
+            dhcp_server_cmd restart || { Log "error" "The DHCP SERVER restart failed"; return 1; }
+            Log "info" "The dhcpd server successfully restarted"
         else
             Log "debug" "Configuration of dhcpd.conf is identical, restart is not needed"
         fi
     elif [ "$arg" = "start" ]; then
         dhcp_server_cmd start || { Log "error" "The DHCP SERVER start failed"; return 1; }
-        Log "info" "The dhcpd server successfully started OK"
+        Log "info" "The dhcpd server successfully started"
 
     elif [ "$arg" = "stop" ]; then
         dhcp_server_cmd stop || { Log "error" "The DHCP SERVER stop failed"; return 1; }
-        Log "info" "The dhcpd server successfully stopped OK"
+        Log "info" "The dhcpd server successfully stopped"
     fi
 }
 
