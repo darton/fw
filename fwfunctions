@@ -23,13 +23,35 @@ __fwfunctions="$(readlink -f "${BASH_SOURCE[0]}")"
 readonly __fwfunctions
 
 
-init_fw() {
-    local dir file
+require_cmds() {
+    local entry cmd pkg
+    local -a missing_pkgs=()
 
-    command -v tc > /dev/null 2>&1 || { echo "ERROR: iproute-tc is not installed. Exiting" >&2; exit 1; }
-    command -v iptables > /dev/null 2>&1 || { echo "ERROR: iptables is not installed. Exiting" >&2; exit 1; }
-    command -v ipset > /dev/null 2>&1 || { echo "ERROR: ipset is not installed. Exiting" >&2; exit 1; }
-    command -v crontab > /dev/null 2>&1 || { echo "ERROR: cronie is not installed. Exiting" >&2; exit 1; }
+    for entry in "$@"; do
+        cmd="${entry%%:*}"
+        pkg="${entry#*:}"
+
+        command -v "$cmd" > /dev/null 2>&1 || missing_pkgs+=("$pkg")
+    done
+
+    if (( ${#missing_pkgs[@]} > 0 )); then
+        Log "error" "Missing packages: ${missing_pkgs[*]}" >&2
+        exit 1
+    fi
+}
+
+
+init_fw() {
+
+    require_cmds \
+        "tc:iproute-tc" \
+        "iptables:iptables" \
+        "ipset:ipset" \
+        "crontab:cronie" \
+        "lsmod:kmod" \
+        "diff:diffutils"
+
+    local dir file
 
     [[ -d /etc/dhcp ]] || { echo "ERROR: DHCP Server is not installed. Exiting." >&2; exit 1; }
     ln -sf "$confdir"/"$dhcp_conf_file" /etc/dhcp/"$dhcp_conf_file"
