@@ -1130,6 +1130,7 @@ newreload() {
     load_fw_hashtables
     shaper_cmd restart
     dhcpd_cmd restart
+    cp "$confdir"/* "$oldconfdir"/ || { Log "error" "Can not copy old config files to $oldconfdir"; exit 1; }
     Log "info" "Firewall reloaded successfully"
 }
 
