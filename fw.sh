@@ -43,6 +43,7 @@ FW_FUNCTIONS_PATH="$SCRIPT_DIR/fwfunctions"
 
 #Load fw-env.sh file
 MESSAGE="Can not load ${FW_ENV_PATH}"
+# shellcheck source="/etc/profile.d/fw-env.sh"
 if ! source "${FW_ENV_PATH}"; then
     logger -p user.err -t "${SCRIPT_NAME}" "${MESSAGE}"
     echo "$MESSAGE"
@@ -51,6 +52,7 @@ fi
 
 #Load fw.conf file
 MESSAGE="Can not load ${FW_CONF_PATH}"
+# shellcheck source="fw.conf"
 if ! source "${FW_CONF_PATH}"; then
     logger -p user.err -t "${SCRIPT_NAME}" "${MESSAGE}"
     echo "$MESSAGE"
@@ -59,6 +61,7 @@ fi
 
 #Load fwfunctions file
 MESSAGE="Can not load ${FW_FUNCTIONS_PATH}"
+# shellcheck source="fwfunctions"
 if ! source "${FW_FUNCTIONS_PATH}"; then
     logger -p user.err -t "${SCRIPT_NAME}" "${MESSAGE}"
     echo "${MESSAGE}"

@@ -168,7 +168,7 @@ validate_scripts() {
 
     if command -v shellcheck >/dev/null 2>&1; then
         echo "[*] Running shellcheck..."
-        shellcheck fw.sh fwfunctions
+        shellcheck -x -P . -a fw.sh
     fi
 
     echo "[+] Script validation passed"
