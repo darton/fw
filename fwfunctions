@@ -140,8 +140,6 @@ lmsd_reload() {
     sleep 5
 }
 
-Oto kompletny zestaw funkcji ze wszystkimi omówionymi poprawkami: `case` w `dhcpd_cmd`, lokalny zakres zmiennych, fallback na `/usr/sbin/dhcpd`, logowanie błędów z `dhcpd -t` oraz obsługa nieznanych argumentów:
-
 
 dhcp_server_cmd() {
     local arg="$1"
