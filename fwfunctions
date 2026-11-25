@@ -193,9 +193,6 @@ dhcp_server_cmd() {
         almalinux|fedora|rhel|rocky)
             service_name="dhcpd"
             ;;
-        arch)
-            service_name="dhcpd4"
-            ;;
         *)
             Log "debug" "Unknown Linux distro: $distro_id"
             return 1
@@ -1128,9 +1125,9 @@ start() {
 
 newreload() {
     Log "info" "Firewall reloading"
-    load_fw_hashtables
     modify_nat11_fw_rules
     modify_nat1n_fw_rules
+    load_fw_hashtables
     shaper_cmd restart
     dhcpd_cmd restart
     Log "info" "Firewall reloaded successfully"
@@ -1150,14 +1147,12 @@ lmsd() {
         Log "error" "Error connection to DB"
         return 1
     fi
-
     Log "info" "Successfully connected to DB"
 
     if [ "$reload" != "1" ]; then
         Log "debug" "Host reload status not set"
         return 0
     fi
-
     Log "info" "Host reload status has been set"
 
     lmsd_reload
@@ -1173,13 +1168,13 @@ maintenance_on() {
         Log "info" "To exit from maintenance mode run: fw.sh maintenance_off"
         exit
     else
-	if ip link set dev "$MGMT" up; then
-	    echo 1 > /run/"${SCRIPT_NAME}"/maintenance.pid
-	    Log "info" "Firewall maintenance is on"
-	else
-	    Log "error" "Cannot set device $MGMT up"
-	    exit 1
-	fi        
+        if ip link set dev "$MGMT" up; then
+            echo 1 > /run/"${SCRIPT_NAME}"/maintenance.pid
+            Log "info" "Firewall maintenance is on"
+        else
+            Log "error" "Cannot set device $MGMT up"
+            exit 1
+        fi
         #stop
         #ip link set dev "$LAN" down
         #ip link set dev "$WAN" down
@@ -1198,12 +1193,12 @@ maintenance_off() {
         #ip link set dev "$LAN" up || { Log "error" "Can not set device $LAN up"; exit 1; }
         sleep 5
         #start
-	if ip link set dev "$MGMT" down; then
-	    echo 0 > /run/"${SCRIPT_NAME}"/maintenance.pid
-	    Log "info" "Firewall maintenance is off"
-	else
-	    Log "error" "Cannot set device $MGMT down"
-	fi
+        if ip link set dev "$MGMT" down; then
+            echo 0 > /run/"${SCRIPT_NAME}"/maintenance.pid
+            Log "info" "Firewall maintenance is off"
+        else
+            Log "error" "Cannot set device $MGMT down"
+        fi
     fi
 }
 
