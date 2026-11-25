@@ -140,43 +140,111 @@ lmsd_reload() {
     sleep 5
 }
 
+Oto kompletny zestaw funkcji ze wszystkimi omówionymi poprawkami: `case` w `dhcpd_cmd`, lokalny zakres zmiennych, fallback na `/usr/sbin/dhcpd`, logowanie błędów z `dhcpd -t` oraz obsługa nieznanych argumentów:
+
+
 dhcp_server_cmd() {
-    if [[ -f /etc/os-release ]]; then
-        distro_id="$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')"
-    fi
     local arg="$1"
-    if [[ "$distro_id" == "debian" || "$distro_id" == "ubuntu" ]]; then
-        systemctl "$arg" isc-dhcp-server > /dev/null 2>&1 || return 1
-    elif [[ "$distro_id" == "almalinux" || "$distro_id" == "fedora" || "$distro_id" == "rhel" || "$distro_id" == "rocky" ]]; then
-        systemctl "$arg" dhcpd > /dev/null 2>&1 || return 1
-    elif [[ "$distro_id" == "arch" ]]; then
-        systemctl "$arg" dhcpd4 > /dev/null 2>&1 || return 1
-    else
-        Log "debug" "Unknown Linux distro: $distro_id"
+    local distro_id=""
+    local service_name=""
+
+    if [[ -z "$arg" ]]; then
+        Log "error" "Missing action argument for dhcp_server_cmd"
         return 1
     fi
+
+    if [[ -r /etc/os-release ]]; then
+        distro_id="$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')"
+    fi
+
+    case "$distro_id" in
+        debian|ubuntu)
+            service_name="isc-dhcp-server"
+            ;;
+        almalinux|fedora|rhel|rocky)
+            service_name="dhcpd"
+            ;;
+        arch)
+            service_name="dhcpd4"
+            ;;
+        *)
+            Log "debug" "Unknown Linux distro: $distro_id"
+            return 1
+            ;;
+    esac
+
+    systemctl "$arg" "$service_name" > /dev/null 2>&1 || return 1
+}
+
+dhcpd_test_config() {
+    local cfg_file="$1"
+    local dhcpd_bin=""
+    local test_out=""
+
+    if [[ ! -r "$cfg_file" ]]; then
+        Log "error" "DHCP config file is not readable: $cfg_file"
+        return 1
+    fi
+
+    if command -v dhcpd > /dev/null 2>&1; then
+        dhcpd_bin="$(command -v dhcpd)"
+    elif [[ -x /usr/sbin/dhcpd ]]; then
+        dhcpd_bin="/usr/sbin/dhcpd"
+    else
+        Log "error" "dhcpd binary not found, cannot validate configuration"
+        return 1
+    fi
+
+    if ! test_out="$("$dhcpd_bin" -t -cf "$cfg_file" 2>&1)"; then
+        Log "error" "DHCP configuration syntax check failed for: $cfg_file (${test_out})"
+        return 1
+    fi
+
+    return 0
 }
 
 dhcpd_cmd() {
     local arg="$1"
-    if [ "$arg" = "restart" ]; then
-        dhcpd_conf_old=$(sha1sum < "$oldconfdir"/"$dhcp_conf_file")
-        dhcpd_conf_new=$(sha1sum < "$confdir"/"$dhcp_conf_file")
-        if [ "$dhcpd_conf_old" != "$dhcpd_conf_new" ]; then
-            Log "info" "The dhcpd.conf file has a new configuration, restarting the DHCP SERVER"
-            dhcp_server_cmd restart || { Log "error" "The DHCP SERVER restart failed"; return 1; }
-            Log "info" "The dhcpd server successfully restarted"
-        else
-            Log "debug" "Configuration of dhcpd.conf is identical, restart is not needed"
-        fi
-    elif [ "$arg" = "start" ]; then
-        dhcp_server_cmd start || { Log "error" "The DHCP SERVER start failed"; return 1; }
-        Log "info" "The dhcpd server successfully started"
+    local old_cfg="${oldconfdir}/${dhcp_conf_file}"
+    local new_cfg="${confdir}/${dhcp_conf_file}"
+    local dhcpd_conf_old=""
+    local dhcpd_conf_new=""
 
-    elif [ "$arg" = "stop" ]; then
-        dhcp_server_cmd stop || { Log "error" "The DHCP SERVER stop failed"; return 1; }
-        Log "info" "The dhcpd server successfully stopped"
-    fi
+    case "$arg" in
+        restart)
+            if [[ ! -r "$old_cfg" || ! -r "$new_cfg" ]]; then
+                Log "error" "Cannot read DHCP configuration files for comparison"
+                return 1
+            fi
+
+            dhcpd_conf_old=$(sha1sum < "$old_cfg") || return 1
+            dhcpd_conf_new=$(sha1sum < "$new_cfg") || return 1
+
+            if [[ "$dhcpd_conf_old" != "$dhcpd_conf_new" ]]; then
+                Log "info" "The dhcpd.conf file has a new configuration, testing syntax before restart"
+                dhcpd_test_config "$new_cfg" || return 1
+
+                Log "info" "Configuration syntax is valid, restarting the DHCP SERVER"
+                dhcp_server_cmd restart || { Log "error" "The DHCP SERVER restart failed"; return 1; }
+                Log "info" "The dhcpd server successfully restarted"
+            else
+                Log "debug" "Configuration of dhcpd.conf is identical, restart is not needed"
+            fi
+            ;;
+        start)
+            dhcpd_test_config "$new_cfg" || return 1
+            dhcp_server_cmd start || { Log "error" "The DHCP SERVER start failed"; return 1; }
+            Log "info" "The dhcpd server successfully started"
+            ;;
+        stop)
+            dhcp_server_cmd stop || { Log "error" "The DHCP SERVER stop failed"; return 1; }
+            Log "info" "The dhcpd server successfully stopped"
+            ;;
+        *)
+            Log "error" "Unknown dhcpd_cmd argument: $arg"
+            return 1
+            ;;
+    esac
 }
 
 get_counters() {
