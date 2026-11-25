@@ -22,9 +22,15 @@
 __fwfunctions="$(readlink -f "${BASH_SOURCE[0]}")"
 readonly __fwfunctions
 
-init_fw() {
 
+init_fw() {
     local dir file
+
+    command -v tc > /dev/null || { echo "ERROR: tc is not installed. Exiting" >&2; exit 1; }
+
+    [[ -d /etc/dhcp ]] || { echo "ERROR: DHCP Server is not installed. Exiting." >&2; exit 1; }
+    ln -sf "$confdir"/"$dhcp_conf_file" /etc/dhcp/"$dhcp_conf_file"
+
     [[ -d "$logdir" ]] || mkdir -p "$logdir"
     [[ -f "${logdir}"/"${logfile}" ]] || touch "${logdir}"/"${logfile}"
 
@@ -53,7 +59,6 @@ init_fw() {
             [[ -f "$dir/$file" ]] || touch "$dir/$file"
         done
     done
-    ln -sf "$confdir"/"$dhcp_conf_file" /etc/dhcp/"$dhcp_conf_file"
 }
 
 
@@ -996,7 +1001,7 @@ static_routing_down() {
 
 
 fw_cron() {
-    local cronfile=/etc/cron.d/fw_sh
+    local cronfile=/etc/cron.d/fw.sh
 
     case $1 in
         start)
