@@ -49,7 +49,8 @@ init_fw() {
         "ipset:ipset" \
         "crontab:cronie" \
         "lsmod:kmod" \
-        "diff:diffutils"
+        "diff:diffutils" \
+        "dhcpd:dhcp-server"
 
     local dir file
 
