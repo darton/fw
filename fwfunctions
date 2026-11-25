@@ -160,9 +160,9 @@ dhcp_server_cmd() {
 dhcpd_cmd() {
     local arg="$1"
     if [ "$arg" = "restart" ]; then
-        dhcpd_conf_current=$(sha1sum < "$confdir"/"$dhcp_conf_file")
-        dhcpd_conf_new=$(sha1sum < "$oldconfdir"/"$dhcp_conf_file")
-        if [ "$dhcpd_conf_current" != "$dhcpd_conf_new" ]; then
+        dhcpd_conf_old=$(sha1sum < "$oldconfdir"/"$dhcp_conf_file")
+        dhcpd_conf_new=$(sha1sum < "$confdir"/"$dhcp_conf_file")
+        if [ "$dhcpd_conf_old" != "$dhcpd_conf_new" ]; then
             Log "info" "The dhcpd.conf file has a new configuration, restarting the DHCP SERVER"
             dhcp_server_cmd restart
         else
