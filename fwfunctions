@@ -173,7 +173,7 @@ dhcpd_cmd() {
         Log "info" "The dhcpd server successfully started OK"
 
     elif [ "$arg" = "stop" ]; then
-        dhcp_server_cmd stop || { Log "error" "The DHCP SERVER start failed"; return 1; }
+        dhcp_server_cmd stop || { Log "error" "The DHCP SERVER stop failed"; return 1; }
         Log "info" "The dhcpd server successfully stopped OK"
     fi
 }
