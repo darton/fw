@@ -43,14 +43,37 @@ require_cmds() {
 
 init_fw() {
 
-    require_cmds \
-        "tc:iproute-tc" \
-        "iptables:iptables" \
-        "ipset:ipset" \
-        "crontab:cronie" \
-        "lsmod:kmod" \
-        "diff:diffutils" \
-        "dhcpd:dhcp-server"
+    if [[ -r /etc/os-release ]]; then
+        distro_id="$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '"')"
+    fi
+
+    case "$distro_id" in
+        debian|ubuntu)
+            require_cmds \
+                "tc:iproute2" \
+                "iptables:iptables" \
+                "ipset:ipset" \
+                "crontab:cron" \
+                "lsmod:kmod" \
+                "diff:diffutils" \
+                "dhcpd:isc-dhcp-server"
+            ;;
+        almalinux|fedora|rhel|rocky)
+            require_cmds \
+                "tc:iproute-tc" \
+                "iptables:iptables" \
+                "ipset:ipset" \
+                "crontab:cronie" \
+                "lsmod:kmod" \
+                "diff:diffutils" \
+                "dhcpd:dhcp-server"
+            ;;
+        *)
+            Log "debug" "Unknown Linux distro: $distro_id"
+            return 1
+            ;;
+    esac
+
 
     local dir file
 
