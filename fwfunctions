@@ -1047,7 +1047,7 @@ static_routing_down() {
 
 
 fw_cron() {
-    local cronfile=/etc/cron.d/fw.sh
+    local cronfile=/etc/cron.d/fw
 
     case $1 in
         start)

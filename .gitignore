@@ -1,0 +1,4 @@
+oldconf
+conf
+.env
+*.env
