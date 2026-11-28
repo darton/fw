@@ -58,7 +58,7 @@ init_fw() {
                 "diff:diffutils" \
                 "dhcpd:isc-dhcp-server"
             ;;
-        almalinux|fedora|rhel|rocky)
+        almalinux|centos|fedora|rhel|rocky)
             require_cmds \
                 "tc:iproute-tc" \
                 "iptables:iptables" \
@@ -213,7 +213,7 @@ dhcp_server_cmd() {
         debian|ubuntu)
             service_name="isc-dhcp-server"
             ;;
-        almalinux|fedora|rhel|rocky)
+        almalinux|centos|fedora|rhel|rocky)
             service_name="dhcpd"
             ;;
         *)
